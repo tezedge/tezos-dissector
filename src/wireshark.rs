@@ -81,7 +81,6 @@ where
         }
     }
 }
-pub const __GNUC_VA_LIST: u32 = 1;
 pub const G_ANALYZER_ANALYZING: u32 = 0;
 pub const FALSE: u32 = 0;
 pub const _LIBC_LIMITS_H_: u32 = 1;
@@ -300,6 +299,7 @@ pub const G_PDP_ENDIAN: u32 = 3412;
 pub const G_IEEE754_FLOAT_BIAS: u32 = 127;
 pub const G_IEEE754_DOUBLE_BIAS: u32 = 1023;
 pub const G_LOG_2_BASE_10: f64 = 0.3010299956639812;
+pub const __GNUC_VA_LIST: u32 = 1;
 pub const _STDLIB_H: u32 = 1;
 pub const WNOHANG: u32 = 1;
 pub const WUNTRACED: u32 = 2;
@@ -528,13 +528,23 @@ pub const _BITS_SETJMP_H: u32 = 1;
 pub const PTHREAD_ONCE_INIT: u32 = 0;
 pub const PTHREAD_BARRIER_SERIAL_THREAD: i32 = -1;
 pub const WMEM_TREE_STRING_NOCASE: u32 = 1;
-pub const GUID_LEN: u32 = 16;
+pub const FT_ETHER_LEN: u32 = 6;
+pub const FT_GUID_LEN: u32 = 16;
+pub const FT_IPv4_LEN: u32 = 4;
+pub const FT_IPv6_LEN: u32 = 16;
+pub const FT_IPXNET_LEN: u32 = 4;
+pub const FT_EUI64_LEN: u32 = 8;
+pub const FT_AX25_ADDR_LEN: u32 = 7;
+pub const FT_VINES_ADDR_LEN: u32 = 6;
+pub const FT_FCWWN_LEN: u32 = 8;
+pub const FT_VARINT_MAX_LEN: u32 = 10;
 pub const IPv6_ADDR_SIZE: u32 = 16;
 pub const IPv6_HDR_SIZE: u32 = 40;
 pub const IPv6_FRAGMENT_HDR_SIZE: u32 = 8;
 pub const IP6F_OFF_MASK: u32 = 65528;
 pub const IP6F_RESERVED_MASK: u32 = 6;
 pub const IP6F_MORE_FRAG: u32 = 1;
+pub const GUID_LEN: u32 = 16;
 pub const WS_INET_ADDRSTRLEN: u32 = 16;
 pub const WS_INET6_ADDRSTRLEN: u32 = 46;
 pub const OPT_EOFOPT: u32 = 0;
@@ -1149,16 +1159,6 @@ pub const P2P_DIR_DL: u32 = 1;
 pub const PINFO_HAS_TS: u32 = 1;
 pub const DESEGMENT_ONE_MORE_SEGMENT: u32 = 268435455;
 pub const DESEGMENT_UNTIL_FIN: u32 = 268435454;
-pub const FT_ETHER_LEN: u32 = 6;
-pub const FT_GUID_LEN: u32 = 16;
-pub const FT_IPv4_LEN: u32 = 4;
-pub const FT_IPv6_LEN: u32 = 16;
-pub const FT_IPXNET_LEN: u32 = 4;
-pub const FT_EUI64_LEN: u32 = 8;
-pub const FT_AX25_ADDR_LEN: u32 = 7;
-pub const FT_VINES_ADDR_LEN: u32 = 6;
-pub const FT_FCWWN_LEN: u32 = 8;
-pub const FT_VARINT_MAX_LEN: u32 = 10;
 pub const ITEM_LABEL_LENGTH: u32 = 240;
 pub const ITEM_LABEL_UNKNOWN_STR: &'static [u8; 8usize] = b"Unknown\0";
 pub const ENC_BIG_ENDIAN: u32 = 0;
@@ -1289,8 +1289,53 @@ pub const PROTO_CHECKSUM_GENERATED: u32 = 2;
 pub const PROTO_CHECKSUM_IN_CKSUM: u32 = 4;
 pub const PROTO_CHECKSUM_ZERO: u32 = 8;
 pub const PROTO_CHECKSUM_NOT_PRESENT: u32 = 16;
-pub type va_list = __builtin_va_list;
-pub type __gnuc_va_list = __builtin_va_list;
+pub const MAX_SCTP_PORT: u32 = 65535;
+pub const MAX_TCP_PORT: u32 = 65535;
+pub const MAX_UDP_PORT: u32 = 65535;
+pub const MAX_DCCP_PORT: u32 = 65535;
+pub const DEF_WIDTH: u32 = 750;
+pub const DEF_HEIGHT: u32 = 550;
+pub const MAX_VAL_LEN: u32 = 1024;
+pub const TAP_UPDATE_DEFAULT_INTERVAL: u32 = 3000;
+pub const ST_DEF_BURSTRES: u32 = 5;
+pub const ST_DEF_BURSTLEN: u32 = 100;
+pub const ST_MAX_BURSTRES: u32 = 600000;
+pub const ST_MAX_BURSTBUCKETS: u32 = 100;
+pub const FO_STYLE_LAST_OPENED: u32 = 0;
+pub const FO_STYLE_SPECIFIED: u32 = 1;
+pub const TB_STYLE_ICONS: u32 = 0;
+pub const TB_STYLE_TEXT: u32 = 1;
+pub const TB_STYLE_BOTH: u32 = 2;
+pub const COLOR_STYLE_DEFAULT: u32 = 0;
+pub const COLOR_STYLE_FLAT: u32 = 1;
+pub const COLOR_STYLE_GRADIENT: u32 = 2;
+pub const COLOR_STYLE_ALPHA: f64 = 0.25;
+pub const NO_ADDR2: u32 = 1;
+pub const NO_PORT2: u32 = 2;
+pub const NO_PORT2_FORCE: u32 = 4;
+pub const CONVERSATION_TEMPLATE: u32 = 8;
+pub const NO_ADDR_B: u32 = 1;
+pub const NO_PORT_B: u32 = 2;
+pub const USE_LAST_ENDPOINT: u32 = 8;
+pub const TH_FIN: u32 = 1;
+pub const TH_SYN: u32 = 2;
+pub const TH_RST: u32 = 4;
+pub const TH_PUSH: u32 = 8;
+pub const TH_ACK: u32 = 16;
+pub const TH_URG: u32 = 32;
+pub const TH_ECN: u32 = 64;
+pub const TH_CWR: u32 = 128;
+pub const TH_NS: u32 = 256;
+pub const TH_RES: u32 = 3584;
+pub const TH_MASK: u32 = 4095;
+pub const MAX_TCP_SACK_RANGES: u32 = 4;
+pub const MSP_FLAGS_REASSEMBLE_ENTIRE_SEGMENT: u32 = 1;
+pub const MSP_FLAGS_GOT_ALL_SEGMENTS: u32 = 2;
+pub const MSP_FLAGS_MISSING_FIRST_SEGMENT: u32 = 4;
+pub const MPTCP_CAPABLE_CRYPTO_MASK: u32 = 63;
+pub const MPTCP_CHECKSUM_MASK: u32 = 128;
+pub const TCP_MAX_UNACKED_SEGMENTS: u32 = 1000;
+pub const TCP_FLOW_REASSEMBLE_UNTIL_FIN: u32 = 1;
 pub type size_t = ::std::os::raw::c_ulong;
 pub type wchar_t = ::std::os::raw::c_int;
 #[repr(C)]
@@ -2671,6 +2716,8 @@ extern "C" {
 extern "C" {
     pub fn g_atomic_int_exchange_and_add(atomic: *mut gint, val: gint) -> gint;
 }
+pub type va_list = __builtin_va_list;
+pub type __gnuc_va_list = __builtin_va_list;
 pub type GQuark = guint32;
 extern "C" {
     pub fn g_quark_try_string(string: *const gchar) -> GQuark;
@@ -22993,6 +23040,120 @@ extern "C" {
     #[doc = " @param id        The callback id as returned from wmem_register_callback()."]
     pub fn wmem_unregister_callback(allocator: *mut wmem_allocator_t, id: guint);
 }
+pub const ftenum_FT_NONE: ftenum = 0;
+pub const ftenum_FT_PROTOCOL: ftenum = 1;
+pub const ftenum_FT_BOOLEAN: ftenum = 2;
+pub const ftenum_FT_CHAR: ftenum = 3;
+pub const ftenum_FT_UINT8: ftenum = 4;
+pub const ftenum_FT_UINT16: ftenum = 5;
+pub const ftenum_FT_UINT24: ftenum = 6;
+pub const ftenum_FT_UINT32: ftenum = 7;
+pub const ftenum_FT_UINT40: ftenum = 8;
+pub const ftenum_FT_UINT48: ftenum = 9;
+pub const ftenum_FT_UINT56: ftenum = 10;
+pub const ftenum_FT_UINT64: ftenum = 11;
+pub const ftenum_FT_INT8: ftenum = 12;
+pub const ftenum_FT_INT16: ftenum = 13;
+pub const ftenum_FT_INT24: ftenum = 14;
+pub const ftenum_FT_INT32: ftenum = 15;
+pub const ftenum_FT_INT40: ftenum = 16;
+pub const ftenum_FT_INT48: ftenum = 17;
+pub const ftenum_FT_INT56: ftenum = 18;
+pub const ftenum_FT_INT64: ftenum = 19;
+pub const ftenum_FT_IEEE_11073_SFLOAT: ftenum = 20;
+pub const ftenum_FT_IEEE_11073_FLOAT: ftenum = 21;
+pub const ftenum_FT_FLOAT: ftenum = 22;
+pub const ftenum_FT_DOUBLE: ftenum = 23;
+pub const ftenum_FT_ABSOLUTE_TIME: ftenum = 24;
+pub const ftenum_FT_RELATIVE_TIME: ftenum = 25;
+pub const ftenum_FT_STRING: ftenum = 26;
+pub const ftenum_FT_STRINGZ: ftenum = 27;
+pub const ftenum_FT_UINT_STRING: ftenum = 28;
+pub const ftenum_FT_ETHER: ftenum = 29;
+pub const ftenum_FT_BYTES: ftenum = 30;
+pub const ftenum_FT_UINT_BYTES: ftenum = 31;
+pub const ftenum_FT_IPv4: ftenum = 32;
+pub const ftenum_FT_IPv6: ftenum = 33;
+pub const ftenum_FT_IPXNET: ftenum = 34;
+pub const ftenum_FT_FRAMENUM: ftenum = 35;
+pub const ftenum_FT_PCRE: ftenum = 36;
+pub const ftenum_FT_GUID: ftenum = 37;
+pub const ftenum_FT_OID: ftenum = 38;
+pub const ftenum_FT_EUI64: ftenum = 39;
+pub const ftenum_FT_AX25: ftenum = 40;
+pub const ftenum_FT_VINES: ftenum = 41;
+pub const ftenum_FT_REL_OID: ftenum = 42;
+pub const ftenum_FT_SYSTEM_ID: ftenum = 43;
+pub const ftenum_FT_STRINGZPAD: ftenum = 44;
+pub const ftenum_FT_FCWWN: ftenum = 45;
+pub const ftenum_FT_NUM_TYPES: ftenum = 46;
+pub type ftenum = u32;
+pub use self::ftenum as ftenum_t;
+pub const ft_framenum_type_FT_FRAMENUM_NONE: ft_framenum_type = 0;
+pub const ft_framenum_type_FT_FRAMENUM_REQUEST: ft_framenum_type = 1;
+pub const ft_framenum_type_FT_FRAMENUM_RESPONSE: ft_framenum_type = 2;
+pub const ft_framenum_type_FT_FRAMENUM_ACK: ft_framenum_type = 3;
+pub const ft_framenum_type_FT_FRAMENUM_DUP_ACK: ft_framenum_type = 4;
+pub const ft_framenum_type_FT_FRAMENUM_RETRANS_PREV: ft_framenum_type = 5;
+pub const ft_framenum_type_FT_FRAMENUM_RETRANS_NEXT: ft_framenum_type = 6;
+pub const ft_framenum_type_FT_FRAMENUM_NUM_TYPES: ft_framenum_type = 7;
+pub type ft_framenum_type = u32;
+pub use self::ft_framenum_type as ft_framenum_type_t;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _ftype_t {
+    _unused: [u8; 0],
+}
+pub type ftype_t = _ftype_t;
+pub const ftrepr_FTREPR_DISPLAY: ftrepr = 0;
+pub const ftrepr_FTREPR_DFILTER: ftrepr = 1;
+pub type ftrepr = u32;
+pub use self::ftrepr as ftrepr_t;
+extern "C" {
+    pub fn ftypes_initialize();
+}
+extern "C" {
+    pub fn ftype_similar_types(ftype_a: ftenum, ftype_b: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_name(ftype: ftenum_t) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn ftype_pretty_name(ftype: ftenum_t) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn ftype_length(ftype: ftenum_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ftype_can_slice(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_eq(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_ne(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_gt(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_ge(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_lt(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_le(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_bitwise_and(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_contains(ftype: ftenum) -> gboolean;
+}
+extern "C" {
+    pub fn ftype_can_matches(ftype: ftenum) -> gboolean;
+}
 pub type ws_in4_addr = guint32;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -23032,203 +23193,6 @@ fn bindgen_test_layout_ipv4_addr_and_mask() {
             stringify!(nmask)
         )
     );
-}
-#[doc = " data structure to hold time values with nanosecond resolution"]
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct nstime_t {
-    pub secs: time_t,
-    pub nsecs: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout_nstime_t() {
-    assert_eq!(
-        ::std::mem::size_of::<nstime_t>(),
-        16usize,
-        concat!("Size of: ", stringify!(nstime_t))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<nstime_t>(),
-        8usize,
-        concat!("Alignment of ", stringify!(nstime_t))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<nstime_t>())).secs as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nstime_t),
-            "::",
-            stringify!(secs)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<nstime_t>())).nsecs as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nstime_t),
-            "::",
-            stringify!(nsecs)
-        )
-    );
-}
-extern "C" {
-    #[doc = " set the given nstime_t to zero"]
-    pub fn nstime_set_zero(nstime: *mut nstime_t);
-}
-extern "C" {
-    #[doc = " is the given nstime_t currently zero?"]
-    pub fn nstime_is_zero(nstime: *mut nstime_t) -> gboolean;
-}
-extern "C" {
-    #[doc = " set the given nstime_t to (0,maxint) to mark it as \"unset\""]
-    #[doc = " That way we can find the first frame even when a timestamp"]
-    #[doc = " is zero (fix for bug 1056)"]
-    pub fn nstime_set_unset(nstime: *mut nstime_t);
-}
-extern "C" {
-    pub fn nstime_is_unset(nstime: *const nstime_t) -> gboolean;
-}
-extern "C" {
-    #[doc = " duplicate the current time"]
-    #[doc = ""]
-    #[doc = " a = b"]
-    pub fn nstime_copy(a: *mut nstime_t, b: *const nstime_t);
-}
-extern "C" {
-    #[doc = " calculate the delta between two times (can be negative!)"]
-    #[doc = ""]
-    #[doc = " delta = b-a"]
-    #[doc = ""]
-    #[doc = " Note that it is acceptable for two or more of the arguments to point at the"]
-    #[doc = " same structure."]
-    pub fn nstime_delta(delta: *mut nstime_t, b: *const nstime_t, a: *const nstime_t);
-}
-extern "C" {
-    #[doc = " calculate the sum of two times"]
-    #[doc = ""]
-    #[doc = " sum = a+b"]
-    #[doc = ""]
-    #[doc = " Note that it is acceptable for two or more of the arguments to point at the"]
-    #[doc = " same structure."]
-    pub fn nstime_sum(sum: *mut nstime_t, a: *const nstime_t, b: *const nstime_t);
-}
-extern "C" {
-    #[doc = " compare two times are return a value similar to memcmp() or strcmp()."]
-    #[doc = ""]
-    #[doc = " a > b : > 0"]
-    #[doc = " a = b : 0"]
-    #[doc = " a < b : < 0"]
-    pub fn nstime_cmp(a: *const nstime_t, b: *const nstime_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    #[doc = " converts nstime to double, time base is milli seconds"]
-    pub fn nstime_to_msec(nstime: *const nstime_t) -> f64;
-}
-extern "C" {
-    #[doc = " converts nstime to double, time base is seconds"]
-    pub fn nstime_to_sec(nstime: *const nstime_t) -> f64;
-}
-extern "C" {
-    #[doc = " converts Windows FILETIME to nstime, returns TRUE on success,"]
-    #[doc = "FALSE on failure"]
-    pub fn filetime_to_nstime(nstime: *mut nstime_t, filetime: guint64) -> gboolean;
-}
-extern "C" {
-    #[doc = " converts time like Windows FILETIME, but expressed in nanoseconds"]
-    #[doc = "rather than tenths of microseconds, to nstime, returns TRUE on success,"]
-    #[doc = "FALSE on failure"]
-    pub fn nsfiletime_to_nstime(nstime: *mut nstime_t, nsfiletime: guint64) -> gboolean;
-}
-pub const to_str_time_res_t_TO_STR_TIME_RES_T_SECS: to_str_time_res_t = 0;
-pub const to_str_time_res_t_TO_STR_TIME_RES_T_DSECS: to_str_time_res_t = 1;
-pub const to_str_time_res_t_TO_STR_TIME_RES_T_CSECS: to_str_time_res_t = 2;
-pub const to_str_time_res_t_TO_STR_TIME_RES_T_MSECS: to_str_time_res_t = 3;
-pub const to_str_time_res_t_TO_STR_TIME_RES_T_USECS: to_str_time_res_t = 4;
-pub const to_str_time_res_t_TO_STR_TIME_RES_T_NSECS: to_str_time_res_t = 5;
-pub type to_str_time_res_t = u32;
-pub const absolute_time_display_e_ABSOLUTE_TIME_LOCAL: absolute_time_display_e = 1000;
-pub const absolute_time_display_e_ABSOLUTE_TIME_UTC: absolute_time_display_e = 1001;
-pub const absolute_time_display_e_ABSOLUTE_TIME_DOY_UTC: absolute_time_display_e = 1002;
-pub const absolute_time_display_e_ABSOLUTE_TIME_NTP_UTC: absolute_time_display_e = 1003;
-pub type absolute_time_display_e = u32;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct _e_guid_t {
-    pub data1: guint32,
-    pub data2: guint16,
-    pub data3: guint16,
-    pub data4: [guint8; 8usize],
-}
-#[test]
-fn bindgen_test_layout__e_guid_t() {
-    assert_eq!(
-        ::std::mem::size_of::<_e_guid_t>(),
-        16usize,
-        concat!("Size of: ", stringify!(_e_guid_t))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_e_guid_t>(),
-        4usize,
-        concat!("Alignment of ", stringify!(_e_guid_t))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_e_guid_t>())).data1 as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_e_guid_t),
-            "::",
-            stringify!(data1)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_e_guid_t>())).data2 as *const _ as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_e_guid_t),
-            "::",
-            stringify!(data2)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_e_guid_t>())).data3 as *const _ as usize },
-        6usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_e_guid_t),
-            "::",
-            stringify!(data3)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_e_guid_t>())).data4 as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_e_guid_t),
-            "::",
-            stringify!(data4)
-        )
-    );
-}
-pub type e_guid_t = _e_guid_t;
-extern "C" {
-    pub fn guids_init();
-}
-extern "C" {
-    pub fn guids_add_guid(guid: *const e_guid_t, name: *const gchar);
-}
-extern "C" {
-    pub fn guids_get_guid_name(guid: *const e_guid_t) -> *const gchar;
-}
-extern "C" {
-    pub fn guids_resolve_guid_to_str(guid: *const e_guid_t) -> *const gchar;
-}
-extern "C" {
-    pub fn guid_cmp(g1: *const e_guid_t, g2: *const e_guid_t) -> ::std::os::raw::c_int;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -23635,6 +23599,191 @@ fn bindgen_test_layout_ipv6_addr_and_prefix() {
             stringify!(prefix)
         )
     );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _e_guid_t {
+    pub data1: guint32,
+    pub data2: guint16,
+    pub data3: guint16,
+    pub data4: [guint8; 8usize],
+}
+#[test]
+fn bindgen_test_layout__e_guid_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_e_guid_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(_e_guid_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_e_guid_t>(),
+        4usize,
+        concat!("Alignment of ", stringify!(_e_guid_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_guid_t>())).data1 as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_guid_t),
+            "::",
+            stringify!(data1)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_guid_t>())).data2 as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_guid_t),
+            "::",
+            stringify!(data2)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_guid_t>())).data3 as *const _ as usize },
+        6usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_guid_t),
+            "::",
+            stringify!(data3)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_guid_t>())).data4 as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_guid_t),
+            "::",
+            stringify!(data4)
+        )
+    );
+}
+pub type e_guid_t = _e_guid_t;
+extern "C" {
+    pub fn guids_init();
+}
+extern "C" {
+    pub fn guids_add_guid(guid: *const e_guid_t, name: *const gchar);
+}
+extern "C" {
+    pub fn guids_get_guid_name(guid: *const e_guid_t) -> *const gchar;
+}
+extern "C" {
+    pub fn guids_resolve_guid_to_str(guid: *const e_guid_t) -> *const gchar;
+}
+extern "C" {
+    pub fn guid_cmp(g1: *const e_guid_t, g2: *const e_guid_t) -> ::std::os::raw::c_int;
+}
+#[doc = " data structure to hold time values with nanosecond resolution"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct nstime_t {
+    pub secs: time_t,
+    pub nsecs: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout_nstime_t() {
+    assert_eq!(
+        ::std::mem::size_of::<nstime_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(nstime_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<nstime_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(nstime_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<nstime_t>())).secs as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(nstime_t),
+            "::",
+            stringify!(secs)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<nstime_t>())).nsecs as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(nstime_t),
+            "::",
+            stringify!(nsecs)
+        )
+    );
+}
+extern "C" {
+    #[doc = " set the given nstime_t to zero"]
+    pub fn nstime_set_zero(nstime: *mut nstime_t);
+}
+extern "C" {
+    #[doc = " is the given nstime_t currently zero?"]
+    pub fn nstime_is_zero(nstime: *mut nstime_t) -> gboolean;
+}
+extern "C" {
+    #[doc = " set the given nstime_t to (0,maxint) to mark it as \"unset\""]
+    #[doc = " That way we can find the first frame even when a timestamp"]
+    #[doc = " is zero (fix for bug 1056)"]
+    pub fn nstime_set_unset(nstime: *mut nstime_t);
+}
+extern "C" {
+    pub fn nstime_is_unset(nstime: *const nstime_t) -> gboolean;
+}
+extern "C" {
+    #[doc = " duplicate the current time"]
+    #[doc = ""]
+    #[doc = " a = b"]
+    pub fn nstime_copy(a: *mut nstime_t, b: *const nstime_t);
+}
+extern "C" {
+    #[doc = " calculate the delta between two times (can be negative!)"]
+    #[doc = ""]
+    #[doc = " delta = b-a"]
+    #[doc = ""]
+    #[doc = " Note that it is acceptable for two or more of the arguments to point at the"]
+    #[doc = " same structure."]
+    pub fn nstime_delta(delta: *mut nstime_t, b: *const nstime_t, a: *const nstime_t);
+}
+extern "C" {
+    #[doc = " calculate the sum of two times"]
+    #[doc = ""]
+    #[doc = " sum = a+b"]
+    #[doc = ""]
+    #[doc = " Note that it is acceptable for two or more of the arguments to point at the"]
+    #[doc = " same structure."]
+    pub fn nstime_sum(sum: *mut nstime_t, a: *const nstime_t, b: *const nstime_t);
+}
+extern "C" {
+    #[doc = " compare two times are return a value similar to memcmp() or strcmp()."]
+    #[doc = ""]
+    #[doc = " a > b : > 0"]
+    #[doc = " a = b : 0"]
+    #[doc = " a < b : < 0"]
+    pub fn nstime_cmp(a: *const nstime_t, b: *const nstime_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[doc = " converts nstime to double, time base is milli seconds"]
+    pub fn nstime_to_msec(nstime: *const nstime_t) -> f64;
+}
+extern "C" {
+    #[doc = " converts nstime to double, time base is seconds"]
+    pub fn nstime_to_sec(nstime: *const nstime_t) -> f64;
+}
+extern "C" {
+    #[doc = " converts Windows FILETIME to nstime, returns TRUE on success,"]
+    #[doc = "FALSE on failure"]
+    pub fn filetime_to_nstime(nstime: *mut nstime_t, filetime: guint64) -> gboolean;
+}
+extern "C" {
+    #[doc = " converts time like Windows FILETIME, but expressed in nanoseconds"]
+    #[doc = "rather than tenths of microseconds, to nstime, returns TRUE on success,"]
+    #[doc = "FALSE on failure"]
+    pub fn nsfiletime_to_nstime(nstime: *mut nstime_t, nsfiletime: guint64) -> gboolean;
 }
 #[doc = " The pattern object used for ws_mempbrk_exec()."]
 #[repr(C)]
@@ -24863,6 +25012,666 @@ extern "C" {
         encoding: guint,
     ) -> guint;
 }
+pub const drange_node_end_t_DRANGE_NODE_END_T_UNINITIALIZED: drange_node_end_t = 0;
+pub const drange_node_end_t_DRANGE_NODE_END_T_LENGTH: drange_node_end_t = 1;
+pub const drange_node_end_t_DRANGE_NODE_END_T_OFFSET: drange_node_end_t = 2;
+pub const drange_node_end_t_DRANGE_NODE_END_T_TO_THE_END: drange_node_end_t = 3;
+pub type drange_node_end_t = u32;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _drange_node {
+    pub start_offset: gint,
+    pub length: gint,
+    pub end_offset: gint,
+    pub ending: drange_node_end_t,
+}
+#[test]
+fn bindgen_test_layout__drange_node() {
+    assert_eq!(
+        ::std::mem::size_of::<_drange_node>(),
+        16usize,
+        concat!("Size of: ", stringify!(_drange_node))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_drange_node>(),
+        4usize,
+        concat!("Alignment of ", stringify!(_drange_node))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange_node>())).start_offset as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange_node),
+            "::",
+            stringify!(start_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange_node>())).length as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange_node),
+            "::",
+            stringify!(length)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange_node>())).end_offset as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange_node),
+            "::",
+            stringify!(end_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange_node>())).ending as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange_node),
+            "::",
+            stringify!(ending)
+        )
+    );
+}
+pub type drange_node = _drange_node;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _drange {
+    pub range_list: *mut GSList,
+    pub has_total_length: gboolean,
+    pub total_length: gint,
+    pub min_start_offset: gint,
+    pub max_start_offset: gint,
+}
+#[test]
+fn bindgen_test_layout__drange() {
+    assert_eq!(
+        ::std::mem::size_of::<_drange>(),
+        24usize,
+        concat!("Size of: ", stringify!(_drange))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_drange>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_drange))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange>())).range_list as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange),
+            "::",
+            stringify!(range_list)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange>())).has_total_length as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange),
+            "::",
+            stringify!(has_total_length)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange>())).total_length as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange),
+            "::",
+            stringify!(total_length)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange>())).min_start_offset as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange),
+            "::",
+            stringify!(min_start_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_drange>())).max_start_offset as *const _ as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_drange),
+            "::",
+            stringify!(max_start_offset)
+        )
+    );
+}
+pub type drange_t = _drange;
+extern "C" {
+    pub fn drange_node_new() -> *mut drange_node;
+}
+extern "C" {
+    pub fn drange_node_free(drnode: *mut drange_node);
+}
+extern "C" {
+    pub fn drange_node_free_list(list: *mut GSList);
+}
+extern "C" {
+    pub fn drange_node_get_start_offset(drnode: *mut drange_node) -> gint;
+}
+extern "C" {
+    pub fn drange_node_get_length(drnode: *mut drange_node) -> gint;
+}
+extern "C" {
+    pub fn drange_node_get_end_offset(drnode: *mut drange_node) -> gint;
+}
+extern "C" {
+    pub fn drange_node_get_ending(drnode: *mut drange_node) -> drange_node_end_t;
+}
+extern "C" {
+    pub fn drange_node_set_start_offset(drnode: *mut drange_node, offset: gint);
+}
+extern "C" {
+    pub fn drange_node_set_length(drnode: *mut drange_node, length: gint);
+}
+extern "C" {
+    pub fn drange_node_set_end_offset(drnode: *mut drange_node, offset: gint);
+}
+extern "C" {
+    pub fn drange_node_set_to_the_end(drnode: *mut drange_node);
+}
+extern "C" {
+    pub fn drange_new() -> *mut drange_t;
+}
+extern "C" {
+    pub fn drange_new_from_list(list: *mut GSList) -> *mut drange_t;
+}
+extern "C" {
+    pub fn drange_dup(org: *mut drange_t) -> *mut drange_t;
+}
+extern "C" {
+    pub fn drange_free(dr: *mut drange_t);
+}
+extern "C" {
+    pub fn drange_has_total_length(dr: *mut drange_t) -> gboolean;
+}
+extern "C" {
+    pub fn drange_get_total_length(dr: *mut drange_t) -> gint;
+}
+extern "C" {
+    pub fn drange_get_min_start_offset(dr: *mut drange_t) -> gint;
+}
+extern "C" {
+    pub fn drange_get_max_start_offset(dr: *mut drange_t) -> gint;
+}
+extern "C" {
+    pub fn drange_append_drange_node(dr: *mut drange_t, drnode: *mut drange_node);
+}
+extern "C" {
+    pub fn drange_prepend_drange_node(dr: *mut drange_t, drnode: *mut drange_node);
+}
+extern "C" {
+    pub fn drange_foreach_drange_node(dr: *mut drange_t, func: GFunc, funcdata: gpointer);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _protocol_value_t {
+    pub tvb: *mut tvbuff_t,
+    pub proto_string: *mut gchar,
+}
+#[test]
+fn bindgen_test_layout__protocol_value_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_protocol_value_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(_protocol_value_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_protocol_value_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_protocol_value_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_protocol_value_t>())).tvb as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_protocol_value_t),
+            "::",
+            stringify!(tvb)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_protocol_value_t>())).proto_string as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_protocol_value_t),
+            "::",
+            stringify!(proto_string)
+        )
+    );
+}
+pub type protocol_value_t = _protocol_value_t;
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct _fvalue_t {
+    pub ftype: *mut ftype_t,
+    pub value: _fvalue_t__bindgen_ty_1,
+    pub fvalue_gboolean1: gboolean,
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union _fvalue_t__bindgen_ty_1 {
+    pub uinteger: guint32,
+    pub sinteger: gint32,
+    pub integer64: guint64,
+    pub uinteger64: guint64,
+    pub sinteger64: gint64,
+    pub floating: gdouble,
+    pub string: *mut gchar,
+    pub ustring: *mut guchar,
+    pub bytes: *mut GByteArray,
+    pub ipv4: ipv4_addr_and_mask,
+    pub ipv6: ipv6_addr_and_prefix,
+    pub guid: e_guid_t,
+    pub time: nstime_t,
+    pub protocol: protocol_value_t,
+    pub re: *mut GRegex,
+    pub sfloat_ieee_11073: guint16,
+    pub float_ieee_11073: guint32,
+    _bindgen_union_align: [u64; 3usize],
+}
+#[test]
+fn bindgen_test_layout__fvalue_t__bindgen_ty_1() {
+    assert_eq!(
+        ::std::mem::size_of::<_fvalue_t__bindgen_ty_1>(),
+        24usize,
+        concat!("Size of: ", stringify!(_fvalue_t__bindgen_ty_1))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_fvalue_t__bindgen_ty_1>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_fvalue_t__bindgen_ty_1))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).uinteger as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(uinteger)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).sinteger as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(sinteger)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).integer64 as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(integer64)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).uinteger64 as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(uinteger64)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).sinteger64 as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(sinteger64)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).floating as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(floating)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).string as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(string)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).ustring as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(ustring)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).bytes as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(bytes)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).ipv4 as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(ipv4)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).ipv6 as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(ipv6)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).guid as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(guid)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).time as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(time)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).protocol as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(protocol)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).re as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(re)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).sfloat_ieee_11073 as *const _
+                as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(sfloat_ieee_11073)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).float_ieee_11073 as *const _
+                as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t__bindgen_ty_1),
+            "::",
+            stringify!(float_ieee_11073)
+        )
+    );
+}
+#[test]
+fn bindgen_test_layout__fvalue_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_fvalue_t>(),
+        40usize,
+        concat!("Size of: ", stringify!(_fvalue_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_fvalue_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_fvalue_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t>())).ftype as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t),
+            "::",
+            stringify!(ftype)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t>())).value as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t),
+            "::",
+            stringify!(value)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_fvalue_t>())).fvalue_gboolean1 as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_fvalue_t),
+            "::",
+            stringify!(fvalue_gboolean1)
+        )
+    );
+}
+pub type fvalue_t = _fvalue_t;
+extern "C" {
+    pub fn fvalue_new(ftype: ftenum_t) -> *mut fvalue_t;
+}
+extern "C" {
+    pub fn fvalue_init(fv: *mut fvalue_t, ftype: ftenum_t);
+}
+extern "C" {
+    pub fn fvalue_from_unparsed(
+        ftype: ftenum_t,
+        s: *const ::std::os::raw::c_char,
+        allow_partial_value: gboolean,
+        err_msg: *mut *mut gchar,
+    ) -> *mut fvalue_t;
+}
+extern "C" {
+    pub fn fvalue_from_string(
+        ftype: ftenum_t,
+        s: *const ::std::os::raw::c_char,
+        err_msg: *mut *mut gchar,
+    ) -> *mut fvalue_t;
+}
+extern "C" {
+    pub fn fvalue_string_repr_len(
+        fv: *mut fvalue_t,
+        rtype: ftrepr_t,
+        field_display: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fvalue_to_string_repr(
+        scope: *mut wmem_allocator_t,
+        fv: *mut fvalue_t,
+        rtype: ftrepr_t,
+        field_display: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn fvalue_type_ftenum(fv: *mut fvalue_t) -> ftenum_t;
+}
+extern "C" {
+    pub fn fvalue_type_name(fv: *mut fvalue_t) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn fvalue_set_byte_array(fv: *mut fvalue_t, value: *mut GByteArray);
+}
+extern "C" {
+    pub fn fvalue_set_bytes(fv: *mut fvalue_t, value: *const guint8);
+}
+extern "C" {
+    pub fn fvalue_set_guid(fv: *mut fvalue_t, value: *const e_guid_t);
+}
+extern "C" {
+    pub fn fvalue_set_time(fv: *mut fvalue_t, value: *const nstime_t);
+}
+extern "C" {
+    pub fn fvalue_set_string(fv: *mut fvalue_t, value: *const gchar);
+}
+extern "C" {
+    pub fn fvalue_set_protocol(fv: *mut fvalue_t, value: *mut tvbuff_t, name: *const gchar);
+}
+extern "C" {
+    pub fn fvalue_set_uinteger(fv: *mut fvalue_t, value: guint32);
+}
+extern "C" {
+    pub fn fvalue_set_sinteger(fv: *mut fvalue_t, value: gint32);
+}
+extern "C" {
+    pub fn fvalue_set_uinteger64(fv: *mut fvalue_t, value: guint64);
+}
+extern "C" {
+    pub fn fvalue_set_sinteger64(fv: *mut fvalue_t, value: gint64);
+}
+extern "C" {
+    pub fn fvalue_set_floating(fv: *mut fvalue_t, value: gdouble);
+}
+extern "C" {
+    pub fn fvalue_get(fv: *mut fvalue_t) -> gpointer;
+}
+extern "C" {
+    pub fn fvalue_get_uinteger(fv: *mut fvalue_t) -> guint32;
+}
+extern "C" {
+    pub fn fvalue_get_sinteger(fv: *mut fvalue_t) -> gint32;
+}
+extern "C" {
+    pub fn fvalue_get_uinteger64(fv: *mut fvalue_t) -> guint64;
+}
+extern "C" {
+    pub fn fvalue_get_sinteger64(fv: *mut fvalue_t) -> gint64;
+}
+extern "C" {
+    pub fn fvalue_get_floating(fv: *mut fvalue_t) -> f64;
+}
+extern "C" {
+    pub fn fvalue_eq(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_ne(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_gt(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_ge(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_lt(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_le(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_bitwise_and(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_contains(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_matches(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
+}
+extern "C" {
+    pub fn fvalue_length(fv: *mut fvalue_t) -> guint;
+}
+extern "C" {
+    pub fn fvalue_slice(fv: *mut fvalue_t, dr: *mut drange_t) -> *mut fvalue_t;
+}
+pub const to_str_time_res_t_TO_STR_TIME_RES_T_SECS: to_str_time_res_t = 0;
+pub const to_str_time_res_t_TO_STR_TIME_RES_T_DSECS: to_str_time_res_t = 1;
+pub const to_str_time_res_t_TO_STR_TIME_RES_T_CSECS: to_str_time_res_t = 2;
+pub const to_str_time_res_t_TO_STR_TIME_RES_T_MSECS: to_str_time_res_t = 3;
+pub const to_str_time_res_t_TO_STR_TIME_RES_T_USECS: to_str_time_res_t = 4;
+pub const to_str_time_res_t_TO_STR_TIME_RES_T_NSECS: to_str_time_res_t = 5;
+pub type to_str_time_res_t = u32;
+pub const absolute_time_display_e_ABSOLUTE_TIME_LOCAL: absolute_time_display_e = 1000;
+pub const absolute_time_display_e_ABSOLUTE_TIME_UTC: absolute_time_display_e = 1001;
+pub const absolute_time_display_e_ABSOLUTE_TIME_DOY_UTC: absolute_time_display_e = 1002;
+pub const absolute_time_display_e_ABSOLUTE_TIME_NTP_UTC: absolute_time_display_e = 1003;
+pub type absolute_time_display_e = u32;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _value_string {
@@ -26503,6 +27312,92 @@ extern "C" {
 extern "C" {
     #[doc = " Cleanup the internal structures"]
     pub fn wtap_opttypes_cleanup();
+}
+pub const GModuleFlags_G_MODULE_BIND_LAZY: GModuleFlags = 1;
+pub const GModuleFlags_G_MODULE_BIND_LOCAL: GModuleFlags = 2;
+pub const GModuleFlags_G_MODULE_BIND_MASK: GModuleFlags = 3;
+#[doc = " GModuleFlags:"]
+#[doc = " @G_MODULE_BIND_LAZY: specifies that symbols are only resolved when"]
+#[doc = "     needed. The default action is to bind all symbols when the module"]
+#[doc = "     is loaded."]
+#[doc = " @G_MODULE_BIND_LOCAL: specifies that symbols in the module should"]
+#[doc = "     not be added to the global name space. The default action on most"]
+#[doc = "     platforms is to place symbols in the module in the global name space,"]
+#[doc = "     which may cause conflicts with existing symbols."]
+#[doc = " @G_MODULE_BIND_MASK: mask for all flags."]
+#[doc = ""]
+#[doc = " Flags passed to g_module_open()."]
+#[doc = " Note that these flags are not supported on all platforms."]
+pub type GModuleFlags = u32;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _GModule {
+    _unused: [u8; 0],
+}
+pub type GModule = _GModule;
+pub type GModuleCheckInit =
+    ::std::option::Option<unsafe extern "C" fn(module: *mut GModule) -> *const gchar>;
+pub type GModuleUnload = ::std::option::Option<unsafe extern "C" fn(module: *mut GModule)>;
+extern "C" {
+    pub fn g_module_supported() -> gboolean;
+}
+extern "C" {
+    pub fn g_module_open(file_name: *const gchar, flags: GModuleFlags) -> *mut GModule;
+}
+extern "C" {
+    pub fn g_module_close(module: *mut GModule) -> gboolean;
+}
+extern "C" {
+    pub fn g_module_make_resident(module: *mut GModule);
+}
+extern "C" {
+    pub fn g_module_error() -> *const gchar;
+}
+extern "C" {
+    pub fn g_module_symbol(
+        module: *mut GModule,
+        symbol_name: *const gchar,
+        symbol: *mut gpointer,
+    ) -> gboolean;
+}
+extern "C" {
+    pub fn g_module_name(module: *mut GModule) -> *const gchar;
+}
+extern "C" {
+    pub fn g_module_build_path(directory: *const gchar, module_name: *const gchar) -> *mut gchar;
+}
+pub type plugin_register_func = ::std::option::Option<unsafe extern "C" fn()>;
+pub type plugins_t = ::std::os::raw::c_void;
+pub const plugin_type_e_WS_PLUGIN_EPAN: plugin_type_e = 0;
+pub const plugin_type_e_WS_PLUGIN_WIRETAP: plugin_type_e = 1;
+pub const plugin_type_e_WS_PLUGIN_CODEC: plugin_type_e = 2;
+pub type plugin_type_e = u32;
+extern "C" {
+    pub fn plugins_init(type_: plugin_type_e) -> *mut plugins_t;
+}
+pub type plugin_description_callback = ::std::option::Option<
+    unsafe extern "C" fn(
+        name: *const ::std::os::raw::c_char,
+        version: *const ::std::os::raw::c_char,
+        types: *const ::std::os::raw::c_char,
+        filename: *const ::std::os::raw::c_char,
+        user_data: *mut ::std::os::raw::c_void,
+    ),
+>;
+extern "C" {
+    pub fn plugins_get_descriptions(
+        callback: plugin_description_callback,
+        user_data: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn plugins_dump_all();
+}
+extern "C" {
+    pub fn plugins_get_count() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn plugins_cleanup(plugins: *mut plugins_t);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -32541,6 +33436,39 @@ extern "C" {
     #[doc = " dynamically register new file types and encapsulations"]
     pub fn wtap_register_file_type_extension(ei: *const file_extension_info);
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct wtap_plugin {
+    pub register_wtap_module: ::std::option::Option<unsafe extern "C" fn()>,
+}
+#[test]
+fn bindgen_test_layout_wtap_plugin() {
+    assert_eq!(
+        ::std::mem::size_of::<wtap_plugin>(),
+        8usize,
+        concat!("Size of: ", stringify!(wtap_plugin))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<wtap_plugin>(),
+        8usize,
+        concat!("Alignment of ", stringify!(wtap_plugin))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<wtap_plugin>())).register_wtap_module as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_plugin),
+            "::",
+            stringify!(register_wtap_module)
+        )
+    );
+}
+extern "C" {
+    pub fn wtap_register_plugin(plug: *const wtap_plugin);
+}
 extern "C" {
     pub fn wtap_register_open_info(oi: *mut open_info, first_routine: gboolean);
 }
@@ -33795,768 +34723,6 @@ fn bindgen_test_layout__packet_info() {
     );
 }
 pub type packet_info = _packet_info;
-pub const ftenum_FT_NONE: ftenum = 0;
-pub const ftenum_FT_PROTOCOL: ftenum = 1;
-pub const ftenum_FT_BOOLEAN: ftenum = 2;
-pub const ftenum_FT_CHAR: ftenum = 3;
-pub const ftenum_FT_UINT8: ftenum = 4;
-pub const ftenum_FT_UINT16: ftenum = 5;
-pub const ftenum_FT_UINT24: ftenum = 6;
-pub const ftenum_FT_UINT32: ftenum = 7;
-pub const ftenum_FT_UINT40: ftenum = 8;
-pub const ftenum_FT_UINT48: ftenum = 9;
-pub const ftenum_FT_UINT56: ftenum = 10;
-pub const ftenum_FT_UINT64: ftenum = 11;
-pub const ftenum_FT_INT8: ftenum = 12;
-pub const ftenum_FT_INT16: ftenum = 13;
-pub const ftenum_FT_INT24: ftenum = 14;
-pub const ftenum_FT_INT32: ftenum = 15;
-pub const ftenum_FT_INT40: ftenum = 16;
-pub const ftenum_FT_INT48: ftenum = 17;
-pub const ftenum_FT_INT56: ftenum = 18;
-pub const ftenum_FT_INT64: ftenum = 19;
-pub const ftenum_FT_IEEE_11073_SFLOAT: ftenum = 20;
-pub const ftenum_FT_IEEE_11073_FLOAT: ftenum = 21;
-pub const ftenum_FT_FLOAT: ftenum = 22;
-pub const ftenum_FT_DOUBLE: ftenum = 23;
-pub const ftenum_FT_ABSOLUTE_TIME: ftenum = 24;
-pub const ftenum_FT_RELATIVE_TIME: ftenum = 25;
-pub const ftenum_FT_STRING: ftenum = 26;
-pub const ftenum_FT_STRINGZ: ftenum = 27;
-pub const ftenum_FT_UINT_STRING: ftenum = 28;
-pub const ftenum_FT_ETHER: ftenum = 29;
-pub const ftenum_FT_BYTES: ftenum = 30;
-pub const ftenum_FT_UINT_BYTES: ftenum = 31;
-pub const ftenum_FT_IPv4: ftenum = 32;
-pub const ftenum_FT_IPv6: ftenum = 33;
-pub const ftenum_FT_IPXNET: ftenum = 34;
-pub const ftenum_FT_FRAMENUM: ftenum = 35;
-pub const ftenum_FT_PCRE: ftenum = 36;
-pub const ftenum_FT_GUID: ftenum = 37;
-pub const ftenum_FT_OID: ftenum = 38;
-pub const ftenum_FT_EUI64: ftenum = 39;
-pub const ftenum_FT_AX25: ftenum = 40;
-pub const ftenum_FT_VINES: ftenum = 41;
-pub const ftenum_FT_REL_OID: ftenum = 42;
-pub const ftenum_FT_SYSTEM_ID: ftenum = 43;
-pub const ftenum_FT_STRINGZPAD: ftenum = 44;
-pub const ftenum_FT_FCWWN: ftenum = 45;
-pub const ftenum_FT_NUM_TYPES: ftenum = 46;
-pub type ftenum = u32;
-pub use self::ftenum as ftenum_t;
-pub const ft_framenum_type_FT_FRAMENUM_NONE: ft_framenum_type = 0;
-pub const ft_framenum_type_FT_FRAMENUM_REQUEST: ft_framenum_type = 1;
-pub const ft_framenum_type_FT_FRAMENUM_RESPONSE: ft_framenum_type = 2;
-pub const ft_framenum_type_FT_FRAMENUM_ACK: ft_framenum_type = 3;
-pub const ft_framenum_type_FT_FRAMENUM_DUP_ACK: ft_framenum_type = 4;
-pub const ft_framenum_type_FT_FRAMENUM_RETRANS_PREV: ft_framenum_type = 5;
-pub const ft_framenum_type_FT_FRAMENUM_RETRANS_NEXT: ft_framenum_type = 6;
-pub const ft_framenum_type_FT_FRAMENUM_NUM_TYPES: ft_framenum_type = 7;
-pub type ft_framenum_type = u32;
-pub use self::ft_framenum_type as ft_framenum_type_t;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct _ftype_t {
-    _unused: [u8; 0],
-}
-pub type ftype_t = _ftype_t;
-pub const ftrepr_FTREPR_DISPLAY: ftrepr = 0;
-pub const ftrepr_FTREPR_DFILTER: ftrepr = 1;
-pub type ftrepr = u32;
-pub use self::ftrepr as ftrepr_t;
-extern "C" {
-    pub fn ftypes_initialize();
-}
-extern "C" {
-    pub fn ftype_similar_types(ftype_a: ftenum, ftype_b: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_name(ftype: ftenum_t) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn ftype_pretty_name(ftype: ftenum_t) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn ftype_length(ftype: ftenum_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ftype_can_slice(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_eq(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_ne(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_gt(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_ge(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_lt(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_le(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_bitwise_and(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_contains(ftype: ftenum) -> gboolean;
-}
-extern "C" {
-    pub fn ftype_can_matches(ftype: ftenum) -> gboolean;
-}
-pub const drange_node_end_t_DRANGE_NODE_END_T_UNINITIALIZED: drange_node_end_t = 0;
-pub const drange_node_end_t_DRANGE_NODE_END_T_LENGTH: drange_node_end_t = 1;
-pub const drange_node_end_t_DRANGE_NODE_END_T_OFFSET: drange_node_end_t = 2;
-pub const drange_node_end_t_DRANGE_NODE_END_T_TO_THE_END: drange_node_end_t = 3;
-pub type drange_node_end_t = u32;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct _drange_node {
-    pub start_offset: gint,
-    pub length: gint,
-    pub end_offset: gint,
-    pub ending: drange_node_end_t,
-}
-#[test]
-fn bindgen_test_layout__drange_node() {
-    assert_eq!(
-        ::std::mem::size_of::<_drange_node>(),
-        16usize,
-        concat!("Size of: ", stringify!(_drange_node))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_drange_node>(),
-        4usize,
-        concat!("Alignment of ", stringify!(_drange_node))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange_node>())).start_offset as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange_node),
-            "::",
-            stringify!(start_offset)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange_node>())).length as *const _ as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange_node),
-            "::",
-            stringify!(length)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange_node>())).end_offset as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange_node),
-            "::",
-            stringify!(end_offset)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange_node>())).ending as *const _ as usize },
-        12usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange_node),
-            "::",
-            stringify!(ending)
-        )
-    );
-}
-pub type drange_node = _drange_node;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct _drange {
-    pub range_list: *mut GSList,
-    pub has_total_length: gboolean,
-    pub total_length: gint,
-    pub min_start_offset: gint,
-    pub max_start_offset: gint,
-}
-#[test]
-fn bindgen_test_layout__drange() {
-    assert_eq!(
-        ::std::mem::size_of::<_drange>(),
-        24usize,
-        concat!("Size of: ", stringify!(_drange))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_drange>(),
-        8usize,
-        concat!("Alignment of ", stringify!(_drange))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange>())).range_list as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange),
-            "::",
-            stringify!(range_list)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange>())).has_total_length as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange),
-            "::",
-            stringify!(has_total_length)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange>())).total_length as *const _ as usize },
-        12usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange),
-            "::",
-            stringify!(total_length)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange>())).min_start_offset as *const _ as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange),
-            "::",
-            stringify!(min_start_offset)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_drange>())).max_start_offset as *const _ as usize },
-        20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_drange),
-            "::",
-            stringify!(max_start_offset)
-        )
-    );
-}
-pub type drange_t = _drange;
-extern "C" {
-    pub fn drange_node_new() -> *mut drange_node;
-}
-extern "C" {
-    pub fn drange_node_free(drnode: *mut drange_node);
-}
-extern "C" {
-    pub fn drange_node_free_list(list: *mut GSList);
-}
-extern "C" {
-    pub fn drange_node_get_start_offset(drnode: *mut drange_node) -> gint;
-}
-extern "C" {
-    pub fn drange_node_get_length(drnode: *mut drange_node) -> gint;
-}
-extern "C" {
-    pub fn drange_node_get_end_offset(drnode: *mut drange_node) -> gint;
-}
-extern "C" {
-    pub fn drange_node_get_ending(drnode: *mut drange_node) -> drange_node_end_t;
-}
-extern "C" {
-    pub fn drange_node_set_start_offset(drnode: *mut drange_node, offset: gint);
-}
-extern "C" {
-    pub fn drange_node_set_length(drnode: *mut drange_node, length: gint);
-}
-extern "C" {
-    pub fn drange_node_set_end_offset(drnode: *mut drange_node, offset: gint);
-}
-extern "C" {
-    pub fn drange_node_set_to_the_end(drnode: *mut drange_node);
-}
-extern "C" {
-    pub fn drange_new() -> *mut drange_t;
-}
-extern "C" {
-    pub fn drange_new_from_list(list: *mut GSList) -> *mut drange_t;
-}
-extern "C" {
-    pub fn drange_dup(org: *mut drange_t) -> *mut drange_t;
-}
-extern "C" {
-    pub fn drange_free(dr: *mut drange_t);
-}
-extern "C" {
-    pub fn drange_has_total_length(dr: *mut drange_t) -> gboolean;
-}
-extern "C" {
-    pub fn drange_get_total_length(dr: *mut drange_t) -> gint;
-}
-extern "C" {
-    pub fn drange_get_min_start_offset(dr: *mut drange_t) -> gint;
-}
-extern "C" {
-    pub fn drange_get_max_start_offset(dr: *mut drange_t) -> gint;
-}
-extern "C" {
-    pub fn drange_append_drange_node(dr: *mut drange_t, drnode: *mut drange_node);
-}
-extern "C" {
-    pub fn drange_prepend_drange_node(dr: *mut drange_t, drnode: *mut drange_node);
-}
-extern "C" {
-    pub fn drange_foreach_drange_node(dr: *mut drange_t, func: GFunc, funcdata: gpointer);
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct _protocol_value_t {
-    pub tvb: *mut tvbuff_t,
-    pub proto_string: *mut gchar,
-}
-#[test]
-fn bindgen_test_layout__protocol_value_t() {
-    assert_eq!(
-        ::std::mem::size_of::<_protocol_value_t>(),
-        16usize,
-        concat!("Size of: ", stringify!(_protocol_value_t))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_protocol_value_t>(),
-        8usize,
-        concat!("Alignment of ", stringify!(_protocol_value_t))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_protocol_value_t>())).tvb as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_protocol_value_t),
-            "::",
-            stringify!(tvb)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_protocol_value_t>())).proto_string as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_protocol_value_t),
-            "::",
-            stringify!(proto_string)
-        )
-    );
-}
-pub type protocol_value_t = _protocol_value_t;
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct _fvalue_t {
-    pub ftype: *mut ftype_t,
-    pub value: _fvalue_t__bindgen_ty_1,
-    pub fvalue_gboolean1: gboolean,
-}
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub union _fvalue_t__bindgen_ty_1 {
-    pub uinteger: guint32,
-    pub sinteger: gint32,
-    pub integer64: guint64,
-    pub uinteger64: guint64,
-    pub sinteger64: gint64,
-    pub floating: gdouble,
-    pub string: *mut gchar,
-    pub ustring: *mut guchar,
-    pub bytes: *mut GByteArray,
-    pub ipv4: ipv4_addr_and_mask,
-    pub ipv6: ipv6_addr_and_prefix,
-    pub guid: e_guid_t,
-    pub time: nstime_t,
-    pub protocol: protocol_value_t,
-    pub re: *mut GRegex,
-    pub sfloat_ieee_11073: guint16,
-    pub float_ieee_11073: guint32,
-    _bindgen_union_align: [u64; 3usize],
-}
-#[test]
-fn bindgen_test_layout__fvalue_t__bindgen_ty_1() {
-    assert_eq!(
-        ::std::mem::size_of::<_fvalue_t__bindgen_ty_1>(),
-        24usize,
-        concat!("Size of: ", stringify!(_fvalue_t__bindgen_ty_1))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_fvalue_t__bindgen_ty_1>(),
-        8usize,
-        concat!("Alignment of ", stringify!(_fvalue_t__bindgen_ty_1))
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).uinteger as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(uinteger)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).sinteger as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(sinteger)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).integer64 as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(integer64)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).uinteger64 as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(uinteger64)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).sinteger64 as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(sinteger64)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).floating as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(floating)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).string as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(string)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).ustring as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(ustring)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).bytes as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(bytes)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).ipv4 as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(ipv4)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).ipv6 as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(ipv6)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).guid as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(guid)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).time as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(time)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).protocol as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(protocol)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).re as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(re)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).sfloat_ieee_11073 as *const _
-                as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(sfloat_ieee_11073)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<_fvalue_t__bindgen_ty_1>())).float_ieee_11073 as *const _
-                as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t__bindgen_ty_1),
-            "::",
-            stringify!(float_ieee_11073)
-        )
-    );
-}
-#[test]
-fn bindgen_test_layout__fvalue_t() {
-    assert_eq!(
-        ::std::mem::size_of::<_fvalue_t>(),
-        40usize,
-        concat!("Size of: ", stringify!(_fvalue_t))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_fvalue_t>(),
-        8usize,
-        concat!("Alignment of ", stringify!(_fvalue_t))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t>())).ftype as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t),
-            "::",
-            stringify!(ftype)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t>())).value as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t),
-            "::",
-            stringify!(value)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_fvalue_t>())).fvalue_gboolean1 as *const _ as usize },
-        32usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_fvalue_t),
-            "::",
-            stringify!(fvalue_gboolean1)
-        )
-    );
-}
-pub type fvalue_t = _fvalue_t;
-extern "C" {
-    pub fn fvalue_new(ftype: ftenum_t) -> *mut fvalue_t;
-}
-extern "C" {
-    pub fn fvalue_init(fv: *mut fvalue_t, ftype: ftenum_t);
-}
-extern "C" {
-    pub fn fvalue_from_unparsed(
-        ftype: ftenum_t,
-        s: *const ::std::os::raw::c_char,
-        allow_partial_value: gboolean,
-        err_msg: *mut *mut gchar,
-    ) -> *mut fvalue_t;
-}
-extern "C" {
-    pub fn fvalue_from_string(
-        ftype: ftenum_t,
-        s: *const ::std::os::raw::c_char,
-        err_msg: *mut *mut gchar,
-    ) -> *mut fvalue_t;
-}
-extern "C" {
-    pub fn fvalue_string_repr_len(
-        fv: *mut fvalue_t,
-        rtype: ftrepr_t,
-        field_display: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fvalue_to_string_repr(
-        scope: *mut wmem_allocator_t,
-        fv: *mut fvalue_t,
-        rtype: ftrepr_t,
-        field_display: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn fvalue_type_ftenum(fv: *mut fvalue_t) -> ftenum_t;
-}
-extern "C" {
-    pub fn fvalue_type_name(fv: *mut fvalue_t) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn fvalue_set_byte_array(fv: *mut fvalue_t, value: *mut GByteArray);
-}
-extern "C" {
-    pub fn fvalue_set_bytes(fv: *mut fvalue_t, value: *const guint8);
-}
-extern "C" {
-    pub fn fvalue_set_guid(fv: *mut fvalue_t, value: *const e_guid_t);
-}
-extern "C" {
-    pub fn fvalue_set_time(fv: *mut fvalue_t, value: *const nstime_t);
-}
-extern "C" {
-    pub fn fvalue_set_string(fv: *mut fvalue_t, value: *const gchar);
-}
-extern "C" {
-    pub fn fvalue_set_protocol(fv: *mut fvalue_t, value: *mut tvbuff_t, name: *const gchar);
-}
-extern "C" {
-    pub fn fvalue_set_uinteger(fv: *mut fvalue_t, value: guint32);
-}
-extern "C" {
-    pub fn fvalue_set_sinteger(fv: *mut fvalue_t, value: gint32);
-}
-extern "C" {
-    pub fn fvalue_set_uinteger64(fv: *mut fvalue_t, value: guint64);
-}
-extern "C" {
-    pub fn fvalue_set_sinteger64(fv: *mut fvalue_t, value: gint64);
-}
-extern "C" {
-    pub fn fvalue_set_floating(fv: *mut fvalue_t, value: gdouble);
-}
-extern "C" {
-    pub fn fvalue_get(fv: *mut fvalue_t) -> gpointer;
-}
-extern "C" {
-    pub fn fvalue_get_uinteger(fv: *mut fvalue_t) -> guint32;
-}
-extern "C" {
-    pub fn fvalue_get_sinteger(fv: *mut fvalue_t) -> gint32;
-}
-extern "C" {
-    pub fn fvalue_get_uinteger64(fv: *mut fvalue_t) -> guint64;
-}
-extern "C" {
-    pub fn fvalue_get_sinteger64(fv: *mut fvalue_t) -> gint64;
-}
-extern "C" {
-    pub fn fvalue_get_floating(fv: *mut fvalue_t) -> f64;
-}
-extern "C" {
-    pub fn fvalue_eq(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_ne(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_gt(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_ge(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_lt(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_le(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_bitwise_and(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_contains(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_matches(a: *const fvalue_t, b: *const fvalue_t) -> gboolean;
-}
-extern "C" {
-    pub fn fvalue_length(fv: *mut fvalue_t) -> guint;
-}
-extern "C" {
-    pub fn fvalue_slice(fv: *mut fvalue_t, dr: *mut drange_t) -> *mut fvalue_t;
-}
 pub const register_action_e_RA_NONE: register_action_e = 0;
 pub const register_action_e_RA_DISSECTORS: register_action_e = 1;
 pub const register_action_e_RA_LISTENERS: register_action_e = 2;
@@ -35257,6 +35423,49 @@ extern "C" {
         func: proto_tree_foreach_func,
         data: gpointer,
     );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct proto_plugin {
+    pub register_protoinfo: ::std::option::Option<unsafe extern "C" fn()>,
+    pub register_handoff: ::std::option::Option<unsafe extern "C" fn()>,
+}
+#[test]
+fn bindgen_test_layout_proto_plugin() {
+    assert_eq!(
+        ::std::mem::size_of::<proto_plugin>(),
+        16usize,
+        concat!("Size of: ", stringify!(proto_plugin))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<proto_plugin>(),
+        8usize,
+        concat!("Alignment of ", stringify!(proto_plugin))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<proto_plugin>())).register_protoinfo as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(proto_plugin),
+            "::",
+            stringify!(register_protoinfo)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<proto_plugin>())).register_handoff as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(proto_plugin),
+            "::",
+            stringify!(register_handoff)
+        )
+    );
+}
+extern "C" {
+    #[doc = " Register dissector plugin with the plugin system."]
+    pub fn proto_register_plugin(plugin: *const proto_plugin);
 }
 extern "C" {
     #[doc = " Sets up memory used by proto routines. Called at program startup"]
@@ -38344,6 +38553,6667 @@ extern "C" {
         size: ::std::os::raw::c_int,
     ) -> *const gchar;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct enum_val_t {
+    pub name: *const ::std::os::raw::c_char,
+    pub description: *const ::std::os::raw::c_char,
+    pub value: gint,
+}
+#[test]
+fn bindgen_test_layout_enum_val_t() {
+    assert_eq!(
+        ::std::mem::size_of::<enum_val_t>(),
+        24usize,
+        concat!("Size of: ", stringify!(enum_val_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<enum_val_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(enum_val_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<enum_val_t>())).name as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(enum_val_t),
+            "::",
+            stringify!(name)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<enum_val_t>())).description as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(enum_val_t),
+            "::",
+            stringify!(description)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<enum_val_t>())).value as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(enum_val_t),
+            "::",
+            stringify!(value)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct range_admin_tag {
+    pub low: guint32,
+    pub high: guint32,
+}
+#[test]
+fn bindgen_test_layout_range_admin_tag() {
+    assert_eq!(
+        ::std::mem::size_of::<range_admin_tag>(),
+        8usize,
+        concat!("Size of: ", stringify!(range_admin_tag))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<range_admin_tag>(),
+        4usize,
+        concat!("Alignment of ", stringify!(range_admin_tag))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<range_admin_tag>())).low as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(range_admin_tag),
+            "::",
+            stringify!(low)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<range_admin_tag>())).high as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(range_admin_tag),
+            "::",
+            stringify!(high)
+        )
+    );
+}
+pub type range_admin_t = range_admin_tag;
+#[doc = " user specified range(s)"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct epan_range {
+    #[doc = "< number of entries in ranges"]
+    pub nranges: guint,
+    #[doc = "< variable-length array"]
+    pub ranges: [range_admin_t; 1usize],
+}
+#[test]
+fn bindgen_test_layout_epan_range() {
+    assert_eq!(
+        ::std::mem::size_of::<epan_range>(),
+        12usize,
+        concat!("Size of: ", stringify!(epan_range))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<epan_range>(),
+        4usize,
+        concat!("Alignment of ", stringify!(epan_range))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<epan_range>())).nranges as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_range),
+            "::",
+            stringify!(nranges)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<epan_range>())).ranges as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_range),
+            "::",
+            stringify!(ranges)
+        )
+    );
+}
+#[doc = " user specified range(s)"]
+pub type range_t = epan_range;
+pub const convert_ret_t_CVT_NO_ERROR: convert_ret_t = 0;
+pub const convert_ret_t_CVT_SYNTAX_ERROR: convert_ret_t = 1;
+pub const convert_ret_t_CVT_NUMBER_TOO_BIG: convert_ret_t = 2;
+#[doc = " Return value from range_convert_str()."]
+pub type convert_ret_t = u32;
+extern "C" {
+    pub fn range_empty(scope: *mut wmem_allocator_t) -> *mut range_t;
+}
+extern "C" {
+    #[doc = " Converts a range string to a fast comparable array of ranges."]
+    #[doc = " This function allocates a range_t large enough to hold the number"]
+    #[doc = " of ranges specified, and fills the array range->ranges containing"]
+    #[doc = " low and high values with the number of ranges being range->nranges."]
+    #[doc = " After having called this function, the function value_is_in_range()"]
+    #[doc = " determines whether a given number is within the range or not.<BR>"]
+    #[doc = " In case of a single number, we make a range where low is equal to high."]
+    #[doc = " We take care on wrongly entered ranges; opposite order will be taken"]
+    #[doc = " care of."]
+    #[doc = ""]
+    #[doc = " The following syntax is accepted :"]
+    #[doc = ""]
+    #[doc = "   1-20,30-40     Range from 1 to 20, and packets 30 to 40"]
+    #[doc = "   -20,30         Range from 1 to 20, and packet 30"]
+    #[doc = "   20,30,40-      20, 30, and the range from 40 to the end"]
+    #[doc = "   20-10,30-25    Range from 10 to 20, and from 25 to 30"]
+    #[doc = "   -              All values"]
+    #[doc = " @param scope memory scope for the range"]
+    #[doc = " @param range the range"]
+    #[doc = " @param es points to the string to be converted."]
+    #[doc = " @param max_value specifies the maximum value in a range."]
+    #[doc = " @return convert_ret_t"]
+    pub fn range_convert_str(
+        scope: *mut wmem_allocator_t,
+        range: *mut *mut range_t,
+        es: *const gchar,
+        max_value: guint32,
+    ) -> convert_ret_t;
+}
+extern "C" {
+    pub fn range_convert_str_work(
+        scope: *mut wmem_allocator_t,
+        range: *mut *mut range_t,
+        es: *const gchar,
+        max_value: guint32,
+        err_on_max: gboolean,
+    ) -> convert_ret_t;
+}
+extern "C" {
+    #[doc = " This function returns TRUE if a given value is within one of the ranges"]
+    #[doc = " stored in the ranges array."]
+    #[doc = " @param range the range"]
+    #[doc = " @param val the value to check"]
+    #[doc = " @return TRUE if the value is in range"]
+    pub fn value_is_in_range(range: *mut range_t, val: guint32) -> gboolean;
+}
+extern "C" {
+    #[doc = " This function returns TRUE if val has successfully been added to"]
+    #[doc = " a range.  This may extend an existing range or create a new one"]
+    #[doc = " @param scope memory scope of range (in case of reallocation)"]
+    #[doc = " @param range to add value"]
+    #[doc = " @param val value to add to range"]
+    #[doc = " @return TRUE if the value is successsfully added to range"]
+    pub fn range_add_value(
+        scope: *mut wmem_allocator_t,
+        range: *mut *mut range_t,
+        val: guint32,
+    ) -> gboolean;
+}
+extern "C" {
+    #[doc = " This function returns TRUE if val has successfully been removed from"]
+    #[doc = " a range.  This may remove an existing range."]
+    #[doc = " @param scope memory scope of range (in case of reallocation)"]
+    #[doc = " @param range to remove value"]
+    #[doc = " @param val value to remove within range"]
+    #[doc = " @return TRUE if the value is successsfully removed to range"]
+    pub fn range_remove_value(
+        scope: *mut wmem_allocator_t,
+        range: *mut *mut range_t,
+        val: guint32,
+    ) -> gboolean;
+}
+extern "C" {
+    #[doc = " This function returns TRUE if the two given range_t's are equal."]
+    #[doc = " @param a first range"]
+    #[doc = " @param b second range"]
+    #[doc = " @return TRUE if the value is in range"]
+    pub fn ranges_are_equal(a: *mut range_t, b: *mut range_t) -> gboolean;
+}
+extern "C" {
+    #[doc = " This function calls the provided callback function for each value in"]
+    #[doc = " in the range. Takes a pointer argument, which is passed to the"]
+    #[doc = " callback, along with the value in the range."]
+    #[doc = " @param range the range"]
+    #[doc = " @param callback the callback function"]
+    #[doc = " @param ptr pointer passed to the callback"]
+    pub fn range_foreach(
+        range: *mut range_t,
+        callback: ::std::option::Option<unsafe extern "C" fn(val: guint32, ptr: gpointer)>,
+        ptr: gpointer,
+    );
+}
+extern "C" {
+    #[doc = " This function converts a range_t to a (wmem_alloc()-allocated) string."]
+    pub fn range_convert_range(
+        scope: *mut wmem_allocator_t,
+        range: *const range_t,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Create a (wmem-alloc()ed) copy of a range"]
+    #[doc = " @param scope memory scope for the copied range"]
+    #[doc = " @param src the range to copy"]
+    #[doc = " @return ep allocated copy of the range"]
+    pub fn range_copy(scope: *mut wmem_allocator_t, src: *mut range_t) -> *mut range_t;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct color_t {
+    pub red: guint16,
+    pub green: guint16,
+    pub blue: guint16,
+}
+#[test]
+fn bindgen_test_layout_color_t() {
+    assert_eq!(
+        ::std::mem::size_of::<color_t>(),
+        6usize,
+        concat!("Size of: ", stringify!(color_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<color_t>(),
+        2usize,
+        concat!("Alignment of ", stringify!(color_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<color_t>())).red as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(color_t),
+            "::",
+            stringify!(red)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<color_t>())).green as *const _ as usize },
+        2usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(color_t),
+            "::",
+            stringify!(green)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<color_t>())).blue as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(color_t),
+            "::",
+            stringify!(blue)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct epan_uat {
+    _unused: [u8; 0],
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _e_addr_resolve {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn string_to_name_resolve(
+        string: *const ::std::os::raw::c_char,
+        name_resolve: *mut _e_addr_resolve,
+    ) -> ::std::os::raw::c_char;
+}
+pub const layout_type_e_layout_unused: layout_type_e = 0;
+pub const layout_type_e_layout_type_5: layout_type_e = 1;
+pub const layout_type_e_layout_type_2: layout_type_e = 2;
+pub const layout_type_e_layout_type_1: layout_type_e = 3;
+pub const layout_type_e_layout_type_4: layout_type_e = 4;
+pub const layout_type_e_layout_type_3: layout_type_e = 5;
+pub const layout_type_e_layout_type_6: layout_type_e = 6;
+pub const layout_type_e_layout_type_max: layout_type_e = 7;
+pub type layout_type_e = u32;
+pub const layout_pane_content_e_layout_pane_content_none: layout_pane_content_e = 0;
+pub const layout_pane_content_e_layout_pane_content_plist: layout_pane_content_e = 1;
+pub const layout_pane_content_e_layout_pane_content_pdetails: layout_pane_content_e = 2;
+pub const layout_pane_content_e_layout_pane_content_pbytes: layout_pane_content_e = 3;
+pub type layout_pane_content_e = u32;
+pub const console_open_e_console_open_never: console_open_e = 0;
+pub const console_open_e_console_open_auto: console_open_e = 1;
+pub const console_open_e_console_open_always: console_open_e = 2;
+pub type console_open_e = u32;
+pub const version_info_e_version_welcome_only: version_info_e = 0;
+pub const version_info_e_version_title_only: version_info_e = 1;
+pub const version_info_e_version_both: version_info_e = 2;
+pub const version_info_e_version_neither: version_info_e = 3;
+pub type version_info_e = u32;
+pub const pref_source_t_pref_default: pref_source_t = 0;
+pub const pref_source_t_pref_stashed: pref_source_t = 1;
+pub const pref_source_t_pref_current: pref_source_t = 2;
+pub type pref_source_t = u32;
+pub const elide_mode_e_ELIDE_LEFT: elide_mode_e = 0;
+pub const elide_mode_e_ELIDE_RIGHT: elide_mode_e = 1;
+pub const elide_mode_e_ELIDE_MIDDLE: elide_mode_e = 2;
+pub const elide_mode_e_ELIDE_NONE: elide_mode_e = 3;
+pub type elide_mode_e = u32;
+pub const software_update_channel_e_UPDATE_CHANNEL_DEVELOPMENT: software_update_channel_e = 0;
+pub const software_update_channel_e_UPDATE_CHANNEL_STABLE: software_update_channel_e = 1;
+pub type software_update_channel_e = u32;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _e_prefs {
+    pub col_list: *mut GList,
+    pub num_cols: gint,
+    pub st_client_fg: color_t,
+    pub st_client_bg: color_t,
+    pub st_server_fg: color_t,
+    pub st_server_bg: color_t,
+    pub gui_text_valid: color_t,
+    pub gui_text_invalid: color_t,
+    pub gui_text_deprecated: color_t,
+    pub restore_filter_after_following_stream: gboolean,
+    pub gui_toolbar_main_style: gint,
+    pub gui_qt_font_name: *mut gchar,
+    pub gui_active_fg: color_t,
+    pub gui_active_bg: color_t,
+    pub gui_active_style: gint,
+    pub gui_inactive_fg: color_t,
+    pub gui_inactive_bg: color_t,
+    pub gui_inactive_style: gint,
+    pub gui_marked_fg: color_t,
+    pub gui_marked_bg: color_t,
+    pub gui_ignored_fg: color_t,
+    pub gui_ignored_bg: color_t,
+    pub gui_colorized_fg: *mut gchar,
+    pub gui_colorized_bg: *mut gchar,
+    pub gui_geometry_save_position: gboolean,
+    pub gui_geometry_save_size: gboolean,
+    pub gui_geometry_save_maximized: gboolean,
+    pub gui_console_open: console_open_e,
+    pub gui_recent_df_entries_max: guint,
+    pub gui_recent_files_count_max: guint,
+    pub gui_fileopen_style: guint,
+    pub gui_fileopen_dir: *mut gchar,
+    pub gui_fileopen_preview: guint,
+    pub gui_ask_unsaved: gboolean,
+    pub gui_autocomplete_filter: gboolean,
+    pub gui_find_wrap: gboolean,
+    pub gui_window_title: *mut gchar,
+    pub gui_prepend_window_title: *mut gchar,
+    pub gui_start_title: *mut gchar,
+    pub gui_version_placement: version_info_e,
+    pub gui_max_export_objects: guint,
+    pub gui_layout_type: layout_type_e,
+    pub gui_layout_content_1: layout_pane_content_e,
+    pub gui_layout_content_2: layout_pane_content_e,
+    pub gui_layout_content_3: layout_pane_content_e,
+    pub gui_interfaces_hide_types: *mut gchar,
+    pub gui_interfaces_show_hidden: gboolean,
+    pub gui_interfaces_remote_display: gboolean,
+    pub console_log_level: gint,
+    pub capture_device: *mut gchar,
+    pub capture_devices_linktypes: *mut gchar,
+    pub capture_devices_descr: *mut gchar,
+    pub capture_devices_hide: *mut gchar,
+    pub capture_devices_monitor_mode: *mut gchar,
+    pub capture_devices_buffersize: *mut gchar,
+    pub capture_devices_snaplen: *mut gchar,
+    pub capture_devices_pmode: *mut gchar,
+    pub capture_devices_filter: *mut gchar,
+    pub capture_prom_mode: gboolean,
+    pub capture_pcap_ng: gboolean,
+    pub capture_real_time: gboolean,
+    pub capture_auto_scroll: gboolean,
+    pub capture_no_interface_load: gboolean,
+    pub capture_no_extcap: gboolean,
+    pub capture_show_info: gboolean,
+    pub capture_columns: *mut GList,
+    pub tap_update_interval: guint,
+    pub display_hidden_proto_items: gboolean,
+    pub display_byte_fields_with_spaces: gboolean,
+    pub enable_incomplete_dissectors_check: gboolean,
+    pub incomplete_dissectors_check_debug: gboolean,
+    pub strict_conversation_tracking_heuristics: gboolean,
+    pub filter_expressions_old: gboolean,
+    pub gui_update_enabled: gboolean,
+    pub gui_update_channel: software_update_channel_e,
+    pub gui_update_interval: gint,
+    pub saved_at_version: *mut gchar,
+    pub unknown_prefs: gboolean,
+    pub unknown_colorfilters: gboolean,
+    pub gui_qt_packet_list_separator: gboolean,
+    pub gui_qt_packet_header_column_definition: gboolean,
+    pub gui_qt_show_selected_packet: gboolean,
+    pub gui_qt_show_file_load_time: gboolean,
+    pub gui_packet_editor: gboolean,
+    pub gui_packet_list_elide_mode: elide_mode_e,
+    pub gui_packet_list_show_related: gboolean,
+    pub gui_packet_list_show_minimap: gboolean,
+    pub st_enable_burstinfo: gboolean,
+    pub st_burst_showcount: gboolean,
+    pub st_burst_resolution: gint,
+    pub st_burst_windowlen: gint,
+    pub st_sort_casesensitve: gboolean,
+    pub st_sort_rng_fixorder: gboolean,
+    pub st_sort_rng_nameonly: gboolean,
+    pub st_sort_defcolflag: gint,
+    pub st_sort_defdescending: gboolean,
+    pub st_sort_showfullname: gboolean,
+    pub extcap_save_on_start: gboolean,
+}
+#[test]
+fn bindgen_test_layout__e_prefs() {
+    assert_eq!(
+        ::std::mem::size_of::<_e_prefs>(),
+        520usize,
+        concat!("Size of: ", stringify!(_e_prefs))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_e_prefs>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_e_prefs))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).col_list as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(col_list)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).num_cols as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(num_cols)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_client_fg as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_client_fg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_client_bg as *const _ as usize },
+        18usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_client_bg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_server_fg as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_server_fg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_server_bg as *const _ as usize },
+        30usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_server_bg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_text_valid as *const _ as usize },
+        36usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_text_valid)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_text_invalid as *const _ as usize },
+        42usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_text_invalid)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_text_deprecated as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_text_deprecated)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).restore_filter_after_following_stream as *const _
+                as usize
+        },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(restore_filter_after_following_stream)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_toolbar_main_style as *const _ as usize },
+        60usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_toolbar_main_style)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_qt_font_name as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_qt_font_name)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_active_fg as *const _ as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_active_fg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_active_bg as *const _ as usize },
+        78usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_active_bg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_active_style as *const _ as usize },
+        84usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_active_style)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_inactive_fg as *const _ as usize },
+        88usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_inactive_fg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_inactive_bg as *const _ as usize },
+        94usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_inactive_bg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_inactive_style as *const _ as usize },
+        100usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_inactive_style)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_marked_fg as *const _ as usize },
+        104usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_marked_fg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_marked_bg as *const _ as usize },
+        110usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_marked_bg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_ignored_fg as *const _ as usize },
+        116usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_ignored_fg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_ignored_bg as *const _ as usize },
+        122usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_ignored_bg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_colorized_fg as *const _ as usize },
+        128usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_colorized_fg)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_colorized_bg as *const _ as usize },
+        136usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_colorized_bg)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_geometry_save_position as *const _ as usize
+        },
+        144usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_geometry_save_position)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_geometry_save_size as *const _ as usize },
+        148usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_geometry_save_size)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_geometry_save_maximized as *const _ as usize
+        },
+        152usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_geometry_save_maximized)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_console_open as *const _ as usize },
+        156usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_console_open)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_recent_df_entries_max as *const _ as usize
+        },
+        160usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_recent_df_entries_max)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_recent_files_count_max as *const _ as usize
+        },
+        164usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_recent_files_count_max)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_fileopen_style as *const _ as usize },
+        168usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_fileopen_style)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_fileopen_dir as *const _ as usize },
+        176usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_fileopen_dir)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_fileopen_preview as *const _ as usize },
+        184usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_fileopen_preview)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_ask_unsaved as *const _ as usize },
+        188usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_ask_unsaved)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_autocomplete_filter as *const _ as usize
+        },
+        192usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_autocomplete_filter)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_find_wrap as *const _ as usize },
+        196usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_find_wrap)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_window_title as *const _ as usize },
+        200usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_window_title)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_prepend_window_title as *const _ as usize
+        },
+        208usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_prepend_window_title)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_start_title as *const _ as usize },
+        216usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_start_title)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_version_placement as *const _ as usize },
+        224usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_version_placement)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_max_export_objects as *const _ as usize },
+        228usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_max_export_objects)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_layout_type as *const _ as usize },
+        232usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_layout_type)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_layout_content_1 as *const _ as usize },
+        236usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_layout_content_1)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_layout_content_2 as *const _ as usize },
+        240usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_layout_content_2)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_layout_content_3 as *const _ as usize },
+        244usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_layout_content_3)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_interfaces_hide_types as *const _ as usize
+        },
+        248usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_interfaces_hide_types)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_interfaces_show_hidden as *const _ as usize
+        },
+        256usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_interfaces_show_hidden)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_interfaces_remote_display as *const _ as usize
+        },
+        260usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_interfaces_remote_display)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).console_log_level as *const _ as usize },
+        264usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(console_log_level)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_device as *const _ as usize },
+        272usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_device)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).capture_devices_linktypes as *const _ as usize
+        },
+        280usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_devices_linktypes)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_devices_descr as *const _ as usize },
+        288usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_devices_descr)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_devices_hide as *const _ as usize },
+        296usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_devices_hide)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).capture_devices_monitor_mode as *const _ as usize
+        },
+        304usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_devices_monitor_mode)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).capture_devices_buffersize as *const _ as usize
+        },
+        312usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_devices_buffersize)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).capture_devices_snaplen as *const _ as usize
+        },
+        320usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_devices_snaplen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_devices_pmode as *const _ as usize },
+        328usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_devices_pmode)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_devices_filter as *const _ as usize },
+        336usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_devices_filter)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_prom_mode as *const _ as usize },
+        344usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_prom_mode)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_pcap_ng as *const _ as usize },
+        348usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_pcap_ng)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_real_time as *const _ as usize },
+        352usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_real_time)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_auto_scroll as *const _ as usize },
+        356usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_auto_scroll)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).capture_no_interface_load as *const _ as usize
+        },
+        360usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_no_interface_load)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_no_extcap as *const _ as usize },
+        364usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_no_extcap)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_show_info as *const _ as usize },
+        368usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_show_info)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).capture_columns as *const _ as usize },
+        376usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_columns)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).tap_update_interval as *const _ as usize },
+        384usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(tap_update_interval)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).display_hidden_proto_items as *const _ as usize
+        },
+        388usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(display_hidden_proto_items)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).display_byte_fields_with_spaces as *const _
+                as usize
+        },
+        392usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(display_byte_fields_with_spaces)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).enable_incomplete_dissectors_check as *const _
+                as usize
+        },
+        396usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(enable_incomplete_dissectors_check)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).incomplete_dissectors_check_debug as *const _
+                as usize
+        },
+        400usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(incomplete_dissectors_check_debug)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).strict_conversation_tracking_heuristics as *const _
+                as usize
+        },
+        404usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(strict_conversation_tracking_heuristics)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).filter_expressions_old as *const _ as usize },
+        408usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(filter_expressions_old)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_update_enabled as *const _ as usize },
+        412usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_update_enabled)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_update_channel as *const _ as usize },
+        416usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_update_channel)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_update_interval as *const _ as usize },
+        420usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_update_interval)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).saved_at_version as *const _ as usize },
+        424usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(saved_at_version)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).unknown_prefs as *const _ as usize },
+        432usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(unknown_prefs)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).unknown_colorfilters as *const _ as usize },
+        436usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(unknown_colorfilters)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_qt_packet_list_separator as *const _ as usize
+        },
+        440usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_qt_packet_list_separator)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_qt_packet_header_column_definition as *const _
+                as usize
+        },
+        444usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_qt_packet_header_column_definition)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_qt_show_selected_packet as *const _ as usize
+        },
+        448usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_qt_show_selected_packet)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_qt_show_file_load_time as *const _ as usize
+        },
+        452usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_qt_show_file_load_time)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).gui_packet_editor as *const _ as usize },
+        456usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_packet_editor)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_packet_list_elide_mode as *const _ as usize
+        },
+        460usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_packet_list_elide_mode)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_packet_list_show_related as *const _ as usize
+        },
+        464usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_packet_list_show_related)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_e_prefs>())).gui_packet_list_show_minimap as *const _ as usize
+        },
+        468usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_packet_list_show_minimap)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_enable_burstinfo as *const _ as usize },
+        472usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_enable_burstinfo)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_burst_showcount as *const _ as usize },
+        476usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_burst_showcount)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_burst_resolution as *const _ as usize },
+        480usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_burst_resolution)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_burst_windowlen as *const _ as usize },
+        484usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_burst_windowlen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_sort_casesensitve as *const _ as usize },
+        488usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_sort_casesensitve)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_sort_rng_fixorder as *const _ as usize },
+        492usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_sort_rng_fixorder)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_sort_rng_nameonly as *const _ as usize },
+        496usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_sort_rng_nameonly)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_sort_defcolflag as *const _ as usize },
+        500usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_sort_defcolflag)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_sort_defdescending as *const _ as usize },
+        504usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_sort_defdescending)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).st_sort_showfullname as *const _ as usize },
+        508usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_sort_showfullname)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_e_prefs>())).extcap_save_on_start as *const _ as usize },
+        512usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(extcap_save_on_start)
+        )
+    );
+}
+pub type e_prefs = _e_prefs;
+extern "C" {
+    pub static mut prefs: e_prefs;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct pref_module {
+    _unused: [u8; 0],
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct pref_custom_cbs {
+    _unused: [u8; 0],
+}
+pub type module_t = pref_module;
+extern "C" {
+    #[doc = " Sets up memory used by proto routines. Called at program startup"]
+    pub fn prefs_init();
+}
+extern "C" {
+    #[doc = " Reset preferences to default values.  Called at profile change"]
+    pub fn prefs_reset();
+}
+extern "C" {
+    #[doc = " Frees memory used by proto routines. Called at program shutdown"]
+    pub fn prefs_cleanup();
+}
+extern "C" {
+    #[doc = " Provide a hint about the darkness of the current UI theme so that we can adjust colors when needed"]
+    pub fn prefs_set_gui_theme_is_dark(is_dark: gboolean);
+}
+extern "C" {
+    pub fn prefs_register_protocol(
+        id: ::std::os::raw::c_int,
+        apply_cb: ::std::option::Option<unsafe extern "C" fn()>,
+    ) -> *mut module_t;
+}
+extern "C" {
+    pub fn prefs_register_module_alias(name: *const ::std::os::raw::c_char, module: *mut module_t);
+}
+extern "C" {
+    #[doc = " Deregister preferences from a protocol."]
+    pub fn prefs_deregister_protocol(id: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn prefs_register_stat(
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        apply_cb: ::std::option::Option<unsafe extern "C" fn()>,
+    ) -> *mut module_t;
+}
+extern "C" {
+    pub fn prefs_register_codec(
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        apply_cb: ::std::option::Option<unsafe extern "C" fn()>,
+    ) -> *mut module_t;
+}
+extern "C" {
+    pub fn prefs_register_protocol_subtree(
+        subtree: *const ::std::os::raw::c_char,
+        id: ::std::os::raw::c_int,
+        apply_cb: ::std::option::Option<unsafe extern "C" fn()>,
+    ) -> *mut module_t;
+}
+extern "C" {
+    pub fn prefs_register_protocol_obsolete(id: ::std::os::raw::c_int) -> *mut module_t;
+}
+pub type module_cb = ::std::option::Option<
+    unsafe extern "C" fn(module: *mut module_t, user_data: gpointer) -> guint,
+>;
+extern "C" {
+    pub fn prefs_module_has_submodules(module: *mut module_t) -> gboolean;
+}
+extern "C" {
+    pub fn prefs_modules_foreach(callback: module_cb, user_data: gpointer) -> guint;
+}
+extern "C" {
+    pub fn prefs_modules_foreach_submodules(
+        module: *mut module_t,
+        callback: module_cb,
+        user_data: gpointer,
+    ) -> guint;
+}
+extern "C" {
+    pub fn prefs_apply_all();
+}
+extern "C" {
+    pub fn prefs_apply(module: *mut module_t);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct preference {
+    _unused: [u8; 0],
+}
+pub type pref_t = preference;
+extern "C" {
+    pub fn prefs_is_registered_protocol(name: *const ::std::os::raw::c_char) -> gboolean;
+}
+extern "C" {
+    pub fn prefs_get_title_by_name(
+        name: *const ::std::os::raw::c_char,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Given a module name, return a pointer to its pref_module struct,"]
+    #[doc = " or NULL if it's not found."]
+    #[doc = ""]
+    #[doc = " @param name The preference module name.  Usually the same as the protocol"]
+    #[doc = " name, e.g. \"tcp\"."]
+    #[doc = " @return A pointer to the corresponding preference module, or NULL if it"]
+    #[doc = " wasn't found."]
+    pub fn prefs_find_module(name: *const ::std::os::raw::c_char) -> *mut module_t;
+}
+extern "C" {
+    #[doc = " Given a module name, and a preference name return a pointer to the given"]
+    #[doc = " module's given preference or NULL if it's not found."]
+    #[doc = ""]
+    #[doc = " @param module The preference module name.  Usually the same as the protocol"]
+    #[doc = " name, e.g. \"tcp\"."]
+    #[doc = " @param pref The preference name, e.g. \"desegment\"."]
+    #[doc = " @return A pointer to the corresponding preference, or NULL if it"]
+    #[doc = " wasn't found."]
+    pub fn prefs_find_preference(
+        module: *mut module_t,
+        pref: *const ::std::os::raw::c_char,
+    ) -> *mut pref_t;
+}
+extern "C" {
+    pub fn prefs_register_uint_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        base: guint,
+        var: *mut guint,
+    );
+}
+extern "C" {
+    pub fn prefs_register_bool_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut gboolean,
+    );
+}
+extern "C" {
+    pub fn prefs_register_enum_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut gint,
+        enumvals: *const enum_val_t,
+        radio_buttons: gboolean,
+    );
+}
+extern "C" {
+    pub fn prefs_register_string_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn prefs_register_filename_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut *const ::std::os::raw::c_char,
+        for_writing: gboolean,
+    );
+}
+extern "C" {
+    pub fn prefs_register_directory_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn prefs_register_range_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut *mut range_t,
+        max_value: guint32,
+    );
+}
+extern "C" {
+    pub fn prefs_register_static_text_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn prefs_register_uat_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        uat: *mut epan_uat,
+    );
+}
+extern "C" {
+    pub fn prefs_register_uat_preference_qt(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        uat: *mut epan_uat,
+    );
+}
+extern "C" {
+    pub fn prefs_register_color_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        color: *mut color_t,
+    );
+}
+extern "C" {
+    pub fn prefs_register_custom_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        custom_cbs: *mut pref_custom_cbs,
+        custom_data: *mut *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn prefs_register_decode_as_range_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut *mut range_t,
+        max_value: guint32,
+    );
+}
+extern "C" {
+    pub fn prefs_register_decode_as_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut guint,
+    );
+}
+extern "C" {
+    pub fn prefs_register_obsolete_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn prefs_set_preference_effect_fields(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+pub type pref_cb =
+    ::std::option::Option<unsafe extern "C" fn(pref: *mut pref_t, user_data: gpointer) -> guint>;
+extern "C" {
+    pub fn prefs_pref_foreach(
+        module: *mut module_t,
+        callback: pref_cb,
+        user_data: gpointer,
+    ) -> guint;
+}
+extern "C" {
+    pub fn prefs_get_string_list(str_: *const gchar) -> *mut GList;
+}
+extern "C" {
+    pub fn prefs_clear_string_list(sl: *mut GList);
+}
+extern "C" {
+    #[doc = " Fetch a short preference type name, e.g. \"Integer\"."]
+    #[doc = ""]
+    #[doc = " @param pref A preference."]
+    #[doc = ""]
+    #[doc = " @return The preference type name. May be NULL."]
+    pub fn prefs_pref_type_name(pref: *mut pref_t) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Fetch a long description of the preference type"]
+    #[doc = ""]
+    #[doc = " @param pref A preference."]
+    #[doc = ""]
+    #[doc = " @return A description of the preference type including allowed"]
+    #[doc = " values for enums. The description may include newlines. Must be"]
+    #[doc = " g_free()d."]
+    pub fn prefs_pref_type_description(pref: *mut pref_t) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Fetch a string representation of the preference."]
+    #[doc = ""]
+    #[doc = " @param pref A preference."]
+    #[doc = " @param source Which value of the preference to return, see pref_source_t."]
+    #[doc = ""]
+    #[doc = " @return A string representation of the preference. Must be g_free()d."]
+    pub fn prefs_pref_to_str(
+        pref: *mut pref_t,
+        source: pref_source_t,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn read_prefs() -> *mut e_prefs;
+}
+extern "C" {
+    pub fn write_prefs(arg1: *mut *mut ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+pub const prefs_set_pref_e_PREFS_SET_OK: prefs_set_pref_e = 0;
+pub const prefs_set_pref_e_PREFS_SET_SYNTAX_ERR: prefs_set_pref_e = 1;
+pub const prefs_set_pref_e_PREFS_SET_NO_SUCH_PREF: prefs_set_pref_e = 2;
+pub const prefs_set_pref_e_PREFS_SET_OBSOLETE: prefs_set_pref_e = 3;
+#[doc = " Result of setting a preference."]
+pub type prefs_set_pref_e = u32;
+extern "C" {
+    pub fn prefs_set_pref(
+        prefarg: *mut ::std::os::raw::c_char,
+        errmsg: *mut *mut ::std::os::raw::c_char,
+    ) -> prefs_set_pref_e;
+}
+extern "C" {
+    pub fn prefs_get_preference_obsolete(pref: *mut pref_t) -> gboolean;
+}
+extern "C" {
+    pub fn prefs_set_preference_obsolete(pref: *mut pref_t) -> prefs_set_pref_e;
+}
+extern "C" {
+    pub fn prefs_get_uint_value(
+        module_name: *const ::std::os::raw::c_char,
+        pref_name: *const ::std::os::raw::c_char,
+    ) -> guint;
+}
+extern "C" {
+    pub fn prefs_get_range_value(
+        module_name: *const ::std::os::raw::c_char,
+        pref_name: *const ::std::os::raw::c_char,
+    ) -> *mut range_t;
+}
+extern "C" {
+    pub fn prefs_is_capture_device_hidden(name: *const ::std::os::raw::c_char) -> gboolean;
+}
+extern "C" {
+    pub fn prefs_capture_device_monitor_mode(name: *const ::std::os::raw::c_char) -> gboolean;
+}
+extern "C" {
+    pub fn prefs_capture_options_dialog_column_is_visible(column: *const gchar) -> gboolean;
+}
+extern "C" {
+    pub fn prefs_has_layout_pane_content(layout_pane_content: layout_pane_content_e) -> gboolean;
+}
+extern "C" {
+    pub static mut wireshark_abort_on_dissector_bug: gboolean;
+}
+pub type epan_dissect_t = epan_dissect;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct epan_dfilter {
+    _unused: [u8; 0],
+}
+#[doc = "  Helper routines for column utility structures and routines."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct epan_column_info {
+    _unused: [u8; 0],
+}
+#[doc = " Opaque structure provided when an epan_t is created; it contains"]
+#[doc = " information needed to allow the user of libwireshark to provide"]
+#[doc = " time stamps, comments, and other information outside the packet"]
+#[doc = " data itself."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct packet_provider_data {
+    _unused: [u8; 0],
+}
+#[doc = " Structure containing pointers to functions supplied by the user"]
+#[doc = " of libwireshark."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct packet_provider_funcs {
+    pub get_frame_ts: ::std::option::Option<
+        unsafe extern "C" fn(
+            prov: *mut packet_provider_data,
+            frame_num: guint32,
+        ) -> *const nstime_t,
+    >,
+    pub get_interface_name: ::std::option::Option<
+        unsafe extern "C" fn(
+            prov: *mut packet_provider_data,
+            interface_id: guint32,
+        ) -> *const ::std::os::raw::c_char,
+    >,
+    pub get_interface_description: ::std::option::Option<
+        unsafe extern "C" fn(
+            prov: *mut packet_provider_data,
+            interface_id: guint32,
+        ) -> *const ::std::os::raw::c_char,
+    >,
+    pub get_user_comment: ::std::option::Option<
+        unsafe extern "C" fn(
+            prov: *mut packet_provider_data,
+            fd: *const frame_data,
+        ) -> *const ::std::os::raw::c_char,
+    >,
+}
+#[test]
+fn bindgen_test_layout_packet_provider_funcs() {
+    assert_eq!(
+        ::std::mem::size_of::<packet_provider_funcs>(),
+        32usize,
+        concat!("Size of: ", stringify!(packet_provider_funcs))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<packet_provider_funcs>(),
+        8usize,
+        concat!("Alignment of ", stringify!(packet_provider_funcs))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<packet_provider_funcs>())).get_frame_ts as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(packet_provider_funcs),
+            "::",
+            stringify!(get_frame_ts)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<packet_provider_funcs>())).get_interface_name as *const _
+                as usize
+        },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(packet_provider_funcs),
+            "::",
+            stringify!(get_interface_name)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<packet_provider_funcs>())).get_interface_description as *const _
+                as usize
+        },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(packet_provider_funcs),
+            "::",
+            stringify!(get_interface_description)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<packet_provider_funcs>())).get_user_comment as *const _ as usize
+        },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(packet_provider_funcs),
+            "::",
+            stringify!(get_user_comment)
+        )
+    );
+}
+extern "C" {
+    pub static mut libwireshark_plugins: *mut plugins_t;
+}
+extern "C" {
+    #[doc = " Init the whole epan module."]
+    #[doc = ""]
+    #[doc = " Must be called only once in a program."]
+    #[doc = ""]
+    #[doc = " Returns TRUE on success, FALSE on failure."]
+    pub fn epan_init(
+        cb: register_cb,
+        client_data: *mut ::std::os::raw::c_void,
+        load_plugins: gboolean,
+    ) -> gboolean;
+}
+extern "C" {
+    #[doc = " Load all settings, from the current profile, that affect epan."]
+    pub fn epan_load_settings() -> *mut e_prefs;
+}
+extern "C" {
+    #[doc = " cleanup the whole epan module, this is used to be called only once in a program"]
+    pub fn epan_cleanup();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct epan_plugin {
+    pub init: ::std::option::Option<unsafe extern "C" fn()>,
+    pub dissect_init: ::std::option::Option<unsafe extern "C" fn(arg1: *mut epan_dissect_t)>,
+    pub dissect_cleanup: ::std::option::Option<unsafe extern "C" fn(arg1: *mut epan_dissect_t)>,
+    pub cleanup: ::std::option::Option<unsafe extern "C" fn()>,
+    pub register_all_protocols:
+        ::std::option::Option<unsafe extern "C" fn(arg1: register_cb, arg2: gpointer)>,
+    pub register_all_handoffs:
+        ::std::option::Option<unsafe extern "C" fn(arg1: register_cb, arg2: gpointer)>,
+    pub register_all_tap_listeners: ::std::option::Option<unsafe extern "C" fn()>,
+}
+#[test]
+fn bindgen_test_layout_epan_plugin() {
+    assert_eq!(
+        ::std::mem::size_of::<epan_plugin>(),
+        56usize,
+        concat!("Size of: ", stringify!(epan_plugin))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<epan_plugin>(),
+        8usize,
+        concat!("Alignment of ", stringify!(epan_plugin))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<epan_plugin>())).init as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_plugin),
+            "::",
+            stringify!(init)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<epan_plugin>())).dissect_init as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_plugin),
+            "::",
+            stringify!(dissect_init)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<epan_plugin>())).dissect_cleanup as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_plugin),
+            "::",
+            stringify!(dissect_cleanup)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<epan_plugin>())).cleanup as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_plugin),
+            "::",
+            stringify!(cleanup)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<epan_plugin>())).register_all_protocols as *const _ as usize
+        },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_plugin),
+            "::",
+            stringify!(register_all_protocols)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<epan_plugin>())).register_all_handoffs as *const _ as usize
+        },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_plugin),
+            "::",
+            stringify!(register_all_handoffs)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<epan_plugin>())).register_all_tap_listeners as *const _ as usize
+        },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(epan_plugin),
+            "::",
+            stringify!(register_all_tap_listeners)
+        )
+    );
+}
+extern "C" {
+    pub fn epan_register_plugin(plugin: *const epan_plugin);
+}
+extern "C" {
+    #[doc = " Initialize the table of conversations.  Conversations are identified by"]
+    #[doc = " their endpoints; they are used for protocols such as IP, TCP, and UDP,"]
+    #[doc = " where packets contain endpoint information but don't contain a single"]
+    #[doc = " value indicating to which flow the packet belongs."]
+    pub fn epan_conversation_init();
+}
+#[doc = " A client will create one epan_t for an entire dissection session."]
+#[doc = " A single epan_t will be used to analyze the entire sequence of packets,"]
+#[doc = " sequentially, in a single session. A session corresponds to a single"]
+#[doc = " packet trace file. The reasons epan_t exists is that some packets in"]
+#[doc = " some protocols cannot be decoded without knowledge of previous packets."]
+#[doc = " This inter-packet \"state\" is stored in the epan_t."]
+pub type epan_t = epan_session;
+extern "C" {
+    pub fn epan_new(
+        prov: *mut packet_provider_data,
+        funcs: *const packet_provider_funcs,
+    ) -> *mut epan_t;
+}
+extern "C" {
+    pub fn epan_get_user_comment(
+        session: *const epan_t,
+        fd: *const frame_data,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn epan_get_interface_name(
+        session: *const epan_t,
+        interface_id: guint32,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn epan_get_interface_description(
+        session: *const epan_t,
+        interface_id: guint32,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn epan_get_frame_ts(session: *const epan_t, frame_num: guint32) -> *const nstime_t;
+}
+extern "C" {
+    pub fn epan_free(session: *mut epan_t);
+}
+extern "C" {
+    pub fn epan_get_version() -> *const gchar;
+}
+extern "C" {
+    pub fn epan_get_version_number(
+        major: *mut ::std::os::raw::c_int,
+        minor: *mut ::std::os::raw::c_int,
+        micro: *mut ::std::os::raw::c_int,
+    );
+}
+extern "C" {
+    #[doc = " Set/unset the tree to always be visible when epan_dissect_init() is called."]
+    #[doc = " This state change sticks until cleared, rather than being done per function call."]
+    #[doc = " This is currently used when Lua scripts request all fields be generated."]
+    #[doc = " By default it only becomes visible if epan_dissect_init() makes it so, usually"]
+    #[doc = " only when a packet is selected."]
+    #[doc = " Setting this overrides that so it's always visible, although it will still not be"]
+    #[doc = " created if create_proto_tree is false in the call to epan_dissect_init()."]
+    #[doc = " Clearing this reverts the decision to epan_dissect_init() and proto_tree_visible."]
+    pub fn epan_set_always_visible(force: gboolean);
+}
+extern "C" {
+    #[doc = " initialize an existing single packet dissection"]
+    pub fn epan_dissect_init(
+        edt: *mut epan_dissect_t,
+        session: *mut epan_t,
+        create_proto_tree: gboolean,
+        proto_tree_visible: gboolean,
+    );
+}
+extern "C" {
+    #[doc = " get a new single packet dissection"]
+    #[doc = " should be freed using epan_dissect_free() after packet dissection completed"]
+    pub fn epan_dissect_new(
+        session: *mut epan_t,
+        create_proto_tree: gboolean,
+        proto_tree_visible: gboolean,
+    ) -> *mut epan_dissect_t;
+}
+extern "C" {
+    pub fn epan_dissect_reset(edt: *mut epan_dissect_t);
+}
+extern "C" {
+    #[doc = " Indicate whether we should fake protocols or not"]
+    pub fn epan_dissect_fake_protocols(edt: *mut epan_dissect_t, fake_protocols: gboolean);
+}
+extern "C" {
+    #[doc = " run a single packet dissection"]
+    pub fn epan_dissect_run(
+        edt: *mut epan_dissect_t,
+        file_type_subtype: ::std::os::raw::c_int,
+        rec: *mut wtap_rec,
+        tvb: *mut tvbuff_t,
+        fd: *mut frame_data,
+        cinfo: *mut epan_column_info,
+    );
+}
+extern "C" {
+    pub fn epan_dissect_run_with_taps(
+        edt: *mut epan_dissect_t,
+        file_type_subtype: ::std::os::raw::c_int,
+        rec: *mut wtap_rec,
+        tvb: *mut tvbuff_t,
+        fd: *mut frame_data,
+        cinfo: *mut epan_column_info,
+    );
+}
+extern "C" {
+    #[doc = " run a single file packet dissection"]
+    pub fn epan_dissect_file_run(
+        edt: *mut epan_dissect_t,
+        rec: *mut wtap_rec,
+        tvb: *mut tvbuff_t,
+        fd: *mut frame_data,
+        cinfo: *mut epan_column_info,
+    );
+}
+extern "C" {
+    pub fn epan_dissect_file_run_with_taps(
+        edt: *mut epan_dissect_t,
+        rec: *mut wtap_rec,
+        tvb: *mut tvbuff_t,
+        fd: *mut frame_data,
+        cinfo: *mut epan_column_info,
+    );
+}
+extern "C" {
+    #[doc = " Prime an epan_dissect_t's proto_tree using the fields/protocols used in a dfilter."]
+    pub fn epan_dissect_prime_with_dfilter(edt: *mut epan_dissect_t, dfcode: *const epan_dfilter);
+}
+extern "C" {
+    #[doc = " Prime an epan_dissect_t's proto_tree with a field/protocol specified by its hfid"]
+    pub fn epan_dissect_prime_with_hfid(edt: *mut epan_dissect_t, hfid: ::std::os::raw::c_int);
+}
+extern "C" {
+    #[doc = " Prime an epan_dissect_t's proto_tree with a set of fields/protocols specified by their hfids in a GArray"]
+    pub fn epan_dissect_prime_with_hfid_array(edt: *mut epan_dissect_t, hfids: *mut GArray);
+}
+extern "C" {
+    #[doc = " fill the dissect run output into the packet list columns"]
+    pub fn epan_dissect_fill_in_columns(
+        edt: *mut epan_dissect_t,
+        fill_col_exprs: gboolean,
+        fill_fd_colums: gboolean,
+    );
+}
+extern "C" {
+    #[doc = " Check whether a dissected packet contains a given named field"]
+    pub fn epan_dissect_packet_contains_field(
+        edt: *mut epan_dissect_t,
+        field_name: *const ::std::os::raw::c_char,
+    ) -> gboolean;
+}
+extern "C" {
+    #[doc = " releases resources attached to the packet dissection. DOES NOT free the actual pointer"]
+    pub fn epan_dissect_cleanup(edt: *mut epan_dissect_t);
+}
+extern "C" {
+    #[doc = " free a single packet dissection"]
+    pub fn epan_dissect_free(edt: *mut epan_dissect_t);
+}
+extern "C" {
+    #[doc = " Sets custom column"]
+    pub fn epan_custom_set(
+        edt: *mut epan_dissect_t,
+        ids: *mut GSList,
+        occurrence: gint,
+        result: *mut gchar,
+        expr: *mut gchar,
+        size: ::std::os::raw::c_int,
+    ) -> *const gchar;
+}
+extern "C" {
+    #[doc = " Get compile-time information for libraries used by libwireshark."]
+    pub fn epan_get_compiled_version_info(str_: *mut GString);
+}
+extern "C" {
+    #[doc = " Get runtime information for libraries used by libwireshark."]
+    pub fn epan_get_runtime_version_info(str_: *mut GString);
+}
+pub type column_info = epan_column_info;
+#[doc = "< 0) 802.1Q vlan ID"]
+pub const COL_8021Q_VLAN_ID: _bindgen_ty_21 = 0;
+#[doc = "< 1) Absolute date, as YYYY-MM-DD, and time"]
+pub const COL_ABS_YMD_TIME: _bindgen_ty_21 = 1;
+#[doc = "< 2) Absolute date, as YYYY/DOY, and time"]
+pub const COL_ABS_YDOY_TIME: _bindgen_ty_21 = 2;
+#[doc = "< 3) Absolute time"]
+pub const COL_ABS_TIME: _bindgen_ty_21 = 3;
+#[doc = "< 4) VSAN - Cisco MDS-specific"]
+pub const COL_VSAN: _bindgen_ty_21 = 4;
+#[doc = "< 5) Cumulative number of bytes"]
+pub const COL_CUMULATIVE_BYTES: _bindgen_ty_21 = 5;
+#[doc = "< 6) Custom column (any filter name's contents)"]
+pub const COL_CUSTOM: _bindgen_ty_21 = 6;
+#[doc = "< 7) DCE/RPC connection oriented call id OR datagram sequence number"]
+pub const COL_DCE_CALL: _bindgen_ty_21 = 7;
+#[doc = "< 8) Delta time"]
+pub const COL_DELTA_TIME: _bindgen_ty_21 = 8;
+#[doc = "< 9) Delta time displayed"]
+pub const COL_DELTA_TIME_DIS: _bindgen_ty_21 = 9;
+#[doc = "< 10) Resolved dest"]
+pub const COL_RES_DST: _bindgen_ty_21 = 10;
+#[doc = "< 11) Unresolved dest"]
+pub const COL_UNRES_DST: _bindgen_ty_21 = 11;
+#[doc = "< 12) Resolved dest port"]
+pub const COL_RES_DST_PORT: _bindgen_ty_21 = 12;
+#[doc = "< 13) Unresolved dest port"]
+pub const COL_UNRES_DST_PORT: _bindgen_ty_21 = 13;
+#[doc = "< 14) Destination address"]
+pub const COL_DEF_DST: _bindgen_ty_21 = 14;
+#[doc = "< 15) Destination port"]
+pub const COL_DEF_DST_PORT: _bindgen_ty_21 = 15;
+#[doc = "< 16) Expert Info"]
+pub const COL_EXPERT: _bindgen_ty_21 = 16;
+#[doc = "< 17) FW-1 monitor interface/direction"]
+pub const COL_IF_DIR: _bindgen_ty_21 = 17;
+#[doc = "< 18) IEEE 802.11 (and WiMax?) - Channel"]
+pub const COL_FREQ_CHAN: _bindgen_ty_21 = 18;
+#[doc = "< 19) Data link layer dest address"]
+pub const COL_DEF_DL_DST: _bindgen_ty_21 = 19;
+#[doc = "< 20) Data link layer source address"]
+pub const COL_DEF_DL_SRC: _bindgen_ty_21 = 20;
+#[doc = "< 21) Resolved DL dest"]
+pub const COL_RES_DL_DST: _bindgen_ty_21 = 21;
+#[doc = "< 22) Unresolved DL dest"]
+pub const COL_UNRES_DL_DST: _bindgen_ty_21 = 22;
+#[doc = "< 23) Resolved DL source"]
+pub const COL_RES_DL_SRC: _bindgen_ty_21 = 23;
+#[doc = "< 24) Unresolved DL source"]
+pub const COL_UNRES_DL_SRC: _bindgen_ty_21 = 24;
+#[doc = "< 25) IEEE 802.11 - received signal strength"]
+pub const COL_RSSI: _bindgen_ty_21 = 25;
+#[doc = "< 26) IEEE 802.11 - TX rate in Mbps"]
+pub const COL_TX_RATE: _bindgen_ty_21 = 26;
+#[doc = "< 27) IP DSCP Value"]
+pub const COL_DSCP_VALUE: _bindgen_ty_21 = 27;
+#[doc = "< 28) Description"]
+pub const COL_INFO: _bindgen_ty_21 = 28;
+#[doc = "< 29) Resolved net dest"]
+pub const COL_RES_NET_DST: _bindgen_ty_21 = 29;
+#[doc = "< 30) Unresolved net dest"]
+pub const COL_UNRES_NET_DST: _bindgen_ty_21 = 30;
+#[doc = "< 31) Resolved net source"]
+pub const COL_RES_NET_SRC: _bindgen_ty_21 = 31;
+#[doc = "< 32) Unresolved net source"]
+pub const COL_UNRES_NET_SRC: _bindgen_ty_21 = 32;
+#[doc = "< 33) Network layer dest address"]
+pub const COL_DEF_NET_DST: _bindgen_ty_21 = 33;
+#[doc = "< 34) Network layer source address"]
+pub const COL_DEF_NET_SRC: _bindgen_ty_21 = 34;
+#[doc = "< 35) Packet list item number"]
+pub const COL_NUMBER: _bindgen_ty_21 = 35;
+#[doc = "< 36) Packet length in bytes"]
+pub const COL_PACKET_LENGTH: _bindgen_ty_21 = 36;
+#[doc = "< 37) Protocol"]
+pub const COL_PROTOCOL: _bindgen_ty_21 = 37;
+#[doc = "< 38) Relative time"]
+pub const COL_REL_TIME: _bindgen_ty_21 = 38;
+#[doc = "< 39) Source address"]
+pub const COL_DEF_SRC: _bindgen_ty_21 = 39;
+#[doc = "< 40) Source port"]
+pub const COL_DEF_SRC_PORT: _bindgen_ty_21 = 40;
+#[doc = "< 41) Resolved source"]
+pub const COL_RES_SRC: _bindgen_ty_21 = 41;
+#[doc = "< 42) Unresolved source"]
+pub const COL_UNRES_SRC: _bindgen_ty_21 = 42;
+#[doc = "< 43) Resolved source port"]
+pub const COL_RES_SRC_PORT: _bindgen_ty_21 = 43;
+#[doc = "< 44) Unresolved source port"]
+pub const COL_UNRES_SRC_PORT: _bindgen_ty_21 = 44;
+#[doc = "< 45) Q.921 TEI"]
+pub const COL_TEI: _bindgen_ty_21 = 45;
+#[doc = "< 46) UTC date, as YYYY-MM-DD, and time"]
+pub const COL_UTC_YMD_TIME: _bindgen_ty_21 = 46;
+#[doc = "< 47) UTC date, as YYYY/DOY, and time"]
+pub const COL_UTC_YDOY_TIME: _bindgen_ty_21 = 47;
+#[doc = "< 48) UTC time"]
+pub const COL_UTC_TIME: _bindgen_ty_21 = 48;
+#[doc = "< 49) Command line-specified time (default relative)"]
+pub const COL_CLS_TIME: _bindgen_ty_21 = 49;
+#[doc = "< 50) Should always be last"]
+pub const NUM_COL_FMTS: _bindgen_ty_21 = 50;
+#[doc = " All of the possible columns in summary listing."]
+#[doc = ""]
+#[doc = " NOTE1: The entries MUST remain in this order, or else you need to reorder"]
+#[doc = "        the slist[] and dlist[] arrays in column.c to match!"]
+#[doc = ""]
+#[doc = " NOTE2: Please add the COL_XYZ entry in the appropriate spot, such that the"]
+#[doc = "        dlist[] array remains in alphabetical order!"]
+pub type _bindgen_ty_21 = u32;
+extern "C" {
+    #[doc = " Allocate all the data structures for constructing column data, given"]
+    #[doc = " the number of columns."]
+    #[doc = ""]
+    #[doc = " Internal, don't use this in dissectors!"]
+    pub fn col_setup(cinfo: *mut column_info, num_cols: gint);
+}
+extern "C" {
+    #[doc = " Cleanup all the data structures for constructing column data;"]
+    #[doc = " undoes the alocations that col_setup() does."]
+    #[doc = ""]
+    #[doc = " Internal, don't use this in dissectors!"]
+    pub fn col_cleanup(cinfo: *mut column_info);
+}
+extern "C" {
+    #[doc = " Initialize the data structures for constructing column data."]
+    #[doc = ""]
+    #[doc = " Internal, don't use this in dissectors!"]
+    pub fn col_init(cinfo: *mut column_info, epan: *const epan_session);
+}
+extern "C" {
+    #[doc = " Fill in all columns of the given packet which are based on values from frame_data."]
+    #[doc = ""]
+    #[doc = " Internal, don't use this in dissectors!"]
+    pub fn col_fill_in_frame_data(
+        fd: *const frame_data,
+        cinfo: *mut column_info,
+        col: gint,
+        fill_col_exprs: gboolean,
+    );
+}
+extern "C" {
+    #[doc = " Fill in all columns of the given packet."]
+    #[doc = ""]
+    #[doc = " Internal, don't use this in dissectors!"]
+    pub fn col_fill_in(pinfo: *mut packet_info, fill_col_exprs: gboolean, fill_fd_colums: gboolean);
+}
+extern "C" {
+    #[doc = " Fill in columns if we got an error reading the packet."]
+    #[doc = " We set most columns to \"???\", and set the Info column to an error"]
+    #[doc = " message."]
+    #[doc = ""]
+    #[doc = " Internal, don't use this in dissectors!"]
+    pub fn col_fill_in_error(
+        cinfo: *mut column_info,
+        fdata: *mut frame_data,
+        fill_col_exprs: gboolean,
+        fill_fd_colums: gboolean,
+    );
+}
+extern "C" {
+    #[doc = " Check to see if our column data has changed, e.g. we have new request/response info."]
+    #[doc = ""]
+    #[doc = " Internal, don't use this in dissectors!"]
+    pub fn col_data_changed() -> gboolean;
+}
+extern "C" {
+    #[doc = " Are the columns writable?"]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the writable column, -1 for checking the state of all columns"]
+    #[doc = " @return TRUE if it's writable, FALSE if not"]
+    pub fn col_get_writable(cinfo: *mut column_info, col: gint) -> gboolean;
+}
+extern "C" {
+    #[doc = " Set the columns writable."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to set, -1 for all"]
+    #[doc = " @param writable TRUE if it's writable, FALSE if not"]
+    pub fn col_set_writable(cinfo: *mut column_info, col: gint, writable: gboolean);
+}
+extern "C" {
+    #[doc = " Sets a fence for the current column content,"]
+    #[doc = " so this content won't be affected by further col_... function calls."]
+    #[doc = ""]
+    #[doc = " This can be useful if a protocol is more than once in a single packet,"]
+    #[doc = " e.g. multiple HTTP calls in a single TCP packet."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    pub fn col_set_fence(cinfo: *mut column_info, col: gint);
+}
+extern "C" {
+    #[doc = " Clears a fence for the current column content"]
+    #[doc = ""]
+    #[doc = " This can be useful if a protocol wants to remove whatever"]
+    #[doc = " a previous protocol has added to the column."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    pub fn col_clear_fence(cinfo: *mut column_info, col: gint);
+}
+extern "C" {
+    #[doc = " Gets the text of a column element."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = ""]
+    #[doc = " @return the text string"]
+    pub fn col_get_text(cinfo: *mut column_info, col: gint) -> *const gchar;
+}
+extern "C" {
+    #[doc = " Clears the text of a column element."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    pub fn col_clear(cinfo: *mut column_info, col: gint);
+}
+extern "C" {
+    #[doc = " Set (replace) the text of a column element, the text won't be copied."]
+    #[doc = ""]
+    #[doc = " Usually used to set const strings!"]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param str the string to set"]
+    pub fn col_set_str(cinfo: *mut column_info, col: gint, str_: *const gchar);
+}
+extern "C" {
+    #[doc = " Add (replace) the text of a column element, the text will be copied."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param str the string to add"]
+    pub fn col_add_str(cinfo: *mut column_info, col: gint, str_: *const gchar);
+}
+extern "C" {
+    pub fn col_add_lstr(cinfo: *mut column_info, el: gint, str_: *const gchar, ...);
+}
+extern "C" {
+    #[doc = " Add (replace) the text of a column element, the text will be formatted and copied."]
+    #[doc = ""]
+    #[doc = " Same function as col_add_str() but using a printf-like format string."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param format the format string"]
+    #[doc = " @param ... the variable number of parameters"]
+    pub fn col_add_fstr(cinfo: *mut column_info, col: gint, format: *const gchar, ...);
+}
+extern "C" {
+    #[doc = " For internal Wireshark use only.  Not to be called from dissectors."]
+    pub fn col_custom_set_edt(edt: *mut epan_dissect, cinfo: *mut column_info);
+}
+extern "C" {
+    #[doc = " For internal Wireshark use only.  Not to be called from dissectors."]
+    pub fn col_custom_prime_edt(edt: *mut epan_dissect, cinfo: *mut column_info);
+}
+extern "C" {
+    #[doc = " For internal Wireshark use only.  Not to be called from dissectors."]
+    pub fn have_custom_cols(cinfo: *mut column_info) -> gboolean;
+}
+extern "C" {
+    #[doc = " For internal Wireshark use only.  Not to be called from dissectors."]
+    pub fn have_field_extractors() -> gboolean;
+}
+extern "C" {
+    #[doc = " For internal Wireshark use only.  Not to be called from dissectors."]
+    pub fn col_has_time_fmt(cinfo: *mut column_info, col: gint) -> gboolean;
+}
+extern "C" {
+    #[doc = " For internal Wireshark use only.  Not to be called from dissectors."]
+    pub fn col_based_on_frame_data(cinfo: *mut column_info, col: gint) -> gboolean;
+}
+extern "C" {
+    #[doc = " Append the given text to a column element, the text will be copied."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param str the string to append"]
+    pub fn col_append_str(cinfo: *mut column_info, col: gint, str_: *const gchar);
+}
+extern "C" {
+    #[doc = " Append <abbrev>=<val> to a column element, the text will be copied."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param abbrev the string to append"]
+    #[doc = " @param val the value to append"]
+    #[doc = " @param sep an optional separator to _prepend_ to abbrev"]
+    pub fn col_append_str_uint(
+        cinfo: *mut column_info,
+        col: gint,
+        abbrev: *const gchar,
+        val: guint32,
+        sep: *const gchar,
+    );
+}
+extern "C" {
+    #[doc = " Append a transport port pair to a column element, the text will be copied."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param typ the port type to resolve, e.g. PT_UDP"]
+    #[doc = " @param src the source port value to append"]
+    #[doc = " @param dst the destination port value to append"]
+    pub fn col_append_ports(
+        cinfo: *mut column_info,
+        col: gint,
+        typ: port_type,
+        src: guint16,
+        dst: guint16,
+    );
+}
+extern "C" {
+    #[doc = " Append a frame number and signal that we have updated"]
+    #[doc = " column information."]
+    #[doc = ""]
+    #[doc = " @param pinfo the current packet info"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param fmt_str format string, e.g. \"reassembled in %u\"."]
+    #[doc = " @param frame_num frame number"]
+    pub fn col_append_frame_number(
+        pinfo: *mut packet_info,
+        col: gint,
+        fmt_str: *const gchar,
+        frame_num: guint,
+    );
+}
+extern "C" {
+    pub fn col_append_lstr(cinfo: *mut column_info, el: gint, str_: *const gchar, ...);
+}
+extern "C" {
+    #[doc = " Append the given text to a column element, the text will be formatted and copied."]
+    #[doc = ""]
+    #[doc = " Same function as col_append_str() but using a printf-like format string."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param format the format string"]
+    #[doc = " @param ... the variable number of parameters"]
+    pub fn col_append_fstr(cinfo: *mut column_info, col: gint, format: *const gchar, ...);
+}
+extern "C" {
+    #[doc = " Prepend the given text to a column element, the text will be formatted and copied."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param format the format string"]
+    #[doc = " @param ... the variable number of parameters"]
+    pub fn col_prepend_fstr(cinfo: *mut column_info, col: gint, format: *const gchar, ...);
+}
+extern "C" {
+    #[doc = "Prepend the given text to a column element, the text will be formatted and copied."]
+    #[doc = " This function is similar to col_prepend_fstr() but this function will"]
+    #[doc = " unconditionally set a fence to the end of the prepended data even if there"]
+    #[doc = " were no fence before."]
+    #[doc = " The col_prepend_fstr() will only prepend the data before the fence IF"]
+    #[doc = " there is already a fence created. This function will create a fence in case"]
+    #[doc = " it does not yet exist."]
+    pub fn col_prepend_fence_fstr(cinfo: *mut column_info, col: gint, format: *const gchar, ...);
+}
+extern "C" {
+    #[doc = " Append the given text (prepended by a separator) to a column element."]
+    #[doc = ""]
+    #[doc = " Much like col_append_str() but will prepend the given separator if the column isn't empty."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param sep the separator string or NULL for default: \", \""]
+    #[doc = " @param str the string to append"]
+    pub fn col_append_sep_str(
+        cinfo: *mut column_info,
+        col: gint,
+        sep: *const gchar,
+        str_: *const gchar,
+    );
+}
+extern "C" {
+    #[doc = " Append the given text (prepended by a separator) to a column element."]
+    #[doc = ""]
+    #[doc = " Much like col_append_fstr() but will prepend the given separator if the column isn't empty."]
+    #[doc = ""]
+    #[doc = " @param cinfo the current packet row"]
+    #[doc = " @param col the column to use, e.g. COL_INFO"]
+    #[doc = " @param sep the separator string or NULL for default: \", \""]
+    #[doc = " @param format the format string"]
+    #[doc = " @param ... the variable number of parameters"]
+    pub fn col_append_sep_fstr(
+        cinfo: *mut column_info,
+        col: gint,
+        sep: *const gchar,
+        format: *const gchar,
+        ...
+    );
+}
+extern "C" {
+    #[doc = " Set the given (relative) time to a column element."]
+    #[doc = ""]
+    #[doc = " Used by dissectors to set the time in a column"]
+    #[doc = ""]
+    #[doc = " @param cinfo\t\tthe current packet row"]
+    #[doc = " @param col\t\tthe column to use, e.g. COL_INFO"]
+    #[doc = " @param ts\t\tthe time to set in the column"]
+    #[doc = " @param fieldname\tthe fieldname to use for creating a filter (when"]
+    #[doc = "\t\t\t  applying/preparing/copying as filter)"]
+    pub fn col_set_time(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        ts: *const nstime_t,
+        fieldname: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn set_fd_time(epan: *const epan_session, fd: *mut frame_data, buf: *mut gchar);
+}
+#[doc = " For BASE_UNIT_STRING, the display format for adding units"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct unit_name_string {
+    #[doc = "< name to use for 1 unit"]
+    pub singular: *mut ::std::os::raw::c_char,
+    #[doc = "< name to use for < 1 or > 1 units"]
+    pub plural: *mut ::std::os::raw::c_char,
+}
+#[test]
+fn bindgen_test_layout_unit_name_string() {
+    assert_eq!(
+        ::std::mem::size_of::<unit_name_string>(),
+        16usize,
+        concat!("Size of: ", stringify!(unit_name_string))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<unit_name_string>(),
+        8usize,
+        concat!("Alignment of ", stringify!(unit_name_string))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<unit_name_string>())).singular as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(unit_name_string),
+            "::",
+            stringify!(singular)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<unit_name_string>())).plural as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(unit_name_string),
+            "::",
+            stringify!(plural)
+        )
+    );
+}
+extern "C" {
+    #[doc = " Returns the unit string appropriate for the 32 bit value."]
+    #[doc = ""]
+    #[doc = " From the given unit_name_string return the appropriate string pointer"]
+    #[doc = " @param[in] value The value for which to get the appropriate string"]
+    #[doc = " @param[in] units The unit_name_string containing the relevant strings"]
+    #[doc = " @return          Pointer to the appropriate string"]
+    pub fn unit_name_string_get_value(
+        value: guint32,
+        units: *const unit_name_string,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Returns the unit string appropriate for the 64 bit value."]
+    #[doc = ""]
+    #[doc = " From the given unit_name_string return the appropriate string pointer"]
+    #[doc = " @param[in] value The value for which to get the appropriate string"]
+    #[doc = " @param[in] units The unit_name_string containing the relevant strings"]
+    #[doc = " @return          Pointer to the appropriate string"]
+    pub fn unit_name_string_get_value64(
+        value: guint64,
+        units: *const unit_name_string,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Returns the unit string appropriate for the double value."]
+    #[doc = ""]
+    #[doc = " From the given unit_name_string return the appropriate string pointer"]
+    #[doc = " @param[in] value The value for which to get the appropriate string"]
+    #[doc = " @param[in] units The unit_name_string containing the relevant strings"]
+    #[doc = " @return          Pointer to the appropriate string"]
+    pub fn unit_name_string_get_double(
+        value: f64,
+        units: *const unit_name_string,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub static units_foot_feet: unit_name_string;
+}
+extern "C" {
+    pub static units_bit_bits: unit_name_string;
+}
+extern "C" {
+    pub static units_byte_bytes: unit_name_string;
+}
+extern "C" {
+    pub static units_byte_bytespsecond: unit_name_string;
+}
+extern "C" {
+    pub static units_octet_octets: unit_name_string;
+}
+extern "C" {
+    pub static units_word_words: unit_name_string;
+}
+extern "C" {
+    pub static units_tick_ticks: unit_name_string;
+}
+extern "C" {
+    pub static units_meters: unit_name_string;
+}
+extern "C" {
+    pub static units_meter_meters: unit_name_string;
+}
+extern "C" {
+    pub static units_week_weeks: unit_name_string;
+}
+extern "C" {
+    pub static units_day_days: unit_name_string;
+}
+extern "C" {
+    pub static units_hour_hours: unit_name_string;
+}
+extern "C" {
+    pub static units_hours: unit_name_string;
+}
+extern "C" {
+    pub static units_minute_minutes: unit_name_string;
+}
+extern "C" {
+    pub static units_minutes: unit_name_string;
+}
+extern "C" {
+    pub static units_second_seconds: unit_name_string;
+}
+extern "C" {
+    pub static units_seconds: unit_name_string;
+}
+extern "C" {
+    pub static units_millisecond_milliseconds: unit_name_string;
+}
+extern "C" {
+    pub static units_milliseconds: unit_name_string;
+}
+extern "C" {
+    pub static units_microsecond_microseconds: unit_name_string;
+}
+extern "C" {
+    pub static units_microseconds: unit_name_string;
+}
+extern "C" {
+    pub static units_nanosecond_nanoseconds: unit_name_string;
+}
+extern "C" {
+    pub static units_nanoseconds: unit_name_string;
+}
+extern "C" {
+    pub static units_nanometers: unit_name_string;
+}
+extern "C" {
+    pub static units_degree_degrees: unit_name_string;
+}
+extern "C" {
+    pub static units_degree_celsius: unit_name_string;
+}
+extern "C" {
+    pub static units_degree_bearing: unit_name_string;
+}
+extern "C" {
+    pub static units_centibels: unit_name_string;
+}
+extern "C" {
+    pub static units_decibels: unit_name_string;
+}
+extern "C" {
+    pub static units_dbm: unit_name_string;
+}
+extern "C" {
+    pub static units_dbi: unit_name_string;
+}
+extern "C" {
+    pub static units_mbm: unit_name_string;
+}
+extern "C" {
+    pub static units_percent: unit_name_string;
+}
+extern "C" {
+    pub static units_khz: unit_name_string;
+}
+extern "C" {
+    pub static units_ghz: unit_name_string;
+}
+extern "C" {
+    pub static units_mhz: unit_name_string;
+}
+extern "C" {
+    pub static units_hz: unit_name_string;
+}
+extern "C" {
+    pub static units_hz_s: unit_name_string;
+}
+extern "C" {
+    pub static units_kbit: unit_name_string;
+}
+extern "C" {
+    pub static units_kbps: unit_name_string;
+}
+extern "C" {
+    pub static units_kibps: unit_name_string;
+}
+extern "C" {
+    pub static units_pkts: unit_name_string;
+}
+extern "C" {
+    pub static units_pkts_per_sec: unit_name_string;
+}
+extern "C" {
+    pub static units_km: unit_name_string;
+}
+extern "C" {
+    pub static units_kmh: unit_name_string;
+}
+extern "C" {
+    pub static units_milliamps: unit_name_string;
+}
+extern "C" {
+    pub static units_microwatts: unit_name_string;
+}
+extern "C" {
+    pub static units_volt: unit_name_string;
+}
+extern "C" {
+    pub static units_grams_per_second: unit_name_string;
+}
+extern "C" {
+    pub static units_meter_sec: unit_name_string;
+}
+extern "C" {
+    pub static units_meter_sec_squared: unit_name_string;
+}
+extern "C" {
+    pub static units_bit_sec: unit_name_string;
+}
+extern "C" {
+    pub static units_segment_remaining: unit_name_string;
+}
+extern "C" {
+    pub static units_frame_frames: unit_name_string;
+}
+extern "C" {
+    pub static units_revolutions_per_minute: unit_name_string;
+}
+extern "C" {
+    pub static units_kilopascal: unit_name_string;
+}
+extern "C" {
+    pub static units_newton_metre: unit_name_string;
+}
+extern "C" {
+    pub static units_liter_per_hour: unit_name_string;
+}
+extern "C" {
+    pub static units_amp: unit_name_string;
+}
+extern "C" {
+    pub static units_watthour: unit_name_string;
+}
+extern "C" {
+    pub static units_watt: unit_name_string;
+}
+extern "C" {
+    pub static units_bpm: unit_name_string;
+}
+extern "C" {
+    pub static units_calorie: unit_name_string;
+}
+extern "C" {
+    pub fn packet_init();
+}
+extern "C" {
+    pub fn packet_cache_proto_handles();
+}
+extern "C" {
+    pub fn packet_cleanup();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct dissector_handle {
+    _unused: [u8; 0],
+}
+pub type dissector_handle_t = *mut dissector_handle;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct dissector_table {
+    _unused: [u8; 0],
+}
+pub type dissector_table_t = *mut dissector_table;
+pub type dissector_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        arg1: *mut tvbuff_t,
+        arg2: *mut packet_info,
+        arg3: *mut proto_tree,
+        arg4: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type dissector_cb_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        arg1: *mut tvbuff_t,
+        arg2: *mut packet_info,
+        arg3: *mut proto_tree,
+        arg4: *mut ::std::os::raw::c_void,
+        arg5: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
+>;
+#[doc = " Type of a heuristic dissector, used in heur_dissector_add()."]
+#[doc = ""]
+#[doc = " @param tvb the tvbuff with the (remaining) packet data"]
+#[doc = " @param pinfo the packet info of this packet (additional info)"]
+#[doc = " @param tree the protocol tree to be build or NULL"]
+#[doc = " @return TRUE if the packet was recognized by the sub-dissector (stop dissection here)"]
+pub type heur_dissector_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        arg1: *mut ::std::os::raw::c_void,
+    ) -> gboolean,
+>;
+pub const heuristic_enable_e_HEURISTIC_DISABLE: heuristic_enable_e = 0;
+pub const heuristic_enable_e_HEURISTIC_ENABLE: heuristic_enable_e = 1;
+pub type heuristic_enable_e = u32;
+pub type DATFunc = ::std::option::Option<
+    unsafe extern "C" fn(
+        table_name: *const gchar,
+        selector_type: ftenum_t,
+        key: gpointer,
+        value: gpointer,
+        user_data: gpointer,
+    ),
+>;
+pub type DATFunc_handle = ::std::option::Option<
+    unsafe extern "C" fn(table_name: *const gchar, value: gpointer, user_data: gpointer),
+>;
+pub type DATFunc_table = ::std::option::Option<
+    unsafe extern "C" fn(table_name: *const gchar, ui_name: *const gchar, user_data: gpointer),
+>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct dtbl_entry {
+    _unused: [u8; 0],
+}
+pub type dtbl_entry_t = dtbl_entry;
+extern "C" {
+    pub fn dtbl_entry_get_handle(dtbl_entry: *mut dtbl_entry_t) -> dissector_handle_t;
+}
+extern "C" {
+    pub fn dtbl_entry_get_initial_handle(entry: *mut dtbl_entry_t) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Iterate over dissectors in a table with non-default \"decode as\" settings."]
+    #[doc = ""]
+    #[doc = " Walk one dissector table calling a user supplied function only on"]
+    #[doc = " any entry that has been changed from its original state."]
+    #[doc = ""]
+    #[doc = " @param[in] table_name The name of the dissector table, e.g. \"ip.proto\"."]
+    #[doc = " @param[in] func The function to call for each dissector."]
+    #[doc = " @param[in] user_data User data to pass to the function."]
+    pub fn dissector_table_foreach_changed(
+        table_name: *const ::std::os::raw::c_char,
+        func: DATFunc,
+        user_data: gpointer,
+    );
+}
+extern "C" {
+    #[doc = " Iterate over dissectors in a table."]
+    #[doc = ""]
+    #[doc = " Walk one dissector table's hash table calling a user supplied function"]
+    #[doc = " on each entry."]
+    #[doc = ""]
+    #[doc = " @param[in] table_name The name of the dissector table, e.g. \"ip.proto\"."]
+    #[doc = " @param[in] func The function to call for each dissector."]
+    #[doc = " @param[in] user_data User data to pass to the function."]
+    pub fn dissector_table_foreach(
+        table_name: *const ::std::os::raw::c_char,
+        func: DATFunc,
+        user_data: gpointer,
+    );
+}
+extern "C" {
+    #[doc = " Iterate over dissectors with non-default \"decode as\" settings."]
+    #[doc = ""]
+    #[doc = " Walk all dissector tables calling a user supplied function only on"]
+    #[doc = " any \"decode as\" entry that has been changed from its original state."]
+    #[doc = ""]
+    #[doc = " @param[in] func The function to call for each dissector."]
+    #[doc = " @param[in] user_data User data to pass to the function."]
+    pub fn dissector_all_tables_foreach_changed(func: DATFunc, user_data: gpointer);
+}
+extern "C" {
+    #[doc = " Iterate over dissectors in a table by handle."]
+    #[doc = ""]
+    #[doc = " Walk one dissector table's list of handles calling a user supplied"]
+    #[doc = " function on each entry."]
+    #[doc = ""]
+    #[doc = " @param[in] table_name The name of the dissector table, e.g. \"ip.proto\"."]
+    #[doc = " @param[in] func The function to call for each dissector."]
+    #[doc = " @param[in] user_data User data to pass to the function."]
+    pub fn dissector_table_foreach_handle(
+        table_name: *const ::std::os::raw::c_char,
+        func: DATFunc_handle,
+        user_data: gpointer,
+    );
+}
+extern "C" {
+    #[doc = " Iterate over all dissector tables."]
+    #[doc = ""]
+    #[doc = " Walk the set of dissector tables calling a user supplied function on each"]
+    #[doc = " table."]
+    #[doc = " @param[in] func The function to call for each table."]
+    #[doc = " @param[in] user_data User data to pass to the function."]
+    #[doc = " @param[in] compare_key_func Function used to sort the set of tables before"]
+    #[doc = " calling the function.  No sorting is done if NULL."]
+    pub fn dissector_all_tables_foreach_table(
+        func: DATFunc_table,
+        user_data: gpointer,
+        compare_key_func: GCompareFunc,
+    );
+}
+extern "C" {
+    pub fn register_dissector_table(
+        name: *const ::std::os::raw::c_char,
+        ui_name: *const ::std::os::raw::c_char,
+        proto: ::std::os::raw::c_int,
+        type_: ftenum_t,
+        param: ::std::os::raw::c_int,
+    ) -> dissector_table_t;
+}
+extern "C" {
+    pub fn register_custom_dissector_table(
+        name: *const ::std::os::raw::c_char,
+        ui_name: *const ::std::os::raw::c_char,
+        proto: ::std::os::raw::c_int,
+        hash_func: GHashFunc,
+        key_equal_func: GEqualFunc,
+    ) -> dissector_table_t;
+}
+extern "C" {
+    #[doc = " Register a dissector table alias."]
+    #[doc = " This is for dissectors whose original name has changed, e.g. SSL to TLS."]
+    #[doc = " @param dissector_table dissector table returned by register_dissector_table."]
+    #[doc = " @param alias_name alias for the dissector table name."]
+    pub fn register_dissector_table_alias(
+        dissector_table: dissector_table_t,
+        alias_name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    #[doc = " Deregister the dissector table by table name."]
+    pub fn deregister_dissector_table(name: *const ::std::os::raw::c_char);
+}
+extern "C" {
+    pub fn find_dissector_table(name: *const ::std::os::raw::c_char) -> dissector_table_t;
+}
+extern "C" {
+    pub fn get_dissector_table_ui_name(
+        name: *const ::std::os::raw::c_char,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn get_dissector_table_selector_type(name: *const ::std::os::raw::c_char) -> ftenum_t;
+}
+extern "C" {
+    pub fn get_dissector_table_param(name: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn dissector_dump_dissector_tables();
+}
+extern "C" {
+    pub fn dissector_add_uint(
+        name: *const ::std::os::raw::c_char,
+        pattern: guint32,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_add_uint_with_preference(
+        name: *const ::std::os::raw::c_char,
+        pattern: guint32,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_add_uint_range(
+        abbrev: *const ::std::os::raw::c_char,
+        range: *mut epan_range,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_add_uint_range_with_preference(
+        abbrev: *const ::std::os::raw::c_char,
+        range_str: *const ::std::os::raw::c_char,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_delete_uint(
+        name: *const ::std::os::raw::c_char,
+        pattern: guint32,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_delete_uint_range(
+        abbrev: *const ::std::os::raw::c_char,
+        range: *mut epan_range,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_delete_all(name: *const ::std::os::raw::c_char, handle: dissector_handle_t);
+}
+extern "C" {
+    pub fn dissector_change_uint(
+        abbrev: *const ::std::os::raw::c_char,
+        pattern: guint32,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_reset_uint(name: *const ::std::os::raw::c_char, pattern: guint32);
+}
+extern "C" {
+    pub fn dissector_try_uint(
+        sub_dissectors: dissector_table_t,
+        uint_val: guint32,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn dissector_try_uint_new(
+        sub_dissectors: dissector_table_t,
+        uint_val: guint32,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        add_proto_name: gboolean,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[doc = " Look for a given value in a given uint dissector table and, if found,"]
+    #[doc = " return the current dissector handle for that value."]
+    #[doc = ""]
+    #[doc = " @param[in] sub_dissectors Dissector table to search."]
+    #[doc = " @param[in] uint_val Value to match, e.g. the port number for the TCP dissector."]
+    #[doc = " @return The matching dissector handle on success, NULL if no match is found."]
+    pub fn dissector_get_uint_handle(
+        sub_dissectors: dissector_table_t,
+        uint_val: guint32,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Look for a given value in a given uint dissector table and, if found,"]
+    #[doc = " return the default dissector handle for that value."]
+    #[doc = ""]
+    #[doc = " @param[in] name Dissector table name."]
+    #[doc = " @param[in] uint_val Value to match, e.g. the port number for the TCP dissector."]
+    #[doc = " @return The matching dissector handle on success, NULL if no match is found."]
+    pub fn dissector_get_default_uint_handle(
+        name: *const ::std::os::raw::c_char,
+        uint_val: guint32,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    pub fn dissector_add_string(
+        name: *const ::std::os::raw::c_char,
+        pattern: *const gchar,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_delete_string(
+        name: *const ::std::os::raw::c_char,
+        pattern: *const gchar,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_change_string(
+        name: *const ::std::os::raw::c_char,
+        pattern: *const gchar,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_reset_string(name: *const ::std::os::raw::c_char, pattern: *const gchar);
+}
+extern "C" {
+    pub fn dissector_try_string(
+        sub_dissectors: dissector_table_t,
+        string: *const gchar,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn dissector_try_string_new(
+        sub_dissectors: dissector_table_t,
+        string: *const gchar,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        add_proto_name: gboolean,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[doc = " Look for a given value in a given string dissector table and, if found,"]
+    #[doc = " return the current dissector handle for that value."]
+    #[doc = ""]
+    #[doc = " @param[in] sub_dissectors Dissector table to search."]
+    #[doc = " @param[in] string Value to match, e.g. the OID for the BER dissector."]
+    #[doc = " @return The matching dissector handle on success, NULL if no match is found."]
+    pub fn dissector_get_string_handle(
+        sub_dissectors: dissector_table_t,
+        string: *const gchar,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Look for a given value in a given string dissector table and, if found,"]
+    #[doc = " return the default dissector handle for that value."]
+    #[doc = ""]
+    #[doc = " @param[in] name Dissector table name."]
+    #[doc = " @param[in] string Value to match, e.g. the OID for the BER dissector."]
+    #[doc = " @return The matching dissector handle on success, NULL if no match is found."]
+    pub fn dissector_get_default_string_handle(
+        name: *const ::std::os::raw::c_char,
+        string: *const gchar,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    pub fn dissector_add_custom_table_handle(
+        name: *const ::std::os::raw::c_char,
+        pattern: *mut ::std::os::raw::c_void,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    #[doc = " Look for a given key in a given \"custom\" dissector table and, if found,"]
+    #[doc = " return the current dissector handle for that key."]
+    #[doc = ""]
+    #[doc = " @param[in] sub_dissectors Dissector table to search."]
+    #[doc = " @param[in] key Value to match, e.g. RPC key for its subdissectors"]
+    #[doc = " @return The matching dissector handle on success, NULL if no match is found."]
+    pub fn dissector_get_custom_table_handle(
+        sub_dissectors: dissector_table_t,
+        key: *mut ::std::os::raw::c_void,
+    ) -> dissector_handle_t;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _guid_key {
+    pub guid: e_guid_t,
+    pub ver: guint16,
+}
+#[test]
+fn bindgen_test_layout__guid_key() {
+    assert_eq!(
+        ::std::mem::size_of::<_guid_key>(),
+        20usize,
+        concat!("Size of: ", stringify!(_guid_key))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_guid_key>(),
+        4usize,
+        concat!("Alignment of ", stringify!(_guid_key))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_guid_key>())).guid as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_guid_key),
+            "::",
+            stringify!(guid)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_guid_key>())).ver as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_guid_key),
+            "::",
+            stringify!(ver)
+        )
+    );
+}
+pub type guid_key = _guid_key;
+extern "C" {
+    pub fn dissector_add_guid(
+        name: *const ::std::os::raw::c_char,
+        guid_val: *mut guid_key,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_try_guid(
+        sub_dissectors: dissector_table_t,
+        guid_val: *mut guid_key,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn dissector_try_guid_new(
+        sub_dissectors: dissector_table_t,
+        guid_val: *mut guid_key,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        add_proto_name: gboolean,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[doc = " Look for a given value in a given guid dissector table and, if found,"]
+    #[doc = " return the current dissector handle for that value."]
+    #[doc = ""]
+    #[doc = " @param[in] sub_dissectors Dissector table to search."]
+    #[doc = " @param[in] guid_val Value to match, e.g. the GUID number for the GUID dissector."]
+    #[doc = " @return The matching dissector handle on success, NULL if no match is found."]
+    pub fn dissector_get_guid_handle(
+        sub_dissectors: dissector_table_t,
+        guid_val: *mut guid_key,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    pub fn dissector_try_payload(
+        sub_dissectors: dissector_table_t,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn dissector_try_payload_new(
+        sub_dissectors: dissector_table_t,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        add_proto_name: gboolean,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn dissector_change_payload(
+        abbrev: *const ::std::os::raw::c_char,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_reset_payload(name: *const ::std::os::raw::c_char);
+}
+extern "C" {
+    pub fn dissector_get_payload_handle(dissector_table: dissector_table_t) -> dissector_handle_t;
+}
+extern "C" {
+    pub fn dissector_add_for_decode_as(
+        name: *const ::std::os::raw::c_char,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn dissector_add_for_decode_as_with_preference(
+        name: *const ::std::os::raw::c_char,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    #[doc = " Get the list of handles for a dissector table"]
+    pub fn dissector_table_get_dissector_handles(dissector_table: dissector_table_t)
+        -> *mut GSList;
+}
+extern "C" {
+    #[doc = " Get a handle to dissector out of a dissector table"]
+    pub fn dissector_table_get_dissector_handle(
+        dissector_table: dissector_table_t,
+        short_name: *const gchar,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Get a dissector table's type"]
+    pub fn dissector_table_get_type(dissector_table: dissector_table_t) -> ftenum_t;
+}
+extern "C" {
+    #[doc = " Mark a dissector table as allowing \"Decode As\""]
+    pub fn dissector_table_allow_decode_as(dissector_table: dissector_table_t);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct heur_dissector_list {
+    _unused: [u8; 0],
+}
+pub type heur_dissector_list_t = *mut heur_dissector_list;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct heur_dtbl_entry {
+    pub dissector: heur_dissector_t,
+    pub protocol: *mut protocol_t,
+    pub list_name: *mut gchar,
+    pub display_name: *const gchar,
+    pub short_name: *mut gchar,
+    pub enabled: gboolean,
+}
+#[test]
+fn bindgen_test_layout_heur_dtbl_entry() {
+    assert_eq!(
+        ::std::mem::size_of::<heur_dtbl_entry>(),
+        48usize,
+        concat!("Size of: ", stringify!(heur_dtbl_entry))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<heur_dtbl_entry>(),
+        8usize,
+        concat!("Alignment of ", stringify!(heur_dtbl_entry))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<heur_dtbl_entry>())).dissector as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(heur_dtbl_entry),
+            "::",
+            stringify!(dissector)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<heur_dtbl_entry>())).protocol as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(heur_dtbl_entry),
+            "::",
+            stringify!(protocol)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<heur_dtbl_entry>())).list_name as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(heur_dtbl_entry),
+            "::",
+            stringify!(list_name)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<heur_dtbl_entry>())).display_name as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(heur_dtbl_entry),
+            "::",
+            stringify!(display_name)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<heur_dtbl_entry>())).short_name as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(heur_dtbl_entry),
+            "::",
+            stringify!(short_name)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<heur_dtbl_entry>())).enabled as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(heur_dtbl_entry),
+            "::",
+            stringify!(enabled)
+        )
+    );
+}
+pub type heur_dtbl_entry_t = heur_dtbl_entry;
+extern "C" {
+    #[doc = " A protocol uses this function to register a heuristic sub-dissector list."]
+    #[doc = "  Call this in the parent dissectors proto_register function."]
+    #[doc = ""]
+    #[doc = " @param name the name of this protocol"]
+    #[doc = " @param proto the value obtained when regestering the protocol"]
+    pub fn register_heur_dissector_list(
+        name: *const ::std::os::raw::c_char,
+        proto: ::std::os::raw::c_int,
+    ) -> heur_dissector_list_t;
+}
+pub type DATFunc_heur = ::std::option::Option<
+    unsafe extern "C" fn(
+        table_name: *const gchar,
+        entry: *mut heur_dtbl_entry,
+        user_data: gpointer,
+    ),
+>;
+pub type DATFunc_heur_table = ::std::option::Option<
+    unsafe extern "C" fn(
+        table_name: *const ::std::os::raw::c_char,
+        table: *mut heur_dissector_list,
+        user_data: gpointer,
+    ),
+>;
+extern "C" {
+    #[doc = " Iterate over heuristic dissectors in a table."]
+    #[doc = ""]
+    #[doc = " Walk one heuristic dissector table's list calling a user supplied function"]
+    #[doc = " on each entry."]
+    #[doc = ""]
+    #[doc = " @param[in] table_name The name of the dissector table, e.g. \"tcp\"."]
+    #[doc = " @param[in] func The function to call for each dissector."]
+    #[doc = " @param[in] user_data User data to pass to the function."]
+    pub fn heur_dissector_table_foreach(
+        table_name: *const ::std::os::raw::c_char,
+        func: DATFunc_heur,
+        user_data: gpointer,
+    );
+}
+extern "C" {
+    #[doc = " Iterate over all heuristic dissector tables."]
+    #[doc = ""]
+    #[doc = " Walk the set of heuristic dissector tables calling a user supplied function"]
+    #[doc = " on each table."]
+    #[doc = " @param[in] func The function to call for each table."]
+    #[doc = " @param[in] user_data User data to pass to the function."]
+    #[doc = " @param[in] compare_key_func Function used to sort the set of tables before"]
+    #[doc = " calling the function.  No sorting is done if NULL."]
+    pub fn dissector_all_heur_tables_foreach_table(
+        func: DATFunc_heur_table,
+        user_data: gpointer,
+        compare_key_func: GCompareFunc,
+    );
+}
+extern "C" {
+    pub fn has_heur_dissector_list(name: *const gchar) -> gboolean;
+}
+extern "C" {
+    #[doc = " Try all the dissectors in a given heuristic dissector list. This is done,"]
+    #[doc = "  until we find one that recognizes the protocol."]
+    #[doc = "  Call this while the parent dissector running."]
+    #[doc = ""]
+    #[doc = " @param sub_dissectors the sub-dissector list"]
+    #[doc = " @param tvb the tvbuff with the (remaining) packet data"]
+    #[doc = " @param pinfo the packet info of this packet (additional info)"]
+    #[doc = " @param tree the protocol tree to be build or NULL"]
+    #[doc = " @param hdtbl_entry returns the last tried dissectors hdtbl_entry."]
+    #[doc = " @param data parameter to pass to subdissector"]
+    #[doc = " @return TRUE if the packet was recognized by the sub-dissector (stop dissection here)"]
+    pub fn dissector_try_heuristic(
+        sub_dissectors: heur_dissector_list_t,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        hdtbl_entry: *mut *mut heur_dtbl_entry_t,
+        data: *mut ::std::os::raw::c_void,
+    ) -> gboolean;
+}
+extern "C" {
+    #[doc = " Find a heuristic dissector table by table name."]
+    #[doc = ""]
+    #[doc = " @param name name of the dissector table"]
+    #[doc = " @return pointer to the table on success, NULL if no such table exists"]
+    pub fn find_heur_dissector_list(name: *const ::std::os::raw::c_char) -> heur_dissector_list_t;
+}
+extern "C" {
+    #[doc = " Find a heuristic dissector by the unique short protocol name provided during registration."]
+    #[doc = ""]
+    #[doc = " @param short_name short name of the protocol to look at"]
+    #[doc = " @return pointer to the heuristic dissector entry, NULL if not such dissector exists"]
+    pub fn find_heur_dissector_by_unique_short_name(
+        short_name: *const ::std::os::raw::c_char,
+    ) -> *mut heur_dtbl_entry_t;
+}
+extern "C" {
+    #[doc = " Add a sub-dissector to a heuristic dissector list."]
+    #[doc = "  Call this in the proto_handoff function of the sub-dissector."]
+    #[doc = ""]
+    #[doc = " @param name the name of the heuristic dissector table into which to register the dissector, e.g. \"tcp\""]
+    #[doc = " @param dissector the sub-dissector to be registered"]
+    #[doc = " @param display_name the string used to present heuristic to user, e.g. \"HTTP over TCP\""]
+    #[doc = " @param internal_name the string used for \"internal\" use to identify heuristic, e.g. \"http_tcp\""]
+    #[doc = " @param proto the protocol id of the sub-dissector"]
+    #[doc = " @param enable initially enabled or not"]
+    pub fn heur_dissector_add(
+        name: *const ::std::os::raw::c_char,
+        dissector: heur_dissector_t,
+        display_name: *const ::std::os::raw::c_char,
+        internal_name: *const ::std::os::raw::c_char,
+        proto: ::std::os::raw::c_int,
+        enable: heuristic_enable_e,
+    );
+}
+extern "C" {
+    #[doc = " Remove a sub-dissector from a heuristic dissector list."]
+    #[doc = "  Call this in the prefs_reinit function of the sub-dissector."]
+    #[doc = ""]
+    #[doc = " @param name the name of the \"parent\" protocol, e.g. \"tcp\""]
+    #[doc = " @param dissector the sub-dissector to be unregistered"]
+    #[doc = " @param proto the protocol id of the sub-dissector"]
+    pub fn heur_dissector_delete(
+        name: *const ::std::os::raw::c_char,
+        dissector: heur_dissector_t,
+        proto: ::std::os::raw::c_int,
+    );
+}
+extern "C" {
+    #[doc = " Register a new dissector."]
+    pub fn register_dissector(
+        name: *const ::std::os::raw::c_char,
+        dissector: dissector_t,
+        proto: ::std::os::raw::c_int,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Register a new dissector with a callback pointer."]
+    pub fn register_dissector_with_data(
+        name: *const ::std::os::raw::c_char,
+        dissector: dissector_cb_t,
+        proto: ::std::os::raw::c_int,
+        cb_data: *mut ::std::os::raw::c_void,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Deregister a dissector."]
+    pub fn deregister_dissector(name: *const ::std::os::raw::c_char);
+}
+extern "C" {
+    #[doc = " Get the long name of the protocol for a dissector handle."]
+    pub fn dissector_handle_get_long_name(
+        handle: dissector_handle_t,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Get the short name of the protocol for a dissector handle."]
+    pub fn dissector_handle_get_short_name(
+        handle: dissector_handle_t,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Get the index of the protocol for a dissector handle."]
+    pub fn dissector_handle_get_protocol_index(handle: dissector_handle_t)
+        -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[doc = " Get a GList of all registered dissector names."]
+    pub fn get_dissector_names() -> *mut GList;
+}
+extern "C" {
+    #[doc = " Find a dissector by name."]
+    pub fn find_dissector(name: *const ::std::os::raw::c_char) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Find a dissector by name and add parent protocol as a depedency"]
+    pub fn find_dissector_add_dependency(
+        name: *const ::std::os::raw::c_char,
+        parent_proto: ::std::os::raw::c_int,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Get a dissector name from handle."]
+    pub fn dissector_handle_get_dissector_name(
+        handle: dissector_handle_t,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Create an anonymous handle for a dissector."]
+    pub fn create_dissector_handle(
+        dissector: dissector_t,
+        proto: ::std::os::raw::c_int,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    pub fn create_dissector_handle_with_name(
+        dissector: dissector_t,
+        proto: ::std::os::raw::c_int,
+        name: *const ::std::os::raw::c_char,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    #[doc = " Call a dissector through a handle and if no dissector was found"]
+    #[doc = " pass it over to the \"data\" dissector instead."]
+    #[doc = ""]
+    #[doc = "   @param handle The dissector to call."]
+    #[doc = "   @param  tvb The buffer to dissect."]
+    #[doc = "   @param  pinfo Packet Info."]
+    #[doc = "   @param  tree The protocol tree."]
+    #[doc = "   @param  data parameter to pass to dissector"]
+    #[doc = "   @return  If the protocol for that handle isn't enabled call the data"]
+    #[doc = "   dissector. Otherwise, if the handle refers to a new-style"]
+    #[doc = "   dissector, call the dissector and return its return value, otherwise call"]
+    #[doc = "   it and return the length of the tvbuff pointed to by the argument."]
+    pub fn call_dissector_with_data(
+        handle: dissector_handle_t,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn call_dissector(
+        handle: dissector_handle_t,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn call_data_dissector(
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[doc = " Call a dissector through a handle but if no dissector was found"]
+    #[doc = " just return 0 and do not call the \"data\" dissector instead."]
+    #[doc = ""]
+    #[doc = "   @param handle The dissector to call."]
+    #[doc = "   @param  tvb The buffer to dissect."]
+    #[doc = "   @param  pinfo Packet Info."]
+    #[doc = "   @param  tree The protocol tree."]
+    #[doc = "   @param  data parameter to pass to dissector"]
+    #[doc = "   @return  If the protocol for that handle isn't enabled, return 0 without"]
+    #[doc = "   calling the dissector. Otherwise, if the handle refers to a new-style"]
+    #[doc = "   dissector, call the dissector and return its return value, otherwise call"]
+    #[doc = "   it and return the length of the tvbuff pointed to by the argument."]
+    pub fn call_dissector_only(
+        handle: dissector_handle_t,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[doc = "   @param heur_dtbl_entry The heur_dtbl_entry of the dissector to call."]
+    #[doc = "   @param  tvb The buffer to dissect."]
+    #[doc = "   @param  pinfo Packet Info."]
+    #[doc = "   @param  tree The protocol tree."]
+    #[doc = "   @param  data parameter to pass to dissector"]
+    pub fn call_heur_dissector_direct(
+        heur_dtbl_entry: *mut heur_dtbl_entry_t,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        data: *mut ::std::os::raw::c_void,
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct depend_dissector_list {
+    _unused: [u8; 0],
+}
+pub type depend_dissector_list_t = *mut depend_dissector_list;
+extern "C" {
+    #[doc = " Register a protocol dependency"]
+    #[doc = " This is done automatically when registering with a dissector or"]
+    #[doc = " heuristic table.  This is for \"manual\" registration when a dissector"]
+    #[doc = " ends up calling another through call_dissector (or similar) so"]
+    #[doc = " dependencies can be determined"]
+    #[doc = ""]
+    #[doc = "   @param parent \"Parent\" protocol short name"]
+    #[doc = "   @param dependent \"Dependent\" protocol short name"]
+    #[doc = "   @return  return TRUE if dependency was successfully registered"]
+    pub fn register_depend_dissector(
+        parent: *const ::std::os::raw::c_char,
+        dependent: *const ::std::os::raw::c_char,
+    ) -> gboolean;
+}
+extern "C" {
+    #[doc = " Unregister a protocol dependency"]
+    #[doc = " This is done automatically when removing from a dissector or"]
+    #[doc = " heuristic table.  This is for \"manual\" deregistration for things"]
+    #[doc = " like Lua"]
+    #[doc = ""]
+    #[doc = "   @param parent \"Parent\" protocol short name"]
+    #[doc = "   @param dependent \"Dependent\" protocol short name"]
+    #[doc = "   @return  return TRUE if dependency was successfully unregistered"]
+    pub fn deregister_depend_dissector(
+        parent: *const ::std::os::raw::c_char,
+        dependent: *const ::std::os::raw::c_char,
+    ) -> gboolean;
+}
+extern "C" {
+    #[doc = " Find the list of protocol dependencies"]
+    #[doc = ""]
+    #[doc = "   @param name Protocol short name to search for"]
+    #[doc = "   @return  return list of dependent was successfully registered"]
+    pub fn find_depend_dissector_list(
+        name: *const ::std::os::raw::c_char,
+    ) -> depend_dissector_list_t;
+}
+extern "C" {
+    pub fn dissect_init();
+}
+extern "C" {
+    pub fn dissect_cleanup();
+}
+extern "C" {
+    pub fn set_actual_length(tvb: *mut tvbuff_t, specified_len: guint);
+}
+extern "C" {
+    #[doc = " Allow protocols to register \"init\" routines, which are called before"]
+    #[doc = " we make a pass through a capture file and dissect all its packets"]
+    #[doc = " (e.g., when we read in a new capture file, or run a \"filter packets\""]
+    #[doc = " or \"colorize packets\" pass over the current capture file or when the"]
+    #[doc = " preferences are changed)."]
+    pub fn register_init_routine(func: ::std::option::Option<unsafe extern "C" fn()>);
+}
+extern "C" {
+    #[doc = " Allows protocols to register \"cleanup\" routines which are called"]
+    #[doc = " after closing a capture file (or when preferences are changed, in"]
+    #[doc = " that case these routines are called before the init routines are"]
+    #[doc = " executed). It can be used to release resources that are allocated in"]
+    #[doc = " register_init_routine."]
+    pub fn register_cleanup_routine(func: ::std::option::Option<unsafe extern "C" fn()>);
+}
+extern "C" {
+    pub fn register_shutdown_routine(func: ::std::option::Option<unsafe extern "C" fn()>);
+}
+extern "C" {
+    pub fn init_dissection();
+}
+extern "C" {
+    pub fn cleanup_dissection();
+}
+extern "C" {
+    pub fn register_postseq_cleanup_routine(func: ::std::option::Option<unsafe extern "C" fn()>);
+}
+extern "C" {
+    pub fn postseq_cleanup_all_protocols();
+}
+extern "C" {
+    pub fn register_final_registration_routine(func: ::std::option::Option<unsafe extern "C" fn()>);
+}
+extern "C" {
+    pub fn final_registration_all_protocols();
+}
+extern "C" {
+    pub fn add_new_data_source(
+        pinfo: *mut packet_info,
+        tvb: *mut tvbuff_t,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn remove_last_data_source(pinfo: *mut packet_info);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct data_source {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn get_data_source_name(src: *const data_source) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn get_data_source_tvb(src: *const data_source) -> *mut tvbuff_t;
+}
+extern "C" {
+    pub fn get_data_source_tvb_by_name(
+        pinfo: *mut packet_info,
+        name: *const ::std::os::raw::c_char,
+    ) -> *mut tvbuff_t;
+}
+extern "C" {
+    pub fn free_data_sources(pinfo: *mut packet_info);
+}
+extern "C" {
+    pub fn mark_frame_as_depended_upon(pinfo: *mut packet_info, frame_num: guint32);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct frame_data_s {
+    pub file_type_subtype: ::std::os::raw::c_int,
+    #[doc = "< NULL if not available"]
+    pub pkt_comment: *const gchar,
+    pub color_edt: *mut epan_dissect,
+}
+#[test]
+fn bindgen_test_layout_frame_data_s() {
+    assert_eq!(
+        ::std::mem::size_of::<frame_data_s>(),
+        24usize,
+        concat!("Size of: ", stringify!(frame_data_s))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<frame_data_s>(),
+        8usize,
+        concat!("Alignment of ", stringify!(frame_data_s))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<frame_data_s>())).file_type_subtype as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(frame_data_s),
+            "::",
+            stringify!(file_type_subtype)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<frame_data_s>())).pkt_comment as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(frame_data_s),
+            "::",
+            stringify!(pkt_comment)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<frame_data_s>())).color_edt as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(frame_data_s),
+            "::",
+            stringify!(color_edt)
+        )
+    );
+}
+pub type frame_data_t = frame_data_s;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct file_data_s {
+    #[doc = "< NULL if not available"]
+    pub pkt_comment: *const gchar,
+    pub color_edt: *mut epan_dissect,
+}
+#[test]
+fn bindgen_test_layout_file_data_s() {
+    assert_eq!(
+        ::std::mem::size_of::<file_data_s>(),
+        16usize,
+        concat!("Size of: ", stringify!(file_data_s))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<file_data_s>(),
+        8usize,
+        concat!("Alignment of ", stringify!(file_data_s))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<file_data_s>())).pkt_comment as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(file_data_s),
+            "::",
+            stringify!(pkt_comment)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<file_data_s>())).color_edt as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(file_data_s),
+            "::",
+            stringify!(color_edt)
+        )
+    );
+}
+pub type file_data_t = file_data_s;
+extern "C" {
+    pub fn dissect_record(
+        edt: *mut epan_dissect,
+        file_type_subtype: ::std::os::raw::c_int,
+        rec: *mut wtap_rec,
+        tvb: *mut tvbuff_t,
+        fd: *mut frame_data,
+        cinfo: *mut column_info,
+    );
+}
+extern "C" {
+    pub fn dissect_file(
+        edt: *mut epan_dissect,
+        rec: *mut wtap_rec,
+        tvb: *mut tvbuff_t,
+        fd: *mut frame_data,
+        cinfo: *mut column_info,
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ethertype_data_s {
+    pub etype: guint16,
+    pub payload_offset: ::std::os::raw::c_int,
+    pub fh_tree: *mut proto_tree,
+    pub trailer_id: ::std::os::raw::c_int,
+    pub fcs_len: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout_ethertype_data_s() {
+    assert_eq!(
+        ::std::mem::size_of::<ethertype_data_s>(),
+        24usize,
+        concat!("Size of: ", stringify!(ethertype_data_s))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ethertype_data_s>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ethertype_data_s))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).etype as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ethertype_data_s),
+            "::",
+            stringify!(etype)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).payload_offset as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ethertype_data_s),
+            "::",
+            stringify!(payload_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).fh_tree as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ethertype_data_s),
+            "::",
+            stringify!(fh_tree)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).trailer_id as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ethertype_data_s),
+            "::",
+            stringify!(trailer_id)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).fcs_len as *const _ as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ethertype_data_s),
+            "::",
+            stringify!(fcs_len)
+        )
+    );
+}
+pub type ethertype_data_t = ethertype_data_s;
+extern "C" {
+    pub fn dissector_dump_decodes();
+}
+extern "C" {
+    pub fn dissector_dump_heur_decodes();
+}
+extern "C" {
+    pub fn register_postdissector(handle: dissector_handle_t);
+}
+extern "C" {
+    pub fn set_postdissector_wanted_hfids(handle: dissector_handle_t, wanted_hfids: *mut GArray);
+}
+extern "C" {
+    pub fn deregister_postdissector(handle: dissector_handle_t);
+}
+extern "C" {
+    pub fn have_postdissector() -> gboolean;
+}
+extern "C" {
+    pub fn call_all_postdissectors(
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+    );
+}
+extern "C" {
+    pub fn postdissectors_want_hfids() -> gboolean;
+}
+extern "C" {
+    pub fn prime_epan_dissect_with_postdissector_wanted_hfids(edt: *mut epan_dissect_t);
+}
+pub const endpoint_type_ENDPOINT_NONE: endpoint_type = 0;
+pub const endpoint_type_ENDPOINT_SCTP: endpoint_type = 1;
+pub const endpoint_type_ENDPOINT_TCP: endpoint_type = 2;
+pub const endpoint_type_ENDPOINT_UDP: endpoint_type = 3;
+pub const endpoint_type_ENDPOINT_DCCP: endpoint_type = 4;
+pub const endpoint_type_ENDPOINT_IPX: endpoint_type = 5;
+pub const endpoint_type_ENDPOINT_NCP: endpoint_type = 6;
+pub const endpoint_type_ENDPOINT_EXCHG: endpoint_type = 7;
+pub const endpoint_type_ENDPOINT_DDP: endpoint_type = 8;
+pub const endpoint_type_ENDPOINT_SBCCS: endpoint_type = 9;
+pub const endpoint_type_ENDPOINT_IDP: endpoint_type = 10;
+pub const endpoint_type_ENDPOINT_TIPC: endpoint_type = 11;
+pub const endpoint_type_ENDPOINT_USB: endpoint_type = 12;
+pub const endpoint_type_ENDPOINT_I2C: endpoint_type = 13;
+pub const endpoint_type_ENDPOINT_IBQP: endpoint_type = 14;
+pub const endpoint_type_ENDPOINT_BLUETOOTH: endpoint_type = 15;
+pub const endpoint_type_ENDPOINT_TDMOP: endpoint_type = 16;
+pub const endpoint_type_ENDPOINT_DVBCI: endpoint_type = 17;
+pub const endpoint_type_ENDPOINT_ISO14443: endpoint_type = 18;
+pub const endpoint_type_ENDPOINT_ISDN: endpoint_type = 19;
+pub const endpoint_type_ENDPOINT_H223: endpoint_type = 20;
+pub const endpoint_type_ENDPOINT_X25: endpoint_type = 21;
+pub const endpoint_type_ENDPOINT_IAX2: endpoint_type = 22;
+pub const endpoint_type_ENDPOINT_DLCI: endpoint_type = 23;
+pub const endpoint_type_ENDPOINT_ISUP: endpoint_type = 24;
+pub const endpoint_type_ENDPOINT_BICC: endpoint_type = 25;
+pub const endpoint_type_ENDPOINT_GSMTAP: endpoint_type = 26;
+pub const endpoint_type_ENDPOINT_IUUP: endpoint_type = 27;
+pub type endpoint_type = u32;
+#[doc = " Data structure representing a conversation."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct conversation_key {
+    _unused: [u8; 0],
+}
+pub type conversation_key_t = *mut conversation_key;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct conversation {
+    pub next: *mut conversation,
+    #[doc = " pointer to next conversation on hash chain"]
+    pub last: *mut conversation,
+    #[doc = " pointer to the last conversation on hash chain"]
+    pub latest_found: *mut conversation,
+    #[doc = " pointer to the last conversation on hash chain"]
+    pub conv_index: guint32,
+    #[doc = " unique ID for conversation"]
+    pub setup_frame: guint32,
+    #[doc = " frame number that setup this conversation"]
+    pub last_frame: guint32,
+    #[doc = " highest frame number in this conversation"]
+    pub data_list: *mut wmem_tree_t,
+    #[doc = " list of data associated with conversation"]
+    pub dissector_tree: *mut wmem_tree_t,
+    #[doc = " tree containing protocol dissector client associated with conversation"]
+    pub options: guint,
+    #[doc = " wildcard flags"]
+    pub key_ptr: conversation_key_t,
+}
+#[test]
+fn bindgen_test_layout_conversation() {
+    assert_eq!(
+        ::std::mem::size_of::<conversation>(),
+        72usize,
+        concat!("Size of: ", stringify!(conversation))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<conversation>(),
+        8usize,
+        concat!("Alignment of ", stringify!(conversation))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).next as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(next)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).last as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(last)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).latest_found as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(latest_found)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).conv_index as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(conv_index)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).setup_frame as *const _ as usize },
+        28usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(setup_frame)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).last_frame as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(last_frame)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).data_list as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(data_list)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).dissector_tree as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(dissector_tree)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).options as *const _ as usize },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(options)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<conversation>())).key_ptr as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(conversation),
+            "::",
+            stringify!(key_ptr)
+        )
+    );
+}
+pub type conversation_t = conversation;
+pub type endpoint_t = *mut endpoint;
+extern "C" {
+    pub fn conversation_key_addr1(key: conversation_key_t) -> *mut address;
+}
+extern "C" {
+    pub fn conversation_key_addr2(key: conversation_key_t) -> *mut address;
+}
+extern "C" {
+    pub fn conversation_key_port1(key: conversation_key_t) -> guint32;
+}
+extern "C" {
+    pub fn conversation_key_port2(key: conversation_key_t) -> guint32;
+}
+extern "C" {
+    #[doc = " Create a new hash tables for conversations."]
+    pub fn conversation_init();
+}
+extern "C" {
+    #[doc = " Initialize some variables every time a file is loaded or re-loaded."]
+    pub fn conversation_epan_reset();
+}
+extern "C" {
+    pub fn conversation_new(
+        setup_frame: guint32,
+        addr1: *const address,
+        addr2: *const address,
+        etype: endpoint_type,
+        port1: guint32,
+        port2: guint32,
+        options: guint,
+    ) -> *mut conversation_t;
+}
+extern "C" {
+    pub fn conversation_new_by_id(
+        setup_frame: guint32,
+        etype: endpoint_type,
+        id: guint32,
+        options: guint,
+    ) -> *mut conversation_t;
+}
+extern "C" {
+    #[doc = " Given two address/port pairs for a packet, search for a conversation"]
+    #[doc = " containing packets between those address/port pairs.  Returns NULL if"]
+    #[doc = " not found."]
+    #[doc = ""]
+    #[doc = " We try to find the most exact match that we can, and then proceed to"]
+    #[doc = " try wildcard matches on the \"addr_b\" and/or \"port_b\" argument if a more"]
+    #[doc = " exact match failed."]
+    #[doc = ""]
+    #[doc = " Either or both of the \"addr_b\" and \"port_b\" arguments may be specified as"]
+    #[doc = " a wildcard by setting the NO_ADDR_B or NO_PORT_B flags in the \"options\""]
+    #[doc = " argument.  We do only wildcard matches on addresses and ports specified"]
+    #[doc = " as wildcards."]
+    #[doc = ""]
+    #[doc = " I.e.:"]
+    #[doc = ""]
+    #[doc = "\tif neither \"addr_b\" nor \"port_b\" were specified as wildcards, we"]
+    #[doc = "\tdo an exact match (addr_a/port_a and addr_b/port_b) and, if that"]
+    #[doc = "\tsucceeds, we return a pointer to the matched conversation;"]
+    #[doc = ""]
+    #[doc = "\totherwise, if \"port_b\" wasn't specified as a wildcard, we try to"]
+    #[doc = "\tmatch any address 2 with the specified port 2 (addr_a/port_a and"]
+    #[doc = "\t{any}/addr_b) and, if that succeeds, we return a pointer to the"]
+    #[doc = "\tmatched conversation;"]
+    #[doc = ""]
+    #[doc = "\totherwise, if \"addr_b\" wasn't specified as a wildcard, we try to"]
+    #[doc = "\tmatch any port 2 with the specified address 2 (addr_a/port_a and"]
+    #[doc = "\taddr_b/{any}) and, if that succeeds, we return a pointer to the"]
+    #[doc = "\tmatched conversation;"]
+    #[doc = ""]
+    #[doc = "\totherwise, we try to match any address 2 and any port 2"]
+    #[doc = "\t(addr_a/port_a and {any}/{any}) and, if that succeeds, we return"]
+    #[doc = "\ta pointer to the matched conversation;"]
+    #[doc = ""]
+    #[doc = "\totherwise, we found no matching conversation, and return NULL."]
+    pub fn find_conversation(
+        frame_num: guint32,
+        addr_a: *const address,
+        addr_b: *const address,
+        etype: endpoint_type,
+        port_a: guint32,
+        port_b: guint32,
+        options: guint,
+    ) -> *mut conversation_t;
+}
+extern "C" {
+    pub fn find_conversation_by_id(
+        frame: guint32,
+        etype: endpoint_type,
+        id: guint32,
+        options: guint,
+    ) -> *mut conversation_t;
+}
+extern "C" {
+    #[doc = "  A helper function that calls find_conversation() using data from pinfo"]
+    #[doc = "  The frame number and addresses are taken from pinfo."]
+    pub fn find_conversation_pinfo(pinfo: *mut packet_info, options: guint) -> *mut conversation_t;
+}
+extern "C" {
+    #[doc = "  A helper function that calls find_conversation() and, if a conversation is"]
+    #[doc = "  not found, calls conversation_new()."]
+    #[doc = "  The frame number and addresses are taken from pinfo."]
+    #[doc = "  No options are used, though we could extend this API to include an options"]
+    #[doc = "  parameter."]
+    pub fn find_or_create_conversation(pinfo: *mut packet_info) -> *mut conversation_t;
+}
+extern "C" {
+    #[doc = "  A helper function that calls find_conversation_by_id() and, if a"]
+    #[doc = "  conversation is not found, calls conversation_new_by_id()."]
+    #[doc = "  The frame number is taken from pinfo."]
+    pub fn find_or_create_conversation_by_id(
+        pinfo: *mut packet_info,
+        etype: endpoint_type,
+        id: guint32,
+    ) -> *mut conversation_t;
+}
+extern "C" {
+    pub fn conversation_add_proto_data(
+        conv: *mut conversation_t,
+        proto: ::std::os::raw::c_int,
+        proto_data: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn conversation_get_proto_data(
+        conv: *const conversation_t,
+        proto: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn conversation_delete_proto_data(conv: *mut conversation_t, proto: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn conversation_set_dissector(
+        conversation: *mut conversation_t,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn conversation_set_dissector_from_frame_number(
+        conversation: *mut conversation_t,
+        starting_frame_num: guint32,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
+    pub fn conversation_get_dissector(
+        conversation: *mut conversation_t,
+        frame_num: guint32,
+    ) -> dissector_handle_t;
+}
+extern "C" {
+    pub fn conversation_create_endpoint(
+        pinfo: *mut _packet_info,
+        addr1: *mut address,
+        addr2: *mut address,
+        etype: endpoint_type,
+        port1: guint32,
+        port2: guint32,
+        options: guint,
+    );
+}
+extern "C" {
+    pub fn conversation_create_endpoint_by_id(
+        pinfo: *mut _packet_info,
+        etype: endpoint_type,
+        id: guint32,
+        options: guint,
+    );
+}
+extern "C" {
+    pub fn conversation_get_endpoint_by_id(
+        pinfo: *mut _packet_info,
+        etype: endpoint_type,
+        options: guint,
+    ) -> guint32;
+}
+extern "C" {
+    #[doc = " Given two address/port pairs for a packet, search for a matching"]
+    #[doc = " conversation and, if found and it has a conversation dissector,"]
+    #[doc = " call that dissector and return TRUE, otherwise return FALSE."]
+    #[doc = ""]
+    #[doc = " This helper uses call_dissector_only which will NOT call the default"]
+    #[doc = " \"data\" dissector if the packet was rejected."]
+    #[doc = " Our caller is responsible to call the data dissector explicitly in case"]
+    #[doc = " this function returns FALSE."]
+    pub fn try_conversation_dissector(
+        addr_a: *const address,
+        addr_b: *const address,
+        etype: endpoint_type,
+        port_a: guint32,
+        port_b: guint32,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        data: *mut ::std::os::raw::c_void,
+        options: guint,
+    ) -> gboolean;
+}
+extern "C" {
+    pub fn try_conversation_dissector_by_id(
+        etype: endpoint_type,
+        id: guint32,
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        data: *mut ::std::os::raw::c_void,
+    ) -> gboolean;
+}
+extern "C" {
+    pub fn conversation_set_port2(conv: *mut conversation_t, port: guint32);
+}
+extern "C" {
+    pub fn conversation_set_addr2(conv: *mut conversation_t, addr: *const address);
+}
+extern "C" {
+    pub fn get_conversation_hashtable_exact() -> *mut wmem_map_t;
+}
+extern "C" {
+    pub fn get_conversation_hashtable_no_addr2() -> *mut wmem_map_t;
+}
+extern "C" {
+    pub fn get_conversation_hashtable_no_port2() -> *mut wmem_map_t;
+}
+extern "C" {
+    pub fn get_conversation_hashtable_no_addr2_or_port2() -> *mut wmem_map_t;
+}
+extern "C" {
+    pub fn conversation_pt_to_endpoint_type(pt: port_type) -> endpoint_type;
+}
+extern "C" {
+    pub fn conversation_hash_exact(v: gconstpointer) -> guint;
+}
+extern "C" {
+    pub fn conversation_get_html_hash(key: conversation_key_t) -> *mut gchar;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct mptcpheader {
+    pub mh_mpc: gboolean,
+    pub mh_join: gboolean,
+    pub mh_dss: gboolean,
+    pub mh_fastclose: gboolean,
+    pub mh_fail: gboolean,
+    pub mh_capable_flags: guint8,
+    pub mh_dss_flags: guint8,
+    pub mh_dss_ssn: guint32,
+    pub mh_dss_rawdsn: guint64,
+    pub mh_dss_rawack: guint64,
+    pub mh_dss_length: guint16,
+    pub mh_key: guint64,
+    pub mh_token: guint32,
+    pub mh_stream: guint32,
+    pub mh_rawdsn64: guint64,
+    pub mh_dsn: guint64,
+}
+#[test]
+fn bindgen_test_layout_mptcpheader() {
+    assert_eq!(
+        ::std::mem::size_of::<mptcpheader>(),
+        88usize,
+        concat!("Size of: ", stringify!(mptcpheader))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<mptcpheader>(),
+        8usize,
+        concat!("Alignment of ", stringify!(mptcpheader))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_mpc as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_mpc)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_join as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_join)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_dss as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_dss)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_fastclose as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_fastclose)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_fail as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_fail)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_capable_flags as *const _ as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_capable_flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_dss_flags as *const _ as usize },
+        21usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_dss_flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_dss_ssn as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_dss_ssn)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_dss_rawdsn as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_dss_rawdsn)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_dss_rawack as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_dss_rawack)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_dss_length as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_dss_length)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_key as *const _ as usize },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_key)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_token as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_token)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_stream as *const _ as usize },
+        68usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_stream)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_rawdsn64 as *const _ as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_rawdsn64)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcpheader>())).mh_dsn as *const _ as usize },
+        80usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcpheader),
+            "::",
+            stringify!(mh_dsn)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tcpheader {
+    pub th_rawseq: guint32,
+    pub th_seq: guint32,
+    pub th_rawack: guint32,
+    pub th_ack: guint32,
+    pub th_have_seglen: gboolean,
+    pub th_seglen: guint32,
+    pub th_win: guint32,
+    pub th_sport: guint16,
+    pub th_dport: guint16,
+    pub th_hlen: guint8,
+    pub th_flags: guint16,
+    pub th_stream: guint32,
+    pub ip_src: address,
+    pub ip_dst: address,
+    pub num_sack_ranges: guint8,
+    pub sack_left_edge: [guint32; 4usize],
+    pub sack_right_edge: [guint32; 4usize],
+    pub th_mptcp: *mut mptcpheader,
+}
+#[test]
+fn bindgen_test_layout_tcpheader() {
+    assert_eq!(
+        ::std::mem::size_of::<tcpheader>(),
+        136usize,
+        concat!("Size of: ", stringify!(tcpheader))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tcpheader>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tcpheader))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_rawseq as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_rawseq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_seq as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_seq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_rawack as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_rawack)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_ack as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_ack)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_have_seglen as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_have_seglen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_seglen as *const _ as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_seglen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_win as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_win)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_sport as *const _ as usize },
+        28usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_sport)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_dport as *const _ as usize },
+        30usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_dport)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_hlen as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_hlen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_flags as *const _ as usize },
+        34usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_stream as *const _ as usize },
+        36usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_stream)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).ip_src as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(ip_src)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).ip_dst as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(ip_dst)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).num_sack_ranges as *const _ as usize },
+        88usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(num_sack_ranges)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).sack_left_edge as *const _ as usize },
+        92usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(sack_left_edge)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).sack_right_edge as *const _ as usize },
+        108usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(sack_right_edge)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpheader>())).th_mptcp as *const _ as usize },
+        128usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpheader),
+            "::",
+            stringify!(th_mptcp)
+        )
+    );
+}
+pub type tcp_info_t = tcpheader;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tcpinfo {
+    pub seq: guint32,
+    pub nxtseq: guint32,
+    pub lastackseq: guint32,
+    pub is_reassembled: gboolean,
+    pub flags: guint16,
+    pub urgent_pointer: guint16,
+}
+#[test]
+fn bindgen_test_layout_tcpinfo() {
+    assert_eq!(
+        ::std::mem::size_of::<tcpinfo>(),
+        20usize,
+        concat!("Size of: ", stringify!(tcpinfo))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tcpinfo>(),
+        4usize,
+        concat!("Alignment of ", stringify!(tcpinfo))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpinfo>())).seq as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpinfo),
+            "::",
+            stringify!(seq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpinfo>())).nxtseq as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpinfo),
+            "::",
+            stringify!(nxtseq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpinfo>())).lastackseq as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpinfo),
+            "::",
+            stringify!(lastackseq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpinfo>())).is_reassembled as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpinfo),
+            "::",
+            stringify!(is_reassembled)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpinfo>())).flags as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpinfo),
+            "::",
+            stringify!(flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcpinfo>())).urgent_pointer as *const _ as usize },
+        18usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcpinfo),
+            "::",
+            stringify!(urgent_pointer)
+        )
+    );
+}
+extern "C" {
+    pub fn tcp_dissect_pdus(
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        tree: *mut proto_tree,
+        proto_desegment: gboolean,
+        fixed_len: guint,
+        get_pdu_len: ::std::option::Option<
+            unsafe extern "C" fn(
+                arg1: *mut packet_info,
+                arg2: *mut tvbuff_t,
+                arg3: ::std::os::raw::c_int,
+                arg4: *mut ::std::os::raw::c_void,
+            ) -> guint,
+        >,
+        dissect_pdu: dissector_t,
+        dissector_data: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn pdu_store_sequencenumber_of_next_pdu(
+        pinfo: *mut packet_info,
+        seq: guint32,
+        nxtpdu: guint32,
+        multisegment_pdus: *mut wmem_tree_t,
+    ) -> *mut tcp_multisegment_pdu;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _tcp_unacked_t {
+    pub next: *mut _tcp_unacked_t,
+    pub frame: guint32,
+    pub seq: guint32,
+    pub nextseq: guint32,
+    pub ts: nstime_t,
+}
+#[test]
+fn bindgen_test_layout__tcp_unacked_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_tcp_unacked_t>(),
+        40usize,
+        concat!("Size of: ", stringify!(_tcp_unacked_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_tcp_unacked_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_tcp_unacked_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_unacked_t>())).next as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_unacked_t),
+            "::",
+            stringify!(next)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_unacked_t>())).frame as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_unacked_t),
+            "::",
+            stringify!(frame)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_unacked_t>())).seq as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_unacked_t),
+            "::",
+            stringify!(seq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_unacked_t>())).nextseq as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_unacked_t),
+            "::",
+            stringify!(nextseq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_unacked_t>())).ts as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_unacked_t),
+            "::",
+            stringify!(ts)
+        )
+    );
+}
+pub type tcp_unacked_t = _tcp_unacked_t;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tcp_acked {
+    pub frame_acked: guint32,
+    pub ts: nstime_t,
+    pub rto_frame: guint32,
+    pub rto_ts: nstime_t,
+    pub flags: guint16,
+    pub dupack_num: guint32,
+    pub dupack_frame: guint32,
+    pub bytes_in_flight: guint32,
+    pub push_bytes_sent: guint32,
+}
+#[test]
+fn bindgen_test_layout_tcp_acked() {
+    assert_eq!(
+        ::std::mem::size_of::<tcp_acked>(),
+        72usize,
+        concat!("Size of: ", stringify!(tcp_acked))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tcp_acked>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tcp_acked))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).frame_acked as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(frame_acked)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).ts as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(ts)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).rto_frame as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(rto_frame)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).rto_ts as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(rto_ts)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).flags as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).dupack_num as *const _ as usize },
+        52usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(dupack_num)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).dupack_frame as *const _ as usize },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(dupack_frame)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).bytes_in_flight as *const _ as usize },
+        60usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(bytes_in_flight)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_acked>())).push_bytes_sent as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_acked),
+            "::",
+            stringify!(push_bytes_sent)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tcp_multisegment_pdu {
+    pub seq: guint32,
+    pub nxtpdu: guint32,
+    pub first_frame: guint32,
+    pub last_frame: guint32,
+    pub last_frame_time: nstime_t,
+    pub first_frame_with_seq: guint32,
+    pub flags: guint32,
+}
+#[test]
+fn bindgen_test_layout_tcp_multisegment_pdu() {
+    assert_eq!(
+        ::std::mem::size_of::<tcp_multisegment_pdu>(),
+        40usize,
+        concat!("Size of: ", stringify!(tcp_multisegment_pdu))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tcp_multisegment_pdu>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tcp_multisegment_pdu))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_multisegment_pdu>())).seq as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_multisegment_pdu),
+            "::",
+            stringify!(seq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_multisegment_pdu>())).nxtpdu as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_multisegment_pdu),
+            "::",
+            stringify!(nxtpdu)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_multisegment_pdu>())).first_frame as *const _ as usize
+        },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_multisegment_pdu),
+            "::",
+            stringify!(first_frame)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_multisegment_pdu>())).last_frame as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_multisegment_pdu),
+            "::",
+            stringify!(last_frame)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_multisegment_pdu>())).last_frame_time as *const _ as usize
+        },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_multisegment_pdu),
+            "::",
+            stringify!(last_frame_time)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_multisegment_pdu>())).first_frame_with_seq as *const _
+                as usize
+        },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_multisegment_pdu),
+            "::",
+            stringify!(first_frame_with_seq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_multisegment_pdu>())).flags as *const _ as usize },
+        36usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_multisegment_pdu),
+            "::",
+            stringify!(flags)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _mptcp_dss_mapping_t {
+    pub ssn_low: guint32,
+    pub ssn_high: guint32,
+    pub extended_dsn: gboolean,
+    pub rawdsn: guint64,
+    pub frame: guint32,
+}
+#[test]
+fn bindgen_test_layout__mptcp_dss_mapping_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_mptcp_dss_mapping_t>(),
+        32usize,
+        concat!("Size of: ", stringify!(_mptcp_dss_mapping_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_mptcp_dss_mapping_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_mptcp_dss_mapping_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_dss_mapping_t>())).ssn_low as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_dss_mapping_t),
+            "::",
+            stringify!(ssn_low)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_dss_mapping_t>())).ssn_high as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_dss_mapping_t),
+            "::",
+            stringify!(ssn_high)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_mptcp_dss_mapping_t>())).extended_dsn as *const _ as usize
+        },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_dss_mapping_t),
+            "::",
+            stringify!(extended_dsn)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_dss_mapping_t>())).rawdsn as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_dss_mapping_t),
+            "::",
+            stringify!(rawdsn)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_dss_mapping_t>())).frame as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_dss_mapping_t),
+            "::",
+            stringify!(frame)
+        )
+    );
+}
+pub type mptcp_dss_mapping_t = _mptcp_dss_mapping_t;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _mptcp_dsn2packet_mapping_t {
+    pub frame: guint32,
+    pub subflow: *mut tcp_analysis,
+}
+#[test]
+fn bindgen_test_layout__mptcp_dsn2packet_mapping_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_mptcp_dsn2packet_mapping_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(_mptcp_dsn2packet_mapping_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_mptcp_dsn2packet_mapping_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_mptcp_dsn2packet_mapping_t))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_mptcp_dsn2packet_mapping_t>())).frame as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_dsn2packet_mapping_t),
+            "::",
+            stringify!(frame)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_mptcp_dsn2packet_mapping_t>())).subflow as *const _ as usize
+        },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_dsn2packet_mapping_t),
+            "::",
+            stringify!(subflow)
+        )
+    );
+}
+pub type mptcp_dsn2packet_mapping_t = _mptcp_dsn2packet_mapping_t;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _mptcp_meta_flow_t {
+    pub static_flags: guint8,
+    pub flags: guint8,
+    pub base_dsn: guint64,
+    pub nextseq: guint64,
+    pub dfin: guint64,
+    pub version: guint8,
+    pub key: guint64,
+    pub token: guint32,
+    pub nextseqframe: guint32,
+    pub maxseqtobeacked: guint64,
+    pub fin: guint64,
+    pub ip_src: address,
+    pub ip_dst: address,
+    pub sport: guint32,
+    pub dport: guint32,
+}
+#[test]
+fn bindgen_test_layout__mptcp_meta_flow_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_mptcp_meta_flow_t>(),
+        128usize,
+        concat!("Size of: ", stringify!(_mptcp_meta_flow_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_mptcp_meta_flow_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_mptcp_meta_flow_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).static_flags as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(static_flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).flags as *const _ as usize },
+        1usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).base_dsn as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(base_dsn)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).nextseq as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(nextseq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).dfin as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(dfin)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).version as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(version)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).key as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(key)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).token as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(token)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).nextseqframe as *const _ as usize },
+        52usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(nextseqframe)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).maxseqtobeacked as *const _ as usize
+        },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(maxseqtobeacked)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).fin as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(fin)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).ip_src as *const _ as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(ip_src)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).ip_dst as *const _ as usize },
+        96usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(ip_dst)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).sport as *const _ as usize },
+        120usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(sport)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_mptcp_meta_flow_t>())).dport as *const _ as usize },
+        124usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mptcp_meta_flow_t),
+            "::",
+            stringify!(dport)
+        )
+    );
+}
+pub type mptcp_meta_flow_t = _mptcp_meta_flow_t;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct mptcp_subflow {
+    pub static_flags: guint8,
+    pub nonce: guint32,
+    pub address_id: guint8,
+    pub dsn2packet_map: *mut wmem_itree_t,
+    pub ssn2dsn_mappings: *mut wmem_itree_t,
+    pub meta: *mut mptcp_meta_flow_t,
+}
+#[test]
+fn bindgen_test_layout_mptcp_subflow() {
+    assert_eq!(
+        ::std::mem::size_of::<mptcp_subflow>(),
+        40usize,
+        concat!("Size of: ", stringify!(mptcp_subflow))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<mptcp_subflow>(),
+        8usize,
+        concat!("Alignment of ", stringify!(mptcp_subflow))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_subflow>())).static_flags as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_subflow),
+            "::",
+            stringify!(static_flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_subflow>())).nonce as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_subflow),
+            "::",
+            stringify!(nonce)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_subflow>())).address_id as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_subflow),
+            "::",
+            stringify!(address_id)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_subflow>())).dsn2packet_map as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_subflow),
+            "::",
+            stringify!(dsn2packet_map)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_subflow>())).ssn2dsn_mappings as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_subflow),
+            "::",
+            stringify!(ssn2dsn_mappings)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_subflow>())).meta as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_subflow),
+            "::",
+            stringify!(meta)
+        )
+    );
+}
+pub const mptcp_hmac_algorithm_t_MPTCP_HMAC_NOT_SET: mptcp_hmac_algorithm_t = 0;
+pub const mptcp_hmac_algorithm_t_MPTCP_HMAC_SHA: mptcp_hmac_algorithm_t = 1;
+pub const mptcp_hmac_algorithm_t_MPTCP_HMAC_LAST: mptcp_hmac_algorithm_t = 2;
+pub type mptcp_hmac_algorithm_t = u32;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tcp_analyze_seq_flow_info_t {
+    pub segments: *mut tcp_unacked_t,
+    pub segment_count: guint16,
+    pub lastack: guint32,
+    pub lastacktime: nstime_t,
+    pub lastnondupack: guint32,
+    pub dupacknum: guint32,
+    pub nextseq: guint32,
+    pub maxseqtobeacked: guint32,
+    pub nextseqframe: guint32,
+    pub nextseqtime: nstime_t,
+}
+#[test]
+fn bindgen_test_layout_tcp_analyze_seq_flow_info_t() {
+    assert_eq!(
+        ::std::mem::size_of::<tcp_analyze_seq_flow_info_t>(),
+        72usize,
+        concat!("Size of: ", stringify!(tcp_analyze_seq_flow_info_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tcp_analyze_seq_flow_info_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tcp_analyze_seq_flow_info_t))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).segments as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(segments)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).segment_count as *const _
+                as usize
+        },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(segment_count)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).lastack as *const _ as usize
+        },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(lastack)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).lastacktime as *const _ as usize
+        },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(lastacktime)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).lastnondupack as *const _
+                as usize
+        },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(lastnondupack)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).dupacknum as *const _ as usize
+        },
+        36usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(dupacknum)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).nextseq as *const _ as usize
+        },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(nextseq)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).maxseqtobeacked as *const _
+                as usize
+        },
+        44usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(maxseqtobeacked)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).nextseqframe as *const _
+                as usize
+        },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(nextseqframe)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tcp_analyze_seq_flow_info_t>())).nextseqtime as *const _ as usize
+        },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analyze_seq_flow_info_t),
+            "::",
+            stringify!(nextseqtime)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tcp_process_info_t {
+    pub process_uid: guint32,
+    pub process_pid: guint32,
+    pub username: *mut gchar,
+    pub command: *mut gchar,
+}
+#[test]
+fn bindgen_test_layout_tcp_process_info_t() {
+    assert_eq!(
+        ::std::mem::size_of::<tcp_process_info_t>(),
+        24usize,
+        concat!("Size of: ", stringify!(tcp_process_info_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tcp_process_info_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tcp_process_info_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_process_info_t>())).process_uid as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_process_info_t),
+            "::",
+            stringify!(process_uid)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_process_info_t>())).process_pid as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_process_info_t),
+            "::",
+            stringify!(process_pid)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_process_info_t>())).username as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_process_info_t),
+            "::",
+            stringify!(username)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_process_info_t>())).command as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_process_info_t),
+            "::",
+            stringify!(command)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _tcp_flow_t {
+    pub static_flags: guint8,
+    pub base_seq: guint32,
+    pub fin: guint32,
+    pub window: guint32,
+    pub win_scale: gint16,
+    pub scps_capable: gint16,
+    pub maxsizeacked: guint16,
+    pub valid_bif: gboolean,
+    pub push_bytes_sent: guint32,
+    pub push_set_last: gboolean,
+    pub tcp_analyze_seq_info: *mut tcp_analyze_seq_flow_info_t,
+    pub flags: guint16,
+    pub lastsegmentflags: guint32,
+    pub maxnextseq: guint32,
+    pub multisegment_pdus: *mut wmem_tree_t,
+    pub process_info: *mut tcp_process_info_t,
+    pub mptcp_subflow: *mut mptcp_subflow,
+}
+#[test]
+fn bindgen_test_layout__tcp_flow_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_tcp_flow_t>(),
+        88usize,
+        concat!("Size of: ", stringify!(_tcp_flow_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_tcp_flow_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_tcp_flow_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).static_flags as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(static_flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).base_seq as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(base_seq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).fin as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(fin)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).window as *const _ as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(window)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).win_scale as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(win_scale)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).scps_capable as *const _ as usize },
+        18usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(scps_capable)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).maxsizeacked as *const _ as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(maxsizeacked)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).valid_bif as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(valid_bif)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).push_bytes_sent as *const _ as usize },
+        28usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(push_bytes_sent)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).push_set_last as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(push_set_last)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<_tcp_flow_t>())).tcp_analyze_seq_info as *const _ as usize
+        },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(tcp_analyze_seq_info)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).flags as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).lastsegmentflags as *const _ as usize },
+        52usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(lastsegmentflags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).maxnextseq as *const _ as usize },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(maxnextseq)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).multisegment_pdus as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(multisegment_pdus)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).process_info as *const _ as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(process_info)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_tcp_flow_t>())).mptcp_subflow as *const _ as usize },
+        80usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_tcp_flow_t),
+            "::",
+            stringify!(mptcp_subflow)
+        )
+    );
+}
+pub type tcp_flow_t = _tcp_flow_t;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct mptcp_analysis {
+    pub mp_flags: guint16,
+    pub meta_flow: [mptcp_meta_flow_t; 2usize],
+    pub stream: guint32,
+    pub hmac_algo: guint8,
+    pub subflows: *mut wmem_list_t,
+    pub master: *mut tcp_analysis,
+}
+#[test]
+fn bindgen_test_layout_mptcp_analysis() {
+    assert_eq!(
+        ::std::mem::size_of::<mptcp_analysis>(),
+        288usize,
+        concat!("Size of: ", stringify!(mptcp_analysis))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<mptcp_analysis>(),
+        8usize,
+        concat!("Alignment of ", stringify!(mptcp_analysis))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_analysis>())).mp_flags as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_analysis),
+            "::",
+            stringify!(mp_flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_analysis>())).meta_flow as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_analysis),
+            "::",
+            stringify!(meta_flow)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_analysis>())).stream as *const _ as usize },
+        264usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_analysis),
+            "::",
+            stringify!(stream)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_analysis>())).hmac_algo as *const _ as usize },
+        268usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_analysis),
+            "::",
+            stringify!(hmac_algo)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_analysis>())).subflows as *const _ as usize },
+        272usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_analysis),
+            "::",
+            stringify!(subflows)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<mptcp_analysis>())).master as *const _ as usize },
+        280usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_analysis),
+            "::",
+            stringify!(master)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tcp_analysis {
+    pub flow1: tcp_flow_t,
+    pub flow2: tcp_flow_t,
+    pub fwd: *mut tcp_flow_t,
+    pub rev: *mut tcp_flow_t,
+    pub ta: *mut tcp_acked,
+    pub acked_table: *mut wmem_tree_t,
+    pub ts_first: nstime_t,
+    pub ts_mru_syn: nstime_t,
+    pub ts_first_rtt: nstime_t,
+    pub ts_prev: nstime_t,
+    pub stream: guint32,
+    pub server_port: guint16,
+    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+    pub mptcp_analysis: *mut mptcp_analysis,
+}
+#[test]
+fn bindgen_test_layout_tcp_analysis() {
+    assert_eq!(
+        ::std::mem::size_of::<tcp_analysis>(),
+        288usize,
+        concat!("Size of: ", stringify!(tcp_analysis))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tcp_analysis>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tcp_analysis))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).flow1 as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(flow1)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).flow2 as *const _ as usize },
+        88usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(flow2)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).fwd as *const _ as usize },
+        176usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(fwd)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).rev as *const _ as usize },
+        184usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(rev)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).ta as *const _ as usize },
+        192usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(ta)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).acked_table as *const _ as usize },
+        200usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(acked_table)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).ts_first as *const _ as usize },
+        208usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(ts_first)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).ts_mru_syn as *const _ as usize },
+        224usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(ts_mru_syn)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).ts_first_rtt as *const _ as usize },
+        240usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(ts_first_rtt)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).ts_prev as *const _ as usize },
+        256usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(ts_prev)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).stream as *const _ as usize },
+        272usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(stream)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).server_port as *const _ as usize },
+        276usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(server_port)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_analysis>())).mptcp_analysis as *const _ as usize },
+        280usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_analysis),
+            "::",
+            stringify!(mptcp_analysis)
+        )
+    );
+}
+impl tcp_analysis {
+    #[inline]
+    pub fn tfo_syn_data(&self) -> guint8 {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+    }
+    #[inline]
+    pub fn set_tfo_syn_data(&mut self, val: guint8) {
+        unsafe {
+            let val: u8 = ::std::mem::transmute(val);
+            self._bitfield_1.set(0usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn new_bitfield_1(tfo_syn_data: guint8) -> __BindgenBitfieldUnit<[u8; 1usize], u8> {
+        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> =
+            Default::default();
+        __bindgen_bitfield_unit.set(0usize, 1u8, {
+            let tfo_syn_data: u8 = unsafe { ::std::mem::transmute(tfo_syn_data) };
+            tfo_syn_data as u64
+        });
+        __bindgen_bitfield_unit
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tcp_per_packet_data_t {
+    pub ts_del: nstime_t,
+}
+#[test]
+fn bindgen_test_layout_tcp_per_packet_data_t() {
+    assert_eq!(
+        ::std::mem::size_of::<tcp_per_packet_data_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(tcp_per_packet_data_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tcp_per_packet_data_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tcp_per_packet_data_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tcp_per_packet_data_t>())).ts_del as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tcp_per_packet_data_t),
+            "::",
+            stringify!(ts_del)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct mptcp_per_packet_data_t_ {
+    pub mapping: *mut mptcp_dss_mapping_t,
+}
+#[test]
+fn bindgen_test_layout_mptcp_per_packet_data_t_() {
+    assert_eq!(
+        ::std::mem::size_of::<mptcp_per_packet_data_t_>(),
+        8usize,
+        concat!("Size of: ", stringify!(mptcp_per_packet_data_t_))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<mptcp_per_packet_data_t_>(),
+        8usize,
+        concat!("Alignment of ", stringify!(mptcp_per_packet_data_t_))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<mptcp_per_packet_data_t_>())).mapping as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mptcp_per_packet_data_t_),
+            "::",
+            stringify!(mapping)
+        )
+    );
+}
+pub type mptcp_per_packet_data_t = mptcp_per_packet_data_t_;
+extern "C" {
+    pub fn dissect_tcp_payload(
+        tvb: *mut tvbuff_t,
+        pinfo: *mut packet_info,
+        offset: ::std::os::raw::c_int,
+        seq: guint32,
+        nxtseq: guint32,
+        sport: guint32,
+        dport: guint32,
+        tree: *mut proto_tree,
+        tcp_tree: *mut proto_tree,
+        tcpd: *mut tcp_analysis,
+        tcpinfo: *mut tcpinfo,
+    );
+}
+extern "C" {
+    pub fn get_tcp_conversation_data(
+        conv: *mut conversation_t,
+        pinfo: *mut packet_info,
+    ) -> *mut tcp_analysis;
+}
+extern "C" {
+    pub fn decode_tcp_ports(
+        arg1: *mut tvbuff_t,
+        arg2: ::std::os::raw::c_int,
+        arg3: *mut packet_info,
+        arg4: *mut proto_tree,
+        arg5: ::std::os::raw::c_int,
+        arg6: ::std::os::raw::c_int,
+        arg7: *mut tcp_analysis,
+        arg8: *mut tcpinfo,
+    ) -> gboolean;
+}
+extern "C" {
+    #[doc = " Associate process information with a given flow"]
+    #[doc = ""]
+    #[doc = " @param frame_num The frame number"]
+    #[doc = " @param local_addr The local IPv4 or IPv6 address of the process"]
+    #[doc = " @param remote_addr The remote IPv4 or IPv6 address of the process"]
+    #[doc = " @param local_port The local TCP port of the process"]
+    #[doc = " @param remote_port The remote TCP port of the process"]
+    #[doc = " @param uid The numeric user ID of the process"]
+    #[doc = " @param pid The numeric PID of the process"]
+    #[doc = " @param username Ephemeral string containing the full or partial process name"]
+    #[doc = " @param command Ephemeral string containing the full or partial process name"]
+    pub fn add_tcp_process_info(
+        frame_num: guint32,
+        local_addr: *mut address,
+        remote_addr: *mut address,
+        local_port: guint16,
+        remote_port: guint16,
+        uid: guint32,
+        pid: guint32,
+        username: *mut gchar,
+        command: *mut gchar,
+    );
+}
+extern "C" {
+    #[doc = " Get the current number of TCP streams"]
+    #[doc = ""]
+    #[doc = " @return The number of TCP streams"]
+    pub fn get_tcp_stream_count() -> guint32;
+}
+extern "C" {
+    #[doc = " Get the current number of MPTCP streams"]
+    #[doc = ""]
+    #[doc = " @return The number of MPTCP streams"]
+    pub fn get_mptcp_stream_count() -> guint32;
+}
+extern "C" {
+    pub fn tcp_follow_conv_filter(
+        pinfo: *mut packet_info,
+        stream: *mut guint,
+        sub_stream: *mut guint,
+    ) -> *mut gchar;
+}
+extern "C" {
+    pub fn tcp_follow_index_filter(stream: guint, sub_stream: guint) -> *mut gchar;
+}
+extern "C" {
+    pub fn tcp_follow_address_filter(
+        src_addr: *mut address,
+        dst_addr: *mut address,
+        src_port: ::std::os::raw::c_int,
+        dst_port: ::std::os::raw::c_int,
+    ) -> *mut gchar;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct __locale_data {
+    pub _address: u8,
+}
 pub type __builtin_va_list = [__va_list_tag; 1usize];
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -38405,15 +45275,4 @@ fn bindgen_test_layout___va_list_tag() {
             stringify!(reg_save_area)
         )
     );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct __locale_data {
-    pub _address: u8,
-}
-#[doc = "< Column formatting information"]
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct epan_column_info {
-    pub _address: u8,
 }

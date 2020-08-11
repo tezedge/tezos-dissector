@@ -1,8 +1,11 @@
+// copy the library into plugin directory
+// cp target/debug/libtezos_dissector.so out/lib/wireshark/plugins/3.3/epan/
+
 #[rustfmt::skip]
 #[allow(non_upper_case_globals, non_camel_case_types, non_snake_case, dead_code)]
-mod ffi;
+mod wireshark;
 
-pub mod glue;
+mod core;
 
 #[cfg(test)]
 #[test]
