@@ -1,6 +1,4 @@
 /target
 Cargo.lock
 /wireshark
-/.vscode
 /core.*
-/out

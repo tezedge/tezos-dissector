@@ -1,0 +1,16 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug",
+            "program": "${workspaceFolder}/target/out/bin/tshark",
+            "args": ["-o", "tezos.identity_json_file:data/identity.json", "-Vr", "data/cap-09.pcap"],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

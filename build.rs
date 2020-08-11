@@ -33,8 +33,8 @@ fn main() {
         .unwrap_or_else(|e| panic!("Unable to save bindings: {}", e));
 
     let out = cmake::build("wireshark");
-    let _ = remove_file("out");
-    symlink(&out, "out").unwrap();
+    let _ = remove_file("target/out");
+    symlink(&out, "target/out").unwrap();
     println!("cargo:rustc-env=WIRESHARK={}", out.display());
     println!("cargo:rustc-env=SODIUM_SHARED=1");
     println!("cargo:rustc-env=SODIUM_USE_PKG_CONFIG=1");
