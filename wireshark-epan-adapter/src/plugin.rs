@@ -67,8 +67,14 @@ pub enum EpanFieldDescriptor<'a> {
 impl<'a> EpanFieldDescriptor<'a> {
     pub fn abbrev(&self) -> &'a str {
         match self {
-            &EpanFieldDescriptor::String { name: _, abbrev: ref abbrev } => abbrev.clone(),
-            &EpanFieldDescriptor::Int64Dec { name: _, abbrev: ref abbrev } => abbrev.clone(),
+            &EpanFieldDescriptor::String {
+                name: _,
+                abbrev: ref abbrev,
+            } => abbrev.clone(),
+            &EpanFieldDescriptor::Int64Dec {
+                name: _,
+                abbrev: ref abbrev,
+            } => abbrev.clone(),
         }
     }
 }
@@ -255,12 +261,16 @@ impl EpanPlugin<'static> {
                 tree: *mut sys::proto_tree,
                 data: *mut c_void,
             ) -> sys::gboolean {
-                let d = &mut context_mut().dissector_descriptor.as_mut().unwrap().dissector;
+                let d = &mut context_mut()
+                    .dissector_descriptor
+                    .as_mut()
+                    .unwrap()
+                    .dissector;
                 // TODO: simplify it
-                let fields: BTreeMap<_, _> = context().field_descriptors.iter()
-                    .map(|(field, descriptor)| {
-                        (descriptor.abbrev(), field.clone())
-                    })
+                let fields: BTreeMap<_, _> = context()
+                    .field_descriptors
+                    .iter()
+                    .map(|(field, descriptor)| (descriptor.abbrev(), field.clone()))
                     .collect();
                 let info = DissectorInfo {
                     tvb: &mut *tvb,
@@ -289,11 +299,15 @@ impl EpanPlugin<'static> {
                 tree: *mut sys::proto_tree,
                 data: *mut c_void,
             ) -> c_int {
-                let d = &mut context_mut().dissector_descriptor.as_mut().unwrap().dissector;
-                let fields = context().field_descriptors.iter()
-                    .map(|(field, descriptor)| {
-                        (descriptor.abbrev(), field.clone())
-                    })
+                let d = &mut context_mut()
+                    .dissector_descriptor
+                    .as_mut()
+                    .unwrap()
+                    .dissector;
+                let fields = context()
+                    .field_descriptors
+                    .iter()
+                    .map(|(field, descriptor)| (descriptor.abbrev(), field.clone()))
                     .collect();
                 let info = DissectorInfo {
                     tvb: &mut *tvb,
