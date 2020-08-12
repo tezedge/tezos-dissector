@@ -4,6 +4,7 @@
 use wireshark_epan_adapter::{
     EpanPlugin, EpanNameDescriptor, EpanFieldDescriptor,
     EpanPrefDescriptor, EpanPrefFilenameDescriptor,
+    EpanDissectorDescriptor, Dissector, DissectorInfo,
 };
 
 #[no_mangle]
@@ -58,5 +59,27 @@ extern "C" fn plugin_register() {
             description: "JSON file with node identity information\0",
         }],
     })
+    .set_dissector(EpanDissectorDescriptor {
+        name: "tcp\0",
+        display_name: "Tezos\0",
+        short_name: "tezos_tcp\0",
+        dissector: Box::new(TezosDissector),
+    })
     .register()
+}
+
+struct TezosDissector;
+
+impl Dissector for TezosDissector {
+    fn recognize(&self, info: DissectorInfo<'_>) -> bool {
+        let _ = info;
+        // here
+        true
+    }
+
+    fn consume(&mut self, info: DissectorInfo<'_>) -> usize {
+        let _ = info;
+        // here
+        0
+    }
 }

@@ -1,11 +1,31 @@
-use std::os::raw::{c_int, c_char};
+use std::{
+    collections::BTreeMap,
+    os::raw::{c_int, c_char, c_void},
+    ptr,
+};
 use super::sys;
+
+// TODO: add ett
+pub struct DissectorInfo<'a> {
+    pub tvb: &'a mut sys::tvbuff_t,
+    pub pinfo: &'a mut sys::packet_info,
+    pub tree: &'a mut sys::proto_tree,
+    pub mark: usize,
+    pub fields: BTreeMap<&'a str, i32>,
+}
+
+pub trait Dissector {
+    fn recognize(&self, info: DissectorInfo<'_>) -> bool;
+    fn consume(&mut self, info: DissectorInfo<'_>) -> usize;
+}
 
 struct EpanPluginPrivates<'a> {
     plugin: sys::proto_plugin,
+    proto_handle: i32,
     hf: Vec<sys::hf_register_info>,
     ett: Vec<&'a mut c_int>,
     pref_filenames: Vec<*const c_char>,
+    dissector_handle: sys::dissector_handle_t,
 }
 
 impl<'a> EpanPluginPrivates<'a> {
@@ -15,20 +35,22 @@ impl<'a> EpanPluginPrivates<'a> {
                 register_protoinfo: None,
                 register_handoff: None,
             },
+            proto_handle: -1,
             hf: Vec::new(),
             ett: Vec::new(),
             pref_filenames: Vec::new(),
+            dissector_handle: ptr::null_mut(),
         }
     }
 }
 
 pub struct EpanPlugin<'a> {
     privates: EpanPluginPrivates<'a>,
-    proto: Option<i32>,
     name_descriptor: EpanNameDescriptor<'a>,
     field_descriptors: Vec<(i32, EpanFieldDescriptor<'a>)>,
     ett: Vec<i32>,
     pref_descriptor: Option<EpanPrefDescriptor<'a>>,
+    dissector_descriptor: Option<EpanDissectorDescriptor<'a>>,
 }
 
 pub struct EpanNameDescriptor<'a> {
@@ -40,6 +62,15 @@ pub struct EpanNameDescriptor<'a> {
 pub enum EpanFieldDescriptor<'a> {
     String { name: &'a str, abbrev: &'a str },
     Int64Dec { name: &'a str, abbrev: &'a str },
+}
+
+impl<'a> EpanFieldDescriptor<'a> {
+    pub fn abbrev(&self) -> &'a str {
+        match self {
+            &EpanFieldDescriptor::String { name: _, abbrev: ref abbrev } => abbrev.clone(),
+            &EpanFieldDescriptor::Int64Dec { name: _, abbrev: ref abbrev } => abbrev.clone(),
+        }
+    }
 }
 
 pub struct EpanPrefDescriptor<'a> {
@@ -55,15 +86,22 @@ pub struct EpanPrefFilenameDescriptor<'a> {
     pub description: &'a str,
 }
 
+pub struct EpanDissectorDescriptor<'a> {
+    pub name: &'a str,
+    pub display_name: &'a str,
+    pub short_name: &'a str,
+    pub dissector: Box<dyn Dissector>,
+}
+
 impl<'a> EpanPlugin<'a> {
     pub fn new(name_descriptor: EpanNameDescriptor<'a>) -> Self {
         EpanPlugin {
             privates: EpanPluginPrivates::empty(),
             name_descriptor: name_descriptor,
-            proto: None,
             field_descriptors: Vec::new(),
             ett: Vec::new(),
             pref_descriptor: None,
+            dissector_descriptor: None,
         }
     }
 
@@ -84,12 +122,16 @@ impl<'a> EpanPlugin<'a> {
         s.pref_descriptor = Some(pref_descriptor);
         s
     }
+
+    pub fn set_dissector(self, dissector_descriptor: EpanDissectorDescriptor<'a>) -> Self {
+        let mut s = self;
+        s.dissector_descriptor = Some(dissector_descriptor);
+        s
+    }
 }
 
 impl EpanPlugin<'static> {
     pub fn register(self) {
-        use std::ptr;
-
         static mut CONTEXT: Option<EpanPlugin<'static>> = None;
 
         unsafe fn context() -> &'static EpanPlugin<'static> {
@@ -106,7 +148,7 @@ impl EpanPlugin<'static> {
                 context().name_descriptor.short_name.as_ptr() as _,
                 context().name_descriptor.filter_name.as_ptr() as _,
             );
-            context_mut().proto = Some(proto);
+            context_mut().privates.proto_handle = proto;
 
             context_mut().privates.hf = context_mut()
                 .field_descriptors
@@ -206,7 +248,77 @@ impl EpanPlugin<'static> {
             }
         }
 
-        unsafe extern "C" fn register_handoff() {}
+        unsafe extern "C" fn register_handoff() {
+            unsafe extern "C" fn heur_dissector(
+                tvb: *mut sys::tvbuff_t,
+                pinfo: *mut sys::packet_info,
+                tree: *mut sys::proto_tree,
+                data: *mut c_void,
+            ) -> sys::gboolean {
+                let d = &mut context_mut().dissector_descriptor.as_mut().unwrap().dissector;
+                // TODO: simplify it
+                let fields: BTreeMap<_, _> = context().field_descriptors.iter()
+                    .map(|(field, descriptor)| {
+                        (descriptor.abbrev(), field.clone())
+                    })
+                    .collect();
+                let info = DissectorInfo {
+                    tvb: &mut *tvb,
+                    pinfo: &mut *pinfo,
+                    tree: &mut *tree,
+                    mark: data as _,
+                    fields: fields.clone(),
+                };
+                if d.recognize(info) {
+                    d.consume(DissectorInfo {
+                        tvb: &mut *tvb,
+                        pinfo: &mut *pinfo,
+                        tree: &mut *tree,
+                        mark: data as _,
+                        fields: fields,
+                    });
+                    1
+                } else {
+                    0
+                }
+            }
+
+            unsafe extern "C" fn dissector(
+                tvb: *mut sys::tvbuff_t,
+                pinfo: *mut sys::packet_info,
+                tree: *mut sys::proto_tree,
+                data: *mut c_void,
+            ) -> c_int {
+                let d = &mut context_mut().dissector_descriptor.as_mut().unwrap().dissector;
+                let fields = context().field_descriptors.iter()
+                    .map(|(field, descriptor)| {
+                        (descriptor.abbrev(), field.clone())
+                    })
+                    .collect();
+                let info = DissectorInfo {
+                    tvb: &mut *tvb,
+                    pinfo: &mut *pinfo,
+                    tree: &mut *tree,
+                    mark: data as _,
+                    fields: fields,
+                };
+                d.consume(info) as _
+            }
+
+            if let Some(ref d) = context().dissector_descriptor {
+                let proto_handle = context().privates.proto_handle;
+                let handle = sys::create_dissector_handle(Some(dissector), proto_handle);
+                sys::heur_dissector_add(
+                    d.name.as_ptr() as _,
+                    Some(heur_dissector),
+                    d.display_name.as_ptr() as _,
+                    d.short_name.as_ptr() as _,
+                    proto_handle,
+                    sys::heuristic_enable_e_HEURISTIC_ENABLE,
+                );
+                context_mut().privates.dissector_handle = handle;
+            }
+        }
 
         unsafe {
             CONTEXT = Some(self);
