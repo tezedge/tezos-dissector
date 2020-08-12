@@ -1317,6 +1317,7 @@ pub const CONVERSATION_TEMPLATE: u32 = 8;
 pub const NO_ADDR_B: u32 = 1;
 pub const NO_PORT_B: u32 = 2;
 pub const USE_LAST_ENDPOINT: u32 = 8;
+pub const TVBUFF_FRAGMENT: u32 = 1;
 pub const TH_FIN: u32 = 1;
 pub const TH_SYN: u32 = 2;
 pub const TH_RST: u32 = 4;
@@ -23827,18 +23828,6 @@ extern "C" {
         found_needle: *mut guchar,
     ) -> *const guint8;
 }
-#[doc = " \"testy, virtual(-izable) buffer\".  They are testy in that they get mad when"]
-#[doc = " an attempt is made to access data beyond the bounds of their array. In that"]
-#[doc = " case, they throw an exception."]
-#[doc = ""]
-#[doc = " They are virtualizable in that new tvbuff's can be made from other tvbuffs,"]
-#[doc = " while only the original tvbuff may have data. That is, the new tvbuff has"]
-#[doc = " virtual data."]
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct tvbuff {
-    _unused: [u8; 0],
-}
 pub type tvbuff_t = tvbuff;
 #[doc = " A \"real\" tvbuff contains a guint8* that points to real data."]
 #[doc = " The data is allocated and contiguous."]
@@ -43176,6 +43165,335 @@ extern "C" {
 }
 extern "C" {
     pub fn conversation_get_html_hash(key: conversation_key_t) -> *mut gchar;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tvb_ops {
+    pub tvb_size: gsize,
+    pub tvb_free: ::std::option::Option<unsafe extern "C" fn(tvb: *mut tvbuff)>,
+    pub tvb_offset:
+        ::std::option::Option<unsafe extern "C" fn(tvb: *const tvbuff, counter: guint) -> guint>,
+    pub tvb_get_ptr: ::std::option::Option<
+        unsafe extern "C" fn(
+            tvb: *mut tvbuff,
+            abs_offset: guint,
+            abs_length: guint,
+        ) -> *const guint8,
+    >,
+    pub tvb_memcpy: ::std::option::Option<
+        unsafe extern "C" fn(
+            tvb: *mut tvbuff,
+            target: *mut ::std::os::raw::c_void,
+            offset: guint,
+            length: guint,
+        ) -> *mut ::std::os::raw::c_void,
+    >,
+    pub tvb_find_guint8: ::std::option::Option<
+        unsafe extern "C" fn(
+            tvb: *mut tvbuff_t,
+            abs_offset: guint,
+            limit: guint,
+            needle: guint8,
+        ) -> gint,
+    >,
+    pub tvb_ws_mempbrk_pattern_guint8: ::std::option::Option<
+        unsafe extern "C" fn(
+            tvb: *mut tvbuff_t,
+            abs_offset: guint,
+            limit: guint,
+            pattern: *const ws_mempbrk_pattern,
+            found_needle: *mut guchar,
+        ) -> gint,
+    >,
+    pub tvb_clone: ::std::option::Option<
+        unsafe extern "C" fn(
+            tvb: *mut tvbuff_t,
+            abs_offset: guint,
+            abs_length: guint,
+        ) -> *mut tvbuff_t,
+    >,
+}
+#[test]
+fn bindgen_test_layout_tvb_ops() {
+    assert_eq!(
+        ::std::mem::size_of::<tvb_ops>(),
+        64usize,
+        concat!("Size of: ", stringify!(tvb_ops))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tvb_ops>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tvb_ops))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvb_ops>())).tvb_size as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvb_ops),
+            "::",
+            stringify!(tvb_size)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvb_ops>())).tvb_free as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvb_ops),
+            "::",
+            stringify!(tvb_free)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvb_ops>())).tvb_offset as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvb_ops),
+            "::",
+            stringify!(tvb_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvb_ops>())).tvb_get_ptr as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvb_ops),
+            "::",
+            stringify!(tvb_get_ptr)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvb_ops>())).tvb_memcpy as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvb_ops),
+            "::",
+            stringify!(tvb_memcpy)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvb_ops>())).tvb_find_guint8 as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvb_ops),
+            "::",
+            stringify!(tvb_find_guint8)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<tvb_ops>())).tvb_ws_mempbrk_pattern_guint8 as *const _ as usize
+        },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvb_ops),
+            "::",
+            stringify!(tvb_ws_mempbrk_pattern_guint8)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvb_ops>())).tvb_clone as *const _ as usize },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvb_ops),
+            "::",
+            stringify!(tvb_clone)
+        )
+    );
+}
+#[doc = " \"testy, virtual(-izable) buffer\".  They are testy in that they get mad when"]
+#[doc = " an attempt is made to access data beyond the bounds of their array. In that"]
+#[doc = " case, they throw an exception."]
+#[doc = ""]
+#[doc = " They are virtualizable in that new tvbuff's can be made from other tvbuffs,"]
+#[doc = " while only the original tvbuff may have data. That is, the new tvbuff has"]
+#[doc = " virtual data."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct tvbuff {
+    pub next: *mut tvbuff_t,
+    pub ops: *const tvb_ops,
+    pub initialized: gboolean,
+    pub flags: guint,
+    #[doc = "< data source top-level tvbuff"]
+    pub ds_tvb: *mut tvbuff,
+    #[doc = " Pointer to the data for this tvbuff."]
+    #[doc = " It might be null, which either means that 1) it's a"]
+    #[doc = " zero-length tvbuff or 2) the tvbuff was lazily"]
+    #[doc = " constructed, so that we don't allocate a buffer of"]
+    #[doc = " backing data and fill it in unless we need that"]
+    #[doc = " data, e.g. when tvb_get_ptr() is called."]
+    pub real_data: *const guint8,
+    #[doc = " Amount of data that's available from the capture"]
+    #[doc = " file.  This is the length of virtual buffer (and/or"]
+    #[doc = " real_data).  It may be less than the reported"]
+    #[doc = " length if this is from a packet that was cut short"]
+    #[doc = " by the capture process."]
+    #[doc = ""]
+    #[doc = " This must never be > reported_length or contained_length."]
+    pub length: guint,
+    #[doc = " Amount of data that was reported as being in"]
+    #[doc = " the packet or other data that this represents."]
+    #[doc = " As indicated above, it may be greater than the"]
+    #[doc = " amount of data that's available."]
+    pub reported_length: guint,
+    #[doc = " If this was extracted from a parent tvbuff,"]
+    #[doc = " this is the amount of extracted data that"]
+    #[doc = " was reported as being in the parent tvbuff;"]
+    #[doc = " if this represents a blob of data in that"]
+    #[doc = " tvbuff that has a length specified by data"]
+    #[doc = " in that tvbuff, it might be greater than"]
+    #[doc = " the amount of data that was actually there"]
+    #[doc = " to extract, so it could be greater than"]
+    #[doc = " reported_length."]
+    #[doc = ""]
+    #[doc = " If this wasn't extracted from a parent tvbuff,"]
+    #[doc = " this is the same as reported_length."]
+    #[doc = ""]
+    #[doc = " This must never be > reported_length."]
+    pub contained_length: guint,
+    pub raw_offset: gint,
+}
+#[test]
+fn bindgen_test_layout_tvbuff() {
+    assert_eq!(
+        ::std::mem::size_of::<tvbuff>(),
+        56usize,
+        concat!("Size of: ", stringify!(tvbuff))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<tvbuff>(),
+        8usize,
+        concat!("Alignment of ", stringify!(tvbuff))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).next as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(next)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).ops as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(ops)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).initialized as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(initialized)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).flags as *const _ as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).ds_tvb as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(ds_tvb)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).real_data as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(real_data)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).length as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(length)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).reported_length as *const _ as usize },
+        44usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(reported_length)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).contained_length as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(contained_length)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<tvbuff>())).raw_offset as *const _ as usize },
+        52usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tvbuff),
+            "::",
+            stringify!(raw_offset)
+        )
+    );
+}
+extern "C" {
+    pub fn tvb_new(ops: *const tvb_ops) -> *mut tvbuff_t;
+}
+extern "C" {
+    pub fn tvb_new_proxy(backing: *mut tvbuff_t) -> *mut tvbuff_t;
+}
+extern "C" {
+    pub fn tvb_add_to_chain(parent: *mut tvbuff_t, child: *mut tvbuff_t);
+}
+extern "C" {
+    pub fn tvb_offset_from_real_beginning_counter(tvb: *const tvbuff_t, counter: guint) -> guint;
+}
+extern "C" {
+    pub fn tvb_check_offset_length(
+        tvb: *const tvbuff_t,
+        offset: gint,
+        length_val: gint,
+        offset_ptr: *mut guint,
+        length_ptr: *mut guint,
+    );
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

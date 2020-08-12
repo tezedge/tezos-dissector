@@ -11,6 +11,25 @@
             "program": "${workspaceFolder}/target/out/bin/tshark",
             "args": ["-o", "tezos.identity_json_file:data/identity.json", "-Vr", "data/cap-09.pcap"],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "GDB Debug",
+            "program": "${workspaceFolder}/target/out/bin/tshark",
+            "args": ["-o", "tezos.identity_json_file:data/identity.json", "-Vr", "data/cap-09.pcap"],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

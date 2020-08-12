@@ -7,6 +7,8 @@ mod wireshark;
 
 mod core;
 
+mod conversation;
+
 #[cfg(test)]
 #[test]
 fn dir() {

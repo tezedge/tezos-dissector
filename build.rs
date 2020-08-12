@@ -21,6 +21,8 @@ fn main() {
         .header("wireshark/epan/proto.h")
         .header("wireshark/epan/packet.h")
         .header("wireshark/epan/conversation.h")
+        .header("wireshark/epan/tvbuff.h")
+        .header("wireshark/epan/tvbuff-int.h")
         .header("wireshark/epan/dissectors/packet-tcp.h")
         .header("wireshark/epan/wmem/wmem_user_cb.h")
         .header("wireshark/epan/prefs.h")

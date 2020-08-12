@@ -1,7 +1,6 @@
 use std::{
     ptr,
     os::raw::{c_int, c_void, c_char},
-    ffi::CStr,
 };
 #[rustfmt::skip]
 use super::wireshark::{
@@ -29,8 +28,10 @@ use super::wireshark::{
 
     prefs_register_protocol, prefs_register_filename_preference,
 
-    g_print,
+    tcp_analysis,
 };
+
+use super::conversation;
 
 #[repr(C)]
 pub struct TezosDissectorInfo {
@@ -45,6 +46,7 @@ pub struct TezosDissectorInfo {
 #[no_mangle]
 static plugin_version: &str = concat!(
     env!("CARGO_PKG_VERSION_MAJOR"),
+    ".",
     env!("CARGO_PKG_VERSION_MINOR"),
     "\0"
 );
@@ -54,11 +56,6 @@ static plugin_want_major: c_int = 3;
 
 #[no_mangle]
 static plugin_want_minor: c_int = 3;
-
-static PLUGIN: proto_plugin = proto_plugin {
-    register_protoinfo: Some(proto_register_tezos),
-    register_handoff: Some(proto_reg_handoff_tezos),
-};
 
 static mut TEZOS_HANDLE: dissector_handle_t = ptr::null_mut();
 
@@ -87,8 +84,7 @@ unsafe extern "C" fn wmem_cb(
         _ => (),
     }
 
-    // call rust
-    let _ = data;
+    conversation::free(&*(data as *mut tcp_analysis));
 
     0
 }
@@ -100,9 +96,10 @@ unsafe extern "C" fn dissect_tezos_old(
     data: *mut c_void,
 ) -> c_int {
     let conv = find_or_create_conversation(pinfo);
+    // assert!(!conv.is_null());
     let tcpd = get_tcp_conversation_data(conv, pinfo);
     let convd = conversation_get_proto_data(conv, PROTO_TEZOS);
-    if !convd.is_null() {
+    if convd.is_null() {
         conversation_add_proto_data(conv, PROTO_TEZOS, std::mem::transmute(1usize));
         wmem_register_callback(wmem_file_scope(), Some(wmem_cb), tcpd as _);
     }
@@ -120,15 +117,8 @@ unsafe extern "C" fn dissect_tezos_old(
         conv,
     );
 
-    // call rust
-    g_print(
-        "[TEZOS_DISSECTOR_LOG]: conv: %p %p\n\0".as_ptr() as _,
-        wmem_file_scope(),
-        conv,
-    );
     let _ = data;
-
-    0
+    conversation::dissect_packet(&INFO, &mut *tvb, &mut *t_tree, &*pinfo, &*tcpd) as _
 }
 
 unsafe extern "C" fn dissect_tezos(
@@ -153,88 +143,126 @@ unsafe extern "C" fn proto_register_tezos() {
         "tezos\0".as_ptr() as _,
     );
 
-    let header = |name: &str, abbrev: &str, type_: u32, display: u32| -> header_field_info {
-        header_field_info {
-            name: name.as_ptr() as _,
-            abbrev: abbrev.as_ptr() as _,
-            type_: type_,
-            display: display as _,
-            strings: ptr::null(),
-            bitmask: 0,
-            blurb: ptr::null(),
-            id: -1,
-            parent: 0,
-            ref_type: hf_ref_type_HF_REF_TYPE_NONE,
-            same_name_prev_id: -1,
-            same_name_next: ptr::null_mut(),
-        }
-    };
-
-    let mut hf = [
+    static mut HF: [hf_register_info; 6] = [
         hf_register_info {
-            p_id: &mut INFO.hf_packet_counter,
-            hfinfo: header(
-                "Tezos Packet Counter\0",
-                "tezos.packet_counter\0",
-                ftenum_FT_INT64,
-                field_display_e_BASE_DEC,
-            ),
+            p_id: ptr::null_mut(),
+            hfinfo: header_field_info {
+                name: "Tezos Packet Counter\0".as_ptr() as _,
+                abbrev: "tezos.packet_counter\0".as_ptr() as _,
+                type_: ftenum_FT_INT64,
+                display: field_display_e_BASE_DEC as _,
+                strings: ptr::null(),
+                bitmask: 0,
+                blurb: ptr::null(),
+                id: -1,
+                parent: 0,
+                ref_type: hf_ref_type_HF_REF_TYPE_NONE,
+                same_name_prev_id: -1,
+                same_name_next: ptr::null_mut(),
+            },
         },
         hf_register_info {
-            p_id: &mut INFO.hf_payload_len,
-            hfinfo: header(
-                "Tezos Payload Length\0",
-                "tezos.payload_len\0",
-                ftenum_FT_INT64,
-                field_display_e_BASE_DEC,
-            ),
+            p_id: ptr::null_mut(),
+            hfinfo: header_field_info {
+                name: "Tezos Payload Length\0".as_ptr() as _,
+                abbrev: "tezos.payload_len\0".as_ptr() as _,
+                type_: ftenum_FT_INT64,
+                display: field_display_e_BASE_DEC as _,
+                strings: ptr::null(),
+                bitmask: 0,
+                blurb: ptr::null(),
+                id: -1,
+                parent: 0,
+                ref_type: hf_ref_type_HF_REF_TYPE_NONE,
+                same_name_prev_id: -1,
+                same_name_next: ptr::null_mut(),
+            },
         },
         hf_register_info {
-            p_id: &mut INFO.hf_connection_msg,
-            hfinfo: header(
-                "Tezos Connection Msg\0",
-                "tezos.connection_msg\0",
-                ftenum_FT_STRING,
-                field_display_e_BASE_NONE,
-            ),
+            p_id: ptr::null_mut(),
+            hfinfo: header_field_info {
+                name: "Tezos Connection Msg\0".as_ptr() as _,
+                abbrev: "tezos.connection_msg\0".as_ptr() as _,
+                type_: ftenum_FT_STRING,
+                display: field_display_e_BASE_NONE as _,
+                strings: ptr::null(),
+                bitmask: 0,
+                blurb: ptr::null(),
+                id: -1,
+                parent: 0,
+                ref_type: hf_ref_type_HF_REF_TYPE_NONE,
+                same_name_prev_id: -1,
+                same_name_next: ptr::null_mut(),
+            },
         },
         hf_register_info {
-            p_id: &mut INFO.hf_decrypted_msg,
-            hfinfo: header(
-                "Tezos Decrypted Msg\0",
-                "tezos.decrypted_msg\0",
-                ftenum_FT_STRING,
-                field_display_e_BASE_NONE,
-            ),
+            p_id: ptr::null_mut(),
+            hfinfo: header_field_info {
+                name: "Tezos Decrypted Msg\0".as_ptr() as _,
+                abbrev: "tezos.decrypted_msg\0".as_ptr() as _,
+                type_: ftenum_FT_STRING,
+                display: field_display_e_BASE_NONE as _,
+                strings: ptr::null(),
+                bitmask: 0,
+                blurb: ptr::null(),
+                id: -1,
+                parent: 0,
+                ref_type: hf_ref_type_HF_REF_TYPE_NONE,
+                same_name_prev_id: -1,
+                same_name_next: ptr::null_mut(),
+            },
         },
         hf_register_info {
-            p_id: &mut INFO.hf_error,
-            hfinfo: header(
-                "Tezos Error\0",
-                "tezos.error\0",
-                ftenum_FT_STRING,
-                field_display_e_BASE_NONE,
-            ),
+            p_id: ptr::null_mut(),
+            hfinfo: header_field_info {
+                name: "Tezos Error\0".as_ptr() as _,
+                abbrev: "tezos.error\0".as_ptr() as _,
+                type_: ftenum_FT_STRING,
+                display: field_display_e_BASE_NONE as _,
+                strings: ptr::null(),
+                bitmask: 0,
+                blurb: ptr::null(),
+                id: -1,
+                parent: 0,
+                ref_type: hf_ref_type_HF_REF_TYPE_NONE,
+                same_name_prev_id: -1,
+                same_name_next: ptr::null_mut(),
+            },
         },
         hf_register_info {
-            p_id: &mut INFO.hf_debug,
-            hfinfo: header(
-                "Tezos Debug\0",
-                "tezos.debug\0",
-                ftenum_FT_STRING,
-                field_display_e_BASE_NONE,
-            ),
+            p_id: ptr::null_mut(),
+            hfinfo: header_field_info {
+                name: "Tezos Debug\0".as_ptr() as _,
+                abbrev: "tezos.debug\0".as_ptr() as _,
+                type_: ftenum_FT_STRING,
+                display: field_display_e_BASE_NONE as _,
+                strings: ptr::null(),
+                bitmask: 0,
+                blurb: ptr::null(),
+                id: -1,
+                parent: 0,
+                ref_type: hf_ref_type_HF_REF_TYPE_NONE,
+                same_name_prev_id: -1,
+                same_name_next: ptr::null_mut(),
+            },
         },
     ];
-    proto_register_field_array(PROTO_TEZOS, hf.as_mut_ptr() as _, hf.len() as _);
+    HF[0].p_id = &mut INFO.hf_packet_counter;
+    HF[1].p_id = &mut INFO.hf_payload_len;
+    HF[2].p_id = &mut INFO.hf_connection_msg;
+    HF[3].p_id = &mut INFO.hf_decrypted_msg;
+    HF[4].p_id = &mut INFO.hf_error;
+    HF[5].p_id = &mut INFO.hf_debug;
+    proto_register_field_array(PROTO_TEZOS, HF.as_mut_ptr() as _, HF.len() as _);
 
-    let mut ett = [&mut ETT_TEZOS];
-    proto_register_subtree_array(ett.as_mut_ptr() as _, ett.len() as _);
+    static mut ETT: [*mut c_int; 1] = [ptr::null_mut()];
+    ETT[0] = &mut ETT_TEZOS;
+    proto_register_subtree_array(ETT.as_mut_ptr() as _, ETT.len() as _);
 
     unsafe extern "C" fn preferences_update_cb() {
-        // call rust
-        let json_identity_filepath = CStr::from_ptr(IDENTITY_JSON_FILEPATH).to_str().unwrap();
-        println!("Tezos identity: {}", json_identity_filepath);
+        use std::ffi::CStr;
+
+        conversation::preferences_update(CStr::from_ptr(IDENTITY_JSON_FILEPATH).to_str().unwrap());
     }
 
     let tcp_module = prefs_register_protocol(PROTO_TEZOS, Some(preferences_update_cb));
@@ -262,5 +290,9 @@ unsafe extern "C" fn proto_reg_handoff_tezos() {
 
 #[no_mangle]
 unsafe extern "C" fn plugin_register() {
+    static PLUGIN: proto_plugin = proto_plugin {
+        register_protoinfo: Some(proto_register_tezos),
+        register_handoff: Some(proto_reg_handoff_tezos),
+    };    
     proto_register_plugin(&PLUGIN);
 }
