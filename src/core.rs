@@ -3,7 +3,7 @@ use std::{
     os::raw::{c_int, c_void, c_char},
 };
 #[rustfmt::skip]
-use super::wireshark::{
+use wireshark_epan_adapter::sys::{
     ftenum_FT_INT64, ftenum_FT_STRING,
 
     proto_register_plugin,
@@ -44,18 +44,13 @@ pub struct TezosDissectorInfo {
 }
 
 #[no_mangle]
-static plugin_version: &str = concat!(
-    env!("CARGO_PKG_VERSION_MAJOR"),
-    ".",
-    env!("CARGO_PKG_VERSION_MINOR"),
-    "\0"
-);
+static plugin_version: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");
 
 #[no_mangle]
 static plugin_want_major: c_int = 3;
 
 #[no_mangle]
-static plugin_want_minor: c_int = 3;
+static plugin_want_minor: c_int = 2;
 
 static mut TEZOS_HANDLE: dissector_handle_t = ptr::null_mut();
 

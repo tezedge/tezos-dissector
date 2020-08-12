@@ -1,4 +1,4 @@
-use super::wireshark::{tcp_analysis, tvbuff_t, proto_tree, packet_info};
+use wireshark_epan_adapter::sys::{tcp_analysis, tvbuff_t, proto_tree, packet_info};
 use super::core::TezosDissectorInfo;
 use std::path::Path;
 

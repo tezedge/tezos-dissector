@@ -786,8 +786,6 @@ pub const WTAP_ENCAP_VPP: u32 = 205;
 pub const WTAP_ENCAP_IEEE802_15_4_TAP: u32 = 206;
 pub const WTAP_ENCAP_LOG_3GPP: u32 = 207;
 pub const WTAP_ENCAP_USB_2_0: u32 = 208;
-pub const WTAP_ENCAP_MP4: u32 = 209;
-pub const WTAP_ENCAP_SLL2: u32 = 210;
 pub const WTAP_FILE_TYPE_SUBTYPE_UNKNOWN: u32 = 0;
 pub const WTAP_FILE_TYPE_SUBTYPE_PCAP: u32 = 1;
 pub const WTAP_FILE_TYPE_SUBTYPE_PCAPNG: u32 = 2;
@@ -874,7 +872,6 @@ pub const WTAP_FILE_TYPE_SUBTYPE_RFC7468: u32 = 82;
 pub const WTAP_FILE_TYPE_SUBTYPE_RUBY_MARSHAL: u32 = 83;
 pub const WTAP_FILE_TYPE_SUBTYPE_SYSTEMD_JOURNAL: u32 = 84;
 pub const WTAP_FILE_TYPE_SUBTYPE_LOG_3GPP: u32 = 85;
-pub const WTAP_FILE_TYPE_SUBTYPE_MP4: u32 = 86;
 pub const WTAP_TSPREC_UNKNOWN: i32 = -2;
 pub const WTAP_TSPREC_PER_PACKET: i32 = -1;
 pub const WTAP_TSPREC_SEC: u32 = 0;
@@ -1072,7 +1069,6 @@ pub const BTHCI_CHANNEL_COMMAND: u32 = 1;
 pub const BTHCI_CHANNEL_ACL: u32 = 2;
 pub const BTHCI_CHANNEL_SCO: u32 = 3;
 pub const BTHCI_CHANNEL_EVENT: u32 = 4;
-pub const BTHCI_CHANNEL_ISO: u32 = 5;
 pub const GSM_UM_CHANNEL_UNKNOWN: u32 = 0;
 pub const GSM_UM_CHANNEL_BCCH: u32 = 1;
 pub const GSM_UM_CHANNEL_SDCCH: u32 = 2;
@@ -1116,9 +1112,6 @@ pub const WTAP_HAS_INTERFACE_ID: u32 = 4;
 pub const WTAP_HAS_COMMENTS: u32 = 8;
 pub const WTAP_HAS_DROP_COUNT: u32 = 16;
 pub const WTAP_HAS_PACK_FLAGS: u32 = 32;
-pub const WTAP_HAS_PACKET_ID: u32 = 64;
-pub const WTAP_HAS_INT_QUEUE: u32 = 128;
-pub const WTAP_HAS_VERDICT: u32 = 256;
 pub const MAXNAMELEN: u32 = 64;
 pub const WTAP_COMMENT_PER_SECTION: u32 = 1;
 pub const WTAP_COMMENT_PER_INTERFACE: u32 = 2;
@@ -1164,9 +1157,22 @@ pub const ITEM_LABEL_UNKNOWN_STR: &'static [u8; 8usize] = b"Unknown\0";
 pub const ENC_BIG_ENDIAN: u32 = 0;
 pub const ENC_LITTLE_ENDIAN: u32 = 2147483648;
 pub const ENC_HOST_ENDIAN: u32 = 2147483648;
-pub const ENC_ANTI_HOST_ENDIAN: u32 = 0;
-pub const ENC_NA: u32 = 0;
-pub const ENC_CHARENCODING_MASK: u32 = 65534;
+pub const ENC_TIME_SECS_NSECS: u32 = 0;
+pub const ENC_TIME_TIMESPEC: u32 = 0;
+pub const ENC_TIME_NTP: u32 = 2;
+pub const ENC_TIME_TOD: u32 = 4;
+pub const ENC_TIME_RTPS: u32 = 8;
+pub const ENC_TIME_NTP_BASE_ZERO: u32 = 8;
+pub const ENC_TIME_SECS_USECS: u32 = 16;
+pub const ENC_TIME_TIMEVAL: u32 = 16;
+pub const ENC_TIME_SECS: u32 = 18;
+pub const ENC_TIME_MSECS: u32 = 20;
+pub const ENC_TIME_SECS_NTP: u32 = 24;
+pub const ENC_TIME_RFC_3971: u32 = 32;
+pub const ENC_TIME_MSEC_NTP: u32 = 34;
+pub const ENC_TIME_MIP6: u32 = 36;
+pub const ENC_ZIGBEE: u32 = 1073741824;
+pub const ENC_CHARENCODING_MASK: u32 = 1073741822;
 pub const ENC_ASCII: u32 = 0;
 pub const ENC_ISO_646_IRV: u32 = 0;
 pub const ENC_UTF_8: u32 = 2;
@@ -1201,46 +1207,28 @@ pub const ENC_WINDOWS_1251: u32 = 60;
 pub const ENC_CP855: u32 = 62;
 pub const ENC_CP866: u32 = 64;
 pub const ENC_ISO_646_BASIC: u32 = 66;
-pub const ENC_BCD_DIGITS_0_9: u32 = 68;
-pub const ENC_KEYPAD_ABC_TBCD: u32 = 70;
-pub const ENC_KEYPAD_BC_TBCD: u32 = 72;
-pub const ENC_ZIGBEE: u32 = 1073741824;
+pub const ENC_NA: u32 = 0;
 pub const ENC_STR_NUM: u32 = 16777216;
 pub const ENC_STR_HEX: u32 = 33554432;
 pub const ENC_STRING: u32 = 50331648;
 pub const ENC_STR_MASK: u32 = 65534;
 pub const ENC_NUM_PREF: u32 = 2097152;
+pub const ENC_VARINT_PROTOBUF: u32 = 2;
+pub const ENC_VARINT_QUIC: u32 = 4;
+pub const ENC_VARINT_ZIGZAG: u32 = 8;
+pub const ENC_VARIANT_MASK: u32 = 14;
 pub const ENC_SEP_NONE: u32 = 65536;
 pub const ENC_SEP_COLON: u32 = 131072;
 pub const ENC_SEP_DASH: u32 = 262144;
 pub const ENC_SEP_DOT: u32 = 524288;
 pub const ENC_SEP_SPACE: u32 = 1048576;
 pub const ENC_SEP_MASK: u32 = 2031616;
-pub const ENC_TIME_SECS_NSECS: u32 = 0;
-pub const ENC_TIME_TIMESPEC: u32 = 0;
-pub const ENC_TIME_NTP: u32 = 2;
-pub const ENC_TIME_TOD: u32 = 4;
-pub const ENC_TIME_RTPS: u32 = 8;
-pub const ENC_TIME_NTP_BASE_ZERO: u32 = 8;
-pub const ENC_TIME_SECS_USECS: u32 = 16;
-pub const ENC_TIME_TIMEVAL: u32 = 16;
-pub const ENC_TIME_SECS: u32 = 18;
-pub const ENC_TIME_MSECS: u32 = 20;
-pub const ENC_TIME_SECS_NTP: u32 = 24;
-pub const ENC_TIME_RFC_3971: u32 = 32;
-pub const ENC_TIME_MSEC_NTP: u32 = 34;
-pub const ENC_TIME_MIP6: u32 = 36;
-pub const ENC_TIME_CLASSIC_MAC_OS_SECS: u32 = 38;
 pub const ENC_ISO_8601_DATE: u32 = 65536;
 pub const ENC_ISO_8601_TIME: u32 = 131072;
 pub const ENC_ISO_8601_DATE_TIME: u32 = 196608;
 pub const ENC_RFC_822: u32 = 262144;
 pub const ENC_RFC_1123: u32 = 524288;
 pub const ENC_STR_TIME_MASK: u32 = 983040;
-pub const ENC_VARINT_PROTOBUF: u32 = 2;
-pub const ENC_VARINT_QUIC: u32 = 4;
-pub const ENC_VARINT_ZIGZAG: u32 = 8;
-pub const ENC_VARIANT_MASK: u32 = 14;
 pub const FIELD_DISPLAY_E_MASK: u32 = 255;
 pub const BASE_RANGE_STRING: u32 = 256;
 pub const BASE_EXT_STRING: u32 = 512;
@@ -22198,9 +22186,6 @@ extern "C" {
 extern "C" {
     pub fn wmem_array_get_count(array: *mut wmem_array_t) -> guint;
 }
-extern "C" {
-    pub fn wmem_destroy_array(array: *mut wmem_array_t);
-}
 #[doc = " @addtogroup wmem"]
 #[doc = "  @{"]
 #[doc = "    @defgroup wmem-list Doubly-Linked List"]
@@ -22320,19 +22305,19 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Creates a map with two allocator scopes. The base structure lives in the"]
-    #[doc = " metadata scope, and the map data lives in the data scope. Every time free_all"]
-    #[doc = " occurs in the data scope the map is transparently emptied without affecting"]
-    #[doc = " the location of the base / metadata structure."]
+    #[doc = " master scope, however the data lives in the slave scope. Every time free_all"]
+    #[doc = " occurs in the slave scope the map is transparently emptied without affecting"]
+    #[doc = " the location of the master structure."]
     #[doc = ""]
-    #[doc = " WARNING: None of the map (even the part in the metadata scope) can be used"]
-    #[doc = " after the data scope has been *destroyed*."]
+    #[doc = " WARNING: None of the map (even the part in the master scope) can be used"]
+    #[doc = " after the slave scope has been *destroyed*."]
     #[doc = ""]
     #[doc = " The primary use for this function is to create maps that reset for each new"]
     #[doc = " capture file that is loaded. This can be done by specifying wmem_epan_scope()"]
-    #[doc = " as the metadata scope and wmem_file_scope() as the data scope."]
+    #[doc = " as the master and wmem_file_scope() as the slave."]
     pub fn wmem_map_new_autoreset(
-        metadata_scope: *mut wmem_allocator_t,
-        data_scope: *mut wmem_allocator_t,
+        master: *mut wmem_allocator_t,
+        slave: *mut wmem_allocator_t,
         hash_func: GHashFunc,
         eql_func: GEqualFunc,
     ) -> *mut wmem_map_t;
@@ -22678,19 +22663,19 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Creates a tree with two allocator scopes. The base structure lives in the"]
-    #[doc = " metadata scope, and the tree data lives in the data scope. Every time free_all"]
-    #[doc = " occurs in the data scope the tree is transparently emptied without affecting"]
-    #[doc = " the location of the base / metadata structure."]
+    #[doc = " master scope, however the data lives in the slave scope. Every time free_all"]
+    #[doc = " occurs in the slave scope the tree is transparently emptied without affecting"]
+    #[doc = " the location of the master structure."]
     #[doc = ""]
-    #[doc = " WARNING: None of the tree (even the part in the metadata scope) can be used"]
-    #[doc = " after the data scope has been *destroyed*."]
+    #[doc = " WARNING: None of the tree (even the part in the master scope) can be used"]
+    #[doc = " after the slave scope has been *destroyed*."]
     #[doc = ""]
     #[doc = " The primary use for this function is to create trees that reset for each new"]
     #[doc = " capture file that is loaded. This can be done by specifying wmem_epan_scope()"]
-    #[doc = " as the metadata scope and wmem_file_scope() as the data scope."]
+    #[doc = " as the master and wmem_file_scope() as the slave."]
     pub fn wmem_tree_new_autoreset(
-        metadata_scope: *mut wmem_allocator_t,
-        data_scope: *mut wmem_allocator_t,
+        master: *mut wmem_allocator_t,
+        slave: *mut wmem_allocator_t,
     ) -> *mut wmem_tree_t;
 }
 extern "C" {
@@ -23757,7 +23742,7 @@ extern "C" {
     #[doc = ""]
     #[doc = " Note that it is acceptable for two or more of the arguments to point at the"]
     #[doc = " same structure."]
-    pub fn nstime_sum(sum: *mut nstime_t, a: *const nstime_t, b: *const nstime_t);
+    pub fn nstime_sum(sum: *mut nstime_t, b: *const nstime_t, a: *const nstime_t);
 }
 extern "C" {
     #[doc = " compare two times are return a value similar to memcmp() or strcmp()."]
@@ -24650,9 +24635,9 @@ extern "C" {
     #[doc = "  if \"deseg\" is false, return the amount of data remaining in"]
     #[doc = "  the buffer."]
     #[doc = ""]
-    #[doc = " If \"next_offset\" is not NULL, set \"*next_offset\" to the offset of the"]
-    #[doc = " character past the line terminator, or past the end of the buffer if"]
-    #[doc = " we don't find a line terminator.  (It's not set if we return -1.)"]
+    #[doc = " Set \"*next_offset\" to the offset of the character past the line"]
+    #[doc = " terminator, or past the end of the buffer if we don't find a line"]
+    #[doc = " terminator.  (It's not set if we return -1.)"]
     pub fn tvb_find_line_end(
         tvb: *mut tvbuff_t,
         offset: gint,
@@ -24675,9 +24660,9 @@ extern "C" {
     #[doc = " the end), or the amount of data remaining in the buffer if we don't"]
     #[doc = " find a line terminator."]
     #[doc = ""]
-    #[doc = " If \"next_offset\" is not NULL, set \"*next_offset\" to the offset of the"]
-    #[doc = " character past the line terminator, or past the end of the buffer if"]
-    #[doc = " we don't find a line terminator."]
+    #[doc = " Set \"*next_offset\" to the offset of the character past the line"]
+    #[doc = " terminator, or past the end of the buffer if we don't find a line"]
+    #[doc = " terminator."]
     pub fn tvb_find_line_end_unquoted(
         tvb: *mut tvbuff_t,
         offset: gint,
@@ -24824,26 +24809,6 @@ extern "C" {
         dgt: *const dgt_set_t,
         skip_first: gboolean,
     ) -> *const gchar;
-}
-extern "C" {
-    #[doc = " Given a wmem scope, a tvbuff, an offset, a length, an input digit"]
-    #[doc = " set, and a boolean indicator, fetch BCD-encoded digits from a"]
-    #[doc = " tvbuff starting from either the low or high half byte of the"]
-    #[doc = " first byte depending on the boolean indicator (TRUE means \"start"]
-    #[doc = " with the high half byte, ignoring the low half byte\", and FALSE"]
-    #[doc = " means \"start with the low half byte and proceed to the high half"]
-    #[doc = " byte), formating the digits into characters according to the"]
-    #[doc = " input digit set, and return a pointer to a UTF-8 string, allocated"]
-    #[doc = " using the wmem scope.  A high-order nibble of 0xf is considered a"]
-    #[doc = " 'filler' and will end the conversion."]
-    pub fn tvb_get_bcd_string(
-        scope: *mut wmem_allocator_t,
-        tvb: *mut tvbuff_t,
-        offset: gint,
-        len: gint,
-        dgt: *const dgt_set_t,
-        skip_first: gboolean,
-    ) -> *mut gchar;
 }
 extern "C" {
     #[doc = " Locate a sub-tvbuff within another tvbuff, starting at position"]
@@ -26282,7 +26247,7 @@ extern "C" {
         bs: *const bytes_string,
     ) -> *const gchar;
 }
-#[doc = " Struct for boolean representation"]
+#[doc = " Struct for boolean enumerations"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct true_false_string {
@@ -26323,18 +26288,6 @@ fn bindgen_test_layout_true_false_string() {
             stringify!(false_string)
         )
     );
-}
-extern "C" {
-    #[doc = " Returns the string representing the true or false value."]
-    #[doc = ""]
-    #[doc = " From the given true_false_string return the appropriate string pointer"]
-    #[doc = " @param[in] value The boolean value for which the string representation is sought"]
-    #[doc = " @param[in] tfs   The true_false_string containing the relevant strings"]
-    #[doc = " @return          Pointer to the appropriate string"]
-    pub fn tfs_get_string(
-        value: gboolean,
-        tfs: *const true_false_string,
-    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub static tfs_true_false: true_false_string;
@@ -26578,9 +26531,6 @@ extern "C" {
 }
 extern "C" {
     pub static tfs_selected_not_selected: true_false_string;
-}
-extern "C" {
-    pub static tfs_add_drop: true_false_string;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -28731,147 +28681,6 @@ impl ieee_802_11ad {
     }
 }
 #[repr(C)]
-#[repr(align(4))]
-#[derive(Debug, Copy, Clone)]
-pub struct ieee_802_11ax {
-    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 3usize], u8>,
-    pub __bindgen_padding_0: u8,
-}
-#[test]
-fn bindgen_test_layout_ieee_802_11ax() {
-    assert_eq!(
-        ::std::mem::size_of::<ieee_802_11ax>(),
-        4usize,
-        concat!("Size of: ", stringify!(ieee_802_11ax))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ieee_802_11ax>(),
-        4usize,
-        concat!("Alignment of ", stringify!(ieee_802_11ax))
-    );
-}
-impl ieee_802_11ax {
-    #[inline]
-    pub fn has_mcs_index(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
-    }
-    #[inline]
-    pub fn set_has_mcs_index(&mut self, val: guint) {
-        unsafe {
-            let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_1.set(0usize, 1u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn has_bwru(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
-    }
-    #[inline]
-    pub fn set_has_bwru(&mut self, val: guint) {
-        unsafe {
-            let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_1.set(1usize, 1u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn has_gi(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
-    }
-    #[inline]
-    pub fn set_has_gi(&mut self, val: guint) {
-        unsafe {
-            let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_1.set(2usize, 1u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn nsts(&self) -> guint8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 4u8) as u8) }
-    }
-    #[inline]
-    pub fn set_nsts(&mut self, val: guint8) {
-        unsafe {
-            let val: u8 = ::std::mem::transmute(val);
-            self._bitfield_1.set(3usize, 4u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn mcs(&self) -> guint8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(8usize, 4u8) as u8) }
-    }
-    #[inline]
-    pub fn set_mcs(&mut self, val: guint8) {
-        unsafe {
-            let val: u8 = ::std::mem::transmute(val);
-            self._bitfield_1.set(8usize, 4u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn bwru(&self) -> guint8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(12usize, 4u8) as u8) }
-    }
-    #[inline]
-    pub fn set_bwru(&mut self, val: guint8) {
-        unsafe {
-            let val: u8 = ::std::mem::transmute(val);
-            self._bitfield_1.set(12usize, 4u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn gi(&self) -> guint8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(16usize, 2u8) as u8) }
-    }
-    #[inline]
-    pub fn set_gi(&mut self, val: guint8) {
-        unsafe {
-            let val: u8 = ::std::mem::transmute(val);
-            self._bitfield_1.set(16usize, 2u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn new_bitfield_1(
-        has_mcs_index: guint,
-        has_bwru: guint,
-        has_gi: guint,
-        nsts: guint8,
-        mcs: guint8,
-        bwru: guint8,
-        gi: guint8,
-    ) -> __BindgenBitfieldUnit<[u8; 3usize], u8> {
-        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 3usize], u8> =
-            Default::default();
-        __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let has_mcs_index: u32 = unsafe { ::std::mem::transmute(has_mcs_index) };
-            has_mcs_index as u64
-        });
-        __bindgen_bitfield_unit.set(1usize, 1u8, {
-            let has_bwru: u32 = unsafe { ::std::mem::transmute(has_bwru) };
-            has_bwru as u64
-        });
-        __bindgen_bitfield_unit.set(2usize, 1u8, {
-            let has_gi: u32 = unsafe { ::std::mem::transmute(has_gi) };
-            has_gi as u64
-        });
-        __bindgen_bitfield_unit.set(3usize, 4u8, {
-            let nsts: u8 = unsafe { ::std::mem::transmute(nsts) };
-            nsts as u64
-        });
-        __bindgen_bitfield_unit.set(8usize, 4u8, {
-            let mcs: u8 = unsafe { ::std::mem::transmute(mcs) };
-            mcs as u64
-        });
-        __bindgen_bitfield_unit.set(12usize, 4u8, {
-            let bwru: u8 = unsafe { ::std::mem::transmute(bwru) };
-            bwru as u64
-        });
-        __bindgen_bitfield_unit.set(16usize, 2u8, {
-            let gi: u8 = unsafe { ::std::mem::transmute(gi) };
-            gi as u64
-        });
-        __bindgen_bitfield_unit
-    }
-}
-#[repr(C)]
 #[derive(Copy, Clone)]
 pub union ieee_802_11_phy_info {
     pub info_11_fhss: ieee_802_11_fhss,
@@ -28881,7 +28690,6 @@ pub union ieee_802_11_phy_info {
     pub info_11n: ieee_802_11n,
     pub info_11ac: ieee_802_11ac,
     pub info_11ad: ieee_802_11ad,
-    pub info_11ax: ieee_802_11ax,
     _bindgen_union_align: [u32; 4usize],
 }
 #[test]
@@ -28968,25 +28776,16 @@ fn bindgen_test_layout_ieee_802_11_phy_info() {
             stringify!(info_11ad)
         )
     );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ieee_802_11_phy_info>())).info_11ax as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ieee_802_11_phy_info),
-            "::",
-            stringify!(info_11ax)
-        )
-    );
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct ieee_802_11_phdr {
     pub fcs_len: gint,
-    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+    pub decrypted: gboolean,
+    pub datapad: gboolean,
     pub phy: guint,
     pub phy_info: ieee_802_11_phy_info,
-    pub _bitfield_2: __BindgenBitfieldUnit<[u8; 2usize], u8>,
+    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 2usize], u8>,
     pub channel: guint16,
     pub frequency: guint32,
     pub data_rate: guint16,
@@ -29024,8 +28823,28 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).phy as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).decrypted as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ieee_802_11_phdr),
+            "::",
+            stringify!(decrypted)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).datapad as *const _ as usize },
         8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ieee_802_11_phdr),
+            "::",
+            stringify!(datapad)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).phy as *const _ as usize },
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29035,7 +28854,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).phy_info as *const _ as usize },
-        12usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29045,7 +28864,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).channel as *const _ as usize },
-        30usize,
+        34usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29055,7 +28874,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).frequency as *const _ as usize },
-        32usize,
+        36usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29065,7 +28884,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).data_rate as *const _ as usize },
-        36usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29075,7 +28894,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).signal_percent as *const _ as usize },
-        38usize,
+        42usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29085,7 +28904,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).noise_percent as *const _ as usize },
-        39usize,
+        43usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29095,7 +28914,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).signal_dbm as *const _ as usize },
-        40usize,
+        44usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29105,7 +28924,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).noise_dbm as *const _ as usize },
-        41usize,
+        45usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29115,7 +28934,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).signal_db as *const _ as usize },
-        42usize,
+        46usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29125,7 +28944,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ieee_802_11_phdr>())).noise_db as *const _ as usize },
-        43usize,
+        47usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -29180,194 +28999,139 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
 }
 impl ieee_802_11_phdr {
     #[inline]
-    pub fn decrypted(&self) -> guint {
+    pub fn has_channel(&self) -> guint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_decrypted(&mut self, val: guint) {
+    pub fn set_has_channel(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn datapad(&self) -> guint {
+    pub fn has_frequency(&self) -> guint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_datapad(&mut self, val: guint) {
+    pub fn set_has_frequency(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn no_a_msdus(&self) -> guint {
+    pub fn has_data_rate(&self) -> guint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_no_a_msdus(&mut self, val: guint) {
+    pub fn set_has_data_rate(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn new_bitfield_1(
-        decrypted: guint,
-        datapad: guint,
-        no_a_msdus: guint,
-    ) -> __BindgenBitfieldUnit<[u8; 1usize], u8> {
-        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> =
-            Default::default();
-        __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let decrypted: u32 = unsafe { ::std::mem::transmute(decrypted) };
-            decrypted as u64
-        });
-        __bindgen_bitfield_unit.set(1usize, 1u8, {
-            let datapad: u32 = unsafe { ::std::mem::transmute(datapad) };
-            datapad as u64
-        });
-        __bindgen_bitfield_unit.set(2usize, 1u8, {
-            let no_a_msdus: u32 = unsafe { ::std::mem::transmute(no_a_msdus) };
-            no_a_msdus as u64
-        });
-        __bindgen_bitfield_unit
-    }
-    #[inline]
-    pub fn has_channel(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(0usize, 1u8) as u32) }
-    }
-    #[inline]
-    pub fn set_has_channel(&mut self, val: guint) {
-        unsafe {
-            let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(0usize, 1u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn has_frequency(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(1usize, 1u8) as u32) }
-    }
-    #[inline]
-    pub fn set_has_frequency(&mut self, val: guint) {
-        unsafe {
-            let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(1usize, 1u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn has_data_rate(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(2usize, 1u8) as u32) }
-    }
-    #[inline]
-    pub fn set_has_data_rate(&mut self, val: guint) {
-        unsafe {
-            let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(2usize, 1u8, val as u64)
-        }
-    }
-    #[inline]
     pub fn has_signal_percent(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(3usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_signal_percent(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(3usize, 1u8, val as u64)
+            self._bitfield_1.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub fn has_noise_percent(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(4usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_noise_percent(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(4usize, 1u8, val as u64)
+            self._bitfield_1.set(4usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub fn has_signal_dbm(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(5usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_signal_dbm(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(5usize, 1u8, val as u64)
+            self._bitfield_1.set(5usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub fn has_noise_dbm(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(6usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_noise_dbm(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(6usize, 1u8, val as u64)
+            self._bitfield_1.set(6usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub fn has_signal_db(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(7usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(7usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_signal_db(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(7usize, 1u8, val as u64)
+            self._bitfield_1.set(7usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub fn has_noise_db(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(8usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(8usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_noise_db(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(8usize, 1u8, val as u64)
+            self._bitfield_1.set(8usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub fn has_tsf_timestamp(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(9usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(9usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_tsf_timestamp(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(9usize, 1u8, val as u64)
+            self._bitfield_1.set(9usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub fn has_aggregate_info(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(10usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(10usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_aggregate_info(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(10usize, 1u8, val as u64)
+            self._bitfield_1.set(10usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub fn has_zero_length_psdu_type(&self) -> guint {
-        unsafe { ::std::mem::transmute(self._bitfield_2.get(11usize, 1u8) as u32) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(11usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_has_zero_length_psdu_type(&mut self, val: guint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
-            self._bitfield_2.set(11usize, 1u8, val as u64)
+            self._bitfield_1.set(11usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn new_bitfield_2(
+    pub fn new_bitfield_1(
         has_channel: guint,
         has_frequency: guint,
         has_data_rate: guint,
@@ -29575,7 +29339,7 @@ pub struct nettl_phdr {
     pub devid: guint32,
     pub kind: guint32,
     pub pid: gint32,
-    pub uid: guint32,
+    pub uid: guint16,
 }
 #[test]
 fn bindgen_test_layout_nettl_phdr() {
@@ -31406,15 +31170,13 @@ pub struct wtap_packet_header {
     pub interface_id: guint32,
     pub drop_count: guint64,
     pub pack_flags: guint32,
-    pub interface_queue: guint32,
-    pub packet_id: guint64,
     pub pseudo_header: wtap_pseudo_header,
 }
 #[test]
 fn bindgen_test_layout_wtap_packet_header() {
     assert_eq!(
         ::std::mem::size_of::<wtap_packet_header>(),
-        192usize,
+        184usize,
         concat!("Size of: ", stringify!(wtap_packet_header))
     );
     assert_eq!(
@@ -31484,31 +31246,9 @@ fn bindgen_test_layout_wtap_packet_header() {
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<wtap_packet_header>())).interface_queue as *const _ as usize
-        },
-        28usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_packet_header),
-            "::",
-            stringify!(interface_queue)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<wtap_packet_header>())).packet_id as *const _ as usize },
-        32usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_packet_header),
-            "::",
-            stringify!(packet_id)
-        )
-    );
-    assert_eq!(
-        unsafe {
             &(*(::std::ptr::null::<wtap_packet_header>())).pseudo_header as *const _ as usize
         },
-        40usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_packet_header),
@@ -31677,7 +31417,6 @@ pub struct wtap_rec {
     pub rec_header: wtap_rec__bindgen_ty_1,
     pub opt_comment: *mut gchar,
     pub has_comment_changed: gboolean,
-    pub packet_verdict: *mut GPtrArray,
     pub options_buf: Buffer,
 }
 #[repr(C)]
@@ -31686,13 +31425,13 @@ pub union wtap_rec__bindgen_ty_1 {
     pub packet_header: wtap_packet_header,
     pub ft_specific_header: wtap_ft_specific_header,
     pub syscall_header: wtap_syscall_header,
-    _bindgen_union_align: [u64; 24usize],
+    _bindgen_union_align: [u64; 23usize],
 }
 #[test]
 fn bindgen_test_layout_wtap_rec__bindgen_ty_1() {
     assert_eq!(
         ::std::mem::size_of::<wtap_rec__bindgen_ty_1>(),
-        192usize,
+        184usize,
         concat!("Size of: ", stringify!(wtap_rec__bindgen_ty_1))
     );
     assert_eq!(
@@ -31742,7 +31481,7 @@ fn bindgen_test_layout_wtap_rec__bindgen_ty_1() {
 fn bindgen_test_layout_wtap_rec() {
     assert_eq!(
         ::std::mem::size_of::<wtap_rec>(),
-        280usize,
+        264usize,
         concat!("Size of: ", stringify!(wtap_rec))
     );
     assert_eq!(
@@ -31802,7 +31541,7 @@ fn bindgen_test_layout_wtap_rec() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<wtap_rec>())).opt_comment as *const _ as usize },
-        224usize,
+        216usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_rec),
@@ -31812,7 +31551,7 @@ fn bindgen_test_layout_wtap_rec() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<wtap_rec>())).has_comment_changed as *const _ as usize },
-        232usize,
+        224usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_rec),
@@ -31821,18 +31560,8 @@ fn bindgen_test_layout_wtap_rec() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<wtap_rec>())).packet_verdict as *const _ as usize },
-        240usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_rec),
-            "::",
-            stringify!(packet_verdict)
-        )
-    );
-    assert_eq!(
         unsafe { &(*(::std::ptr::null::<wtap_rec>())).options_buf as *const _ as usize },
-        248usize,
+        232usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_rec),
@@ -32396,8 +32125,6 @@ pub struct wtap_dump_params {
     pub encap: ::std::os::raw::c_int,
     #[doc = "< Per-file snapshot length (what if it's per-interface?)"]
     pub snaplen: ::std::os::raw::c_int,
-    #[doc = "< Per-file time stamp precision"]
-    pub tsprec: ::std::os::raw::c_int,
     #[doc = "< The section header block(s) information, or NULL."]
     pub shb_hdrs: *mut GArray,
     #[doc = "< The interface description information, or NULL."]
@@ -32415,7 +32142,7 @@ pub struct wtap_dump_params {
 fn bindgen_test_layout_wtap_dump_params() {
     assert_eq!(
         ::std::mem::size_of::<wtap_dump_params>(),
-        56usize,
+        48usize,
         concat!("Size of: ", stringify!(wtap_dump_params))
     );
     assert_eq!(
@@ -32444,18 +32171,8 @@ fn bindgen_test_layout_wtap_dump_params() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<wtap_dump_params>())).tsprec as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_dump_params),
-            "::",
-            stringify!(tsprec)
-        )
-    );
-    assert_eq!(
         unsafe { &(*(::std::ptr::null::<wtap_dump_params>())).shb_hdrs as *const _ as usize },
-        16usize,
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -32465,7 +32182,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<wtap_dump_params>())).idb_inf as *const _ as usize },
-        24usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -32475,7 +32192,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<wtap_dump_params>())).nrb_hdrs as *const _ as usize },
-        32usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -32485,7 +32202,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<wtap_dump_params>())).dsbs_initial as *const _ as usize },
-        40usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -32495,7 +32212,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<wtap_dump_params>())).dsbs_growing as *const _ as usize },
-        48usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -33027,25 +32744,17 @@ extern "C" {
     pub fn wtap_file_tsprec(wth: *mut wtap) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " @brief Gets number of section header blocks."]
-    #[doc = " @details Returns the number of existing SHBs."]
-    #[doc = ""]
-    #[doc = " @param wth The wiretap session."]
-    #[doc = " @return The number of existing section headers."]
-    pub fn wtap_file_get_num_shbs(wth: *mut wtap) -> guint;
-}
-extern "C" {
     #[doc = " @brief Gets existing section header block, not for new file."]
-    #[doc = " @details Returns the pointer to an existing SHB, without creating a"]
+    #[doc = " @details Returns the pointer to the existing SHB, without creating a"]
     #[doc = "          new one. This should only be used for accessing info, not"]
     #[doc = "          for creating a new file based on existing SHB info. Use"]
     #[doc = "          wtap_file_get_shb_for_new_file() for that."]
     #[doc = ""]
     #[doc = " @param wth The wiretap session."]
-    #[doc = " @param shb_num The ordinal number (0-based) of the section header"]
-    #[doc = " in the file"]
-    #[doc = " @return The specified existing section header, which must NOT be g_free'd."]
-    pub fn wtap_file_get_shb(wth: *mut wtap, shb_num: guint) -> wtap_block_t;
+    #[doc = " @return The existing section header, which must NOT be g_free'd."]
+    #[doc = ""]
+    #[doc = " XXX - need to be updated to handle multiple SHBs."]
+    pub fn wtap_file_get_shb(wth: *mut wtap) -> wtap_block_t;
 }
 extern "C" {
     #[doc = " @brief Gets new section header block for new file, based on existing info."]
@@ -33071,18 +32780,6 @@ extern "C" {
     #[doc = " @param wth The wiretap session."]
     #[doc = " @param comment The comment string."]
     pub fn wtap_write_shb_comment(wth: *mut wtap, comment: *mut gchar);
-}
-extern "C" {
-    #[doc = " @brief Generate an IDB, given a wiretap handle for the file,"]
-    #[doc = "      using the file's encapsulation type, snapshot length,"]
-    #[doc = "      and time stamp resolution, and add it to the interface"]
-    #[doc = "      data for a file."]
-    #[doc = " @note This requires that the encapsulation type and time stamp"]
-    #[doc = "      resolution not be per-packet; it will terminate the process"]
-    #[doc = "      if either of them are."]
-    #[doc = ""]
-    #[doc = " @param wth The wiretap handle for the file."]
-    pub fn wtap_add_generated_idb(wth: *mut wtap);
 }
 extern "C" {
     #[doc = " @brief Gets existing interface descriptions."]
@@ -33299,7 +32996,7 @@ extern "C" {
     ) -> gboolean;
 }
 extern "C" {
-    pub fn wtap_dump_flush(arg1: *mut wtap_dumper, arg2: *mut ::std::os::raw::c_int) -> gboolean;
+    pub fn wtap_dump_flush(arg1: *mut wtap_dumper);
 }
 extern "C" {
     pub fn wtap_get_bytes_dumped(arg1: *mut wtap_dumper) -> gint64;
@@ -35489,89 +35186,77 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Create a subtree under an existing item."]
-    #[doc = "@param pi the parent item of the new subtree"]
+    #[doc = "@param ti the parent item of the new subtree"]
     #[doc = "@param idx one of the ett_ array elements registered with proto_register_subtree_array()"]
     #[doc = "@return the new subtree"]
-    pub fn proto_item_add_subtree(pi: *mut proto_item, idx: gint) -> *mut proto_tree;
+    pub fn proto_item_add_subtree(ti: *mut proto_item, idx: gint) -> *mut proto_tree;
 }
 extern "C" {
     #[doc = " Get an existing subtree under an item."]
-    #[doc = "@param pi the parent item of the subtree"]
+    #[doc = "@param ti the parent item of the subtree"]
     #[doc = "@return the subtree or NULL"]
-    pub fn proto_item_get_subtree(pi: *mut proto_item) -> *mut proto_tree;
+    pub fn proto_item_get_subtree(ti: *mut proto_item) -> *mut proto_tree;
 }
 extern "C" {
     #[doc = " Get the parent of a subtree item."]
-    #[doc = "@param pi the child item in the subtree"]
+    #[doc = "@param ti the child item in the subtree"]
     #[doc = "@return parent item or NULL"]
-    pub fn proto_item_get_parent(pi: *const proto_item) -> *mut proto_item;
+    pub fn proto_item_get_parent(ti: *const proto_item) -> *mut proto_item;
 }
 extern "C" {
     #[doc = " Get Nth generation parent item."]
-    #[doc = "@param pi the child item in the subtree"]
+    #[doc = "@param ti the child item in the subtree"]
     #[doc = "@param gen the generation to get (using 1 here is the same as using proto_item_get_parent())"]
     #[doc = "@return parent item"]
     pub fn proto_item_get_parent_nth(
-        pi: *mut proto_item,
+        ti: *mut proto_item,
         gen: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
     #[doc = " Replace text of item after it already has been created."]
-    #[doc = "@param pi the item to set the text"]
+    #[doc = "@param ti the item to set the text"]
     #[doc = "@param format printf like format string"]
     #[doc = "@param ... printf like parameters"]
-    pub fn proto_item_set_text(pi: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
+    pub fn proto_item_set_text(ti: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
 }
 extern "C" {
     #[doc = " Append to text of item after it has already been created."]
-    #[doc = "@param pi the item to append the text to"]
+    #[doc = "@param ti the item to append the text to"]
     #[doc = "@param format printf like format string"]
     #[doc = "@param ... printf like parameters"]
-    pub fn proto_item_append_text(pi: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
+    pub fn proto_item_append_text(ti: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
 }
 extern "C" {
     #[doc = " Prepend to text of item after it has already been created."]
-    #[doc = "@param pi the item to prepend the text to"]
+    #[doc = "@param ti the item to prepend the text to"]
     #[doc = "@param format printf like format string"]
     #[doc = "@param ... printf like parameters"]
-    pub fn proto_item_prepend_text(pi: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
+    pub fn proto_item_prepend_text(ti: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
 }
 extern "C" {
     #[doc = " Set proto_item's length inside tvb, after it has already been created."]
-    #[doc = "@param pi the item to set the length"]
+    #[doc = "@param ti the item to set the length"]
     #[doc = "@param length the new length ot the item"]
-    pub fn proto_item_set_len(pi: *mut proto_item, length: gint);
+    pub fn proto_item_set_len(ti: *mut proto_item, length: gint);
 }
 extern "C" {
     #[doc = " Sets the length of the item based on its start and on the specified"]
     #[doc = " offset, which is the offset past the end of the item; as the start"]
     #[doc = " in the item is relative to the beginning of the data source tvbuff,"]
     #[doc = " we need to pass in a tvbuff."]
-    #[doc = "@param pi the item to set the length"]
+    #[doc = "@param ti the item to set the length"]
     #[doc = "@param tvb end is relative to this tvbuff"]
     #[doc = "@param end this end offset is relative to the beginning of tvb"]
     #[doc = "@todo make usage clearer, I don't understand it!"]
-    pub fn proto_item_set_end(pi: *mut proto_item, tvb: *mut tvbuff_t, end: gint);
+    pub fn proto_item_set_end(ti: *mut proto_item, tvb: *mut tvbuff_t, end: gint);
 }
 extern "C" {
     #[doc = " Get length of a proto_item. Useful after using proto_tree_add_item()"]
     #[doc = " to add a variable-length field (e.g., FT_NSTRING_UINT8)."]
-    #[doc = "@param pi the item to get the length from"]
+    #[doc = "@param ti the item to get the length from"]
     #[doc = "@return the current length"]
-    pub fn proto_item_get_len(pi: *const proto_item) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    #[doc = " Get display representation of a proto_item."]
-    #[doc = " Can be used, for example, to append that to the parent item of"]
-    #[doc = " that item."]
-    #[doc = "@param scope the wmem scope to use to allocate the string"]
-    #[doc = "@param pi the item from which to get the display representation"]
-    #[doc = "@return the display representation"]
-    pub fn proto_item_get_display_repr(
-        scope: *mut wmem_allocator_t,
-        pi: *mut proto_item,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn proto_item_get_len(ti: *const proto_item) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[doc = " Creates a new proto_tree root."]
@@ -37909,7 +37594,7 @@ extern "C" {
         offset: guint,
         hf_hdr: ::std::os::raw::c_int,
         ett: gint,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         encoding: guint,
     ) -> *mut proto_item;
 }
@@ -37942,7 +37627,7 @@ extern "C" {
         offset: guint,
         hf_hdr: ::std::os::raw::c_int,
         ett: gint,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         encoding: guint,
         retval: *mut guint64,
     ) -> *mut proto_item;
@@ -37977,7 +37662,7 @@ extern "C" {
         offset: guint,
         hf_hdr: ::std::os::raw::c_int,
         ett: gint,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         encoding: guint,
         flags: ::std::os::raw::c_int,
     ) -> *mut proto_item;
@@ -38015,7 +37700,7 @@ extern "C" {
         offset: guint,
         hf_hdr: ::std::os::raw::c_int,
         ett: gint,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         encoding: guint,
         flags: ::std::os::raw::c_int,
         retval: *mut guint64,
@@ -38047,7 +37732,7 @@ extern "C" {
         offset: guint,
         hf_hdr: ::std::os::raw::c_int,
         ett: gint,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         value: guint64,
     ) -> *mut proto_item;
 }
@@ -38081,7 +37766,7 @@ extern "C" {
         offset: guint,
         hf_hdr: ::std::os::raw::c_int,
         ett: gint,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         value: guint64,
         flags: ::std::os::raw::c_int,
     ) -> *mut proto_item;
@@ -38106,7 +37791,7 @@ extern "C" {
         tvb: *mut tvbuff_t,
         offset: guint,
         len: ::std::os::raw::c_int,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         encoding: guint,
     );
 }
@@ -38130,7 +37815,7 @@ extern "C" {
         tvb: *mut tvbuff_t,
         offset: guint,
         len: ::std::os::raw::c_int,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         value: guint64,
     );
 }
@@ -38163,7 +37848,7 @@ extern "C" {
         len: guint,
         hf_hdr: ::std::os::raw::c_int,
         ett: gint,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         exp: *mut expert_field,
         encoding: guint,
     ) -> *mut proto_item;
@@ -38189,7 +37874,7 @@ extern "C" {
         name: *const ::std::os::raw::c_char,
         fallback: *const ::std::os::raw::c_char,
         ett: gint,
-        fields: *const *mut ::std::os::raw::c_int,
+        fields: *mut *const ::std::os::raw::c_int,
         encoding: guint,
         flags: ::std::os::raw::c_int,
     ) -> *mut proto_item;
@@ -40315,12 +40000,6 @@ extern "C" {
         name: *const ::std::os::raw::c_char,
     );
 }
-extern "C" {
-    pub fn prefs_set_preference_effect_fields(
-        module: *mut module_t,
-        name: *const ::std::os::raw::c_char,
-    );
-}
 pub type pref_cb =
     ::std::option::Option<unsafe extern "C" fn(pref: *mut pref_t, user_data: gpointer) -> guint>;
 extern "C" {
@@ -41261,13 +40940,12 @@ extern "C" {
 extern "C" {
     pub fn set_fd_time(epan: *const epan_session, fd: *mut frame_data, buf: *mut gchar);
 }
-#[doc = " For BASE_UNIT_STRING, the display format for adding units"]
+#[doc = " @file"]
+#[doc = " Units to append to field values"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct unit_name_string {
-    #[doc = "< name to use for 1 unit"]
     pub singular: *mut ::std::os::raw::c_char,
-    #[doc = "< name to use for < 1 or > 1 units"]
     pub plural: *mut ::std::os::raw::c_char,
 }
 #[test]
@@ -41304,36 +40982,18 @@ fn bindgen_test_layout_unit_name_string() {
     );
 }
 extern "C" {
-    #[doc = " Returns the unit string appropriate for the 32 bit value."]
-    #[doc = ""]
-    #[doc = " From the given unit_name_string return the appropriate string pointer"]
-    #[doc = " @param[in] value The value for which to get the appropriate string"]
-    #[doc = " @param[in] units The unit_name_string containing the relevant strings"]
-    #[doc = " @return          Pointer to the appropriate string"]
     pub fn unit_name_string_get_value(
         value: guint32,
         units: *const unit_name_string,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Returns the unit string appropriate for the 64 bit value."]
-    #[doc = ""]
-    #[doc = " From the given unit_name_string return the appropriate string pointer"]
-    #[doc = " @param[in] value The value for which to get the appropriate string"]
-    #[doc = " @param[in] units The unit_name_string containing the relevant strings"]
-    #[doc = " @return          Pointer to the appropriate string"]
     pub fn unit_name_string_get_value64(
         value: guint64,
         units: *const unit_name_string,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Returns the unit string appropriate for the double value."]
-    #[doc = ""]
-    #[doc = " From the given unit_name_string return the appropriate string pointer"]
-    #[doc = " @param[in] value The value for which to get the appropriate string"]
-    #[doc = " @param[in] units The unit_name_string containing the relevant strings"]
-    #[doc = " @return          Pointer to the appropriate string"]
     pub fn unit_name_string_get_double(
         value: f64,
         units: *const unit_name_string,
@@ -41419,9 +41079,6 @@ extern "C" {
 }
 extern "C" {
     pub static units_degree_bearing: unit_name_string;
-}
-extern "C" {
-    pub static units_centibels: unit_name_string;
 }
 extern "C" {
     pub static units_decibels: unit_name_string;
@@ -42246,17 +41903,17 @@ extern "C" {
     #[doc = " Add a sub-dissector to a heuristic dissector list."]
     #[doc = "  Call this in the proto_handoff function of the sub-dissector."]
     #[doc = ""]
-    #[doc = " @param name the name of the heuristic dissector table into which to register the dissector, e.g. \"tcp\""]
+    #[doc = " @param name the name of the \"parent\" protocol, e.g. \"tcp\""]
     #[doc = " @param dissector the sub-dissector to be registered"]
     #[doc = " @param display_name the string used to present heuristic to user, e.g. \"HTTP over TCP\""]
-    #[doc = " @param internal_name the string used for \"internal\" use to identify heuristic, e.g. \"http_tcp\""]
+    #[doc = " @param short_name the string used for \"internal\" use to identify heuristic, e.g. \"http_tcp\""]
     #[doc = " @param proto the protocol id of the sub-dissector"]
     #[doc = " @param enable initially enabled or not"]
     pub fn heur_dissector_add(
         name: *const ::std::os::raw::c_char,
         dissector: heur_dissector_t,
         display_name: *const ::std::os::raw::c_char,
-        internal_name: *const ::std::os::raw::c_char,
+        short_name: *const ::std::os::raw::c_char,
         proto: ::std::os::raw::c_int,
         enable: heuristic_enable_e,
     );
@@ -42657,8 +42314,9 @@ extern "C" {
 #[derive(Debug, Copy, Clone)]
 pub struct ethertype_data_s {
     pub etype: guint16,
-    pub payload_offset: ::std::os::raw::c_int,
+    pub offset_after_ethertype: ::std::os::raw::c_int,
     pub fh_tree: *mut proto_tree,
+    pub etype_id: ::std::os::raw::c_int,
     pub trailer_id: ::std::os::raw::c_int,
     pub fcs_len: ::std::os::raw::c_int,
 }
@@ -42666,7 +42324,7 @@ pub struct ethertype_data_s {
 fn bindgen_test_layout_ethertype_data_s() {
     assert_eq!(
         ::std::mem::size_of::<ethertype_data_s>(),
-        24usize,
+        32usize,
         concat!("Size of: ", stringify!(ethertype_data_s))
     );
     assert_eq!(
@@ -42685,13 +42343,15 @@ fn bindgen_test_layout_ethertype_data_s() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).payload_offset as *const _ as usize },
+        unsafe {
+            &(*(::std::ptr::null::<ethertype_data_s>())).offset_after_ethertype as *const _ as usize
+        },
         4usize,
         concat!(
             "Offset of field: ",
             stringify!(ethertype_data_s),
             "::",
-            stringify!(payload_offset)
+            stringify!(offset_after_ethertype)
         )
     );
     assert_eq!(
@@ -42705,8 +42365,18 @@ fn bindgen_test_layout_ethertype_data_s() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).trailer_id as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).etype_id as *const _ as usize },
         16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ethertype_data_s),
+            "::",
+            stringify!(etype_id)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).trailer_id as *const _ as usize },
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(ethertype_data_s),
@@ -42716,7 +42386,7 @@ fn bindgen_test_layout_ethertype_data_s() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ethertype_data_s>())).fcs_len as *const _ as usize },
-        20usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(ethertype_data_s),
@@ -45212,7 +44882,6 @@ pub struct tcp_analysis {
     pub ts_prev: nstime_t,
     pub stream: guint32,
     pub server_port: guint16,
-    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
     pub mptcp_analysis: *mut mptcp_analysis,
 }
 #[test]
@@ -45357,29 +45026,6 @@ fn bindgen_test_layout_tcp_analysis() {
             stringify!(mptcp_analysis)
         )
     );
-}
-impl tcp_analysis {
-    #[inline]
-    pub fn tfo_syn_data(&self) -> guint8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
-    }
-    #[inline]
-    pub fn set_tfo_syn_data(&mut self, val: guint8) {
-        unsafe {
-            let val: u8 = ::std::mem::transmute(val);
-            self._bitfield_1.set(0usize, 1u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn new_bitfield_1(tfo_syn_data: guint8) -> __BindgenBitfieldUnit<[u8; 1usize], u8> {
-        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> =
-            Default::default();
-        __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let tfo_syn_data: u8 = unsafe { ::std::mem::transmute(tfo_syn_data) };
-            tfo_syn_data as u64
-        });
-        __bindgen_bitfield_unit
-    }
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

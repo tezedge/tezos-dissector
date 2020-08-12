@@ -1,0 +1,26 @@
+{
+    "cSpell.words": [
+        "DHAVE",
+        "Epan",
+        "bindgen",
+        "bitmask",
+        "cflags",
+        "cmake",
+        "concat",
+        "ftenum",
+        "ftypes",
+        "hfinfo",
+        "libtezos",
+        "prefs",
+        "proto",
+        "protoinfo",
+        "rustc",
+        "rustfmt",
+        "symlink",
+        "tezos",
+        "tvbuff",
+        "wireshark",
+        "wmem",
+        "wpan"
+    ]
+}

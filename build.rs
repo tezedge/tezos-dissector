@@ -1,38 +1,16 @@
-extern crate bindgen;
-
-use std::process::Command;
-
 fn main() {
-    use std::{
-        str,
-        os::unix::fs::symlink,
-        fs::remove_file,
-    };
+    use std::{os::unix::fs::symlink, process::Command, fs::remove_file};
 
-    println!("cargo:rerun-if-changed=out");
-
-    let output = Command::new("pkg-config")
-        .args(&["--cflags", "glib-2.0"])
-        .output().unwrap();
-    let glib_includes = str::from_utf8(output.stdout.as_slice()).unwrap().trim_end_matches('\n');
-
-    let bindings = bindgen::Builder::default()
-        .header("wireshark/epan/ftypes/ftypes.h")
-        .header("wireshark/epan/proto.h")
-        .header("wireshark/epan/packet.h")
-        .header("wireshark/epan/conversation.h")
-        .header("wireshark/epan/tvbuff.h")
-        .header("wireshark/epan/tvbuff-int.h")
-        .header("wireshark/epan/dissectors/packet-tcp.h")
-        .header("wireshark/epan/wmem/wmem_user_cb.h")
-        .header("wireshark/epan/prefs.h")
-        .clang_args(&["-I./wireshark", "-DHAVE_PLUGINS"])
-        .clang_args(glib_includes.split(' '))
-        .generate()
-        .expect("Unable to generate bindings");
-    bindings
-        .write_to_file("src/wireshark.rs")
-        .unwrap_or_else(|e| panic!("Unable to save bindings: {}", e));
+    let _ = Command::new("git")
+        .args(&["clone", "https://code.wireshark.org/review/wireshark"])
+        .output()
+        .map(|_| ())
+        .or_else(|_| Ok::<_, ()>(()));
+    let _ = Command::new("git")
+        .current_dir("wireshark")
+        .args(&["reset", "--hard", "ed20ddea8138"])
+        .status()
+        .unwrap();
 
     let out = cmake::build("wireshark");
     let _ = remove_file("target/out");

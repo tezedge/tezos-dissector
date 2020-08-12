@@ -1,3 +1,9 @@
+[workspace]
+members = [
+    "wireshark-epan-adapter",
+    ".",
+]
+
 [package]
 name = "tezos-dissector"
 version = "0.1.0"
@@ -11,10 +17,10 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [build-dependencies]
-bindgen = "0.54"
 cmake = "0.1"
 
 [dependencies]
+wireshark-epan-adapter = { path = "wireshark-epan-adapter" }
 libc = "0.2"
 lazy_static = "1.4"
 serde = { version="1.0", features=["derive"] }
