@@ -5,13 +5,13 @@ use std::{
 };
 use super::sys;
 
-// TODO: add ett
 pub struct DissectorInfo<'a> {
     pub tvb: &'a mut sys::tvbuff_t,
     pub pinfo: &'a mut sys::packet_info,
     pub tree: &'a mut sys::proto_tree,
     pub mark: usize,
     pub fields: BTreeMap<&'a str, i32>,
+    pub ett: Vec<i32>,
 }
 
 pub trait Dissector {
@@ -133,6 +133,13 @@ impl<'a> EpanPlugin<'a> {
         let mut s = self;
         s.dissector_descriptor = Some(dissector_descriptor);
         s
+    }
+
+    fn fields(&self) -> BTreeMap<&'a str, i32> {
+        self.field_descriptors
+            .iter()
+            .map(|(field, descriptor)| (descriptor.abbrev(), field.clone()))
+            .collect()
     }
 }
 
@@ -266,18 +273,14 @@ impl EpanPlugin<'static> {
                     .as_mut()
                     .unwrap()
                     .dissector;
-                // TODO: simplify it
-                let fields: BTreeMap<_, _> = context()
-                    .field_descriptors
-                    .iter()
-                    .map(|(field, descriptor)| (descriptor.abbrev(), field.clone()))
-                    .collect();
+                let fields = context().fields();
                 let info = DissectorInfo {
                     tvb: &mut *tvb,
                     pinfo: &mut *pinfo,
                     tree: &mut *tree,
                     mark: data as _,
                     fields: fields.clone(),
+                    ett: context().ett.clone(),
                 };
                 if d.recognize(info) {
                     d.consume(DissectorInfo {
@@ -286,6 +289,7 @@ impl EpanPlugin<'static> {
                         tree: &mut *tree,
                         mark: data as _,
                         fields: fields,
+                        ett: context().ett.clone(),
                     });
                     1
                 } else {
@@ -304,17 +308,14 @@ impl EpanPlugin<'static> {
                     .as_mut()
                     .unwrap()
                     .dissector;
-                let fields = context()
-                    .field_descriptors
-                    .iter()
-                    .map(|(field, descriptor)| (descriptor.abbrev(), field.clone()))
-                    .collect();
+                let fields = context().fields();
                 let info = DissectorInfo {
                     tvb: &mut *tvb,
                     pinfo: &mut *pinfo,
                     tree: &mut *tree,
                     mark: data as _,
                     fields: fields,
+                    ett: context().ett.clone(),
                 };
                 d.consume(info) as _
             }
