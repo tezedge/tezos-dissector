@@ -3,7 +3,7 @@ use super::TezosDissector;
 #[rustfmt::skip]
 use wireshark_epan_adapter::{
     EpanPlugin, EpanNameDescriptor, EpanFieldDescriptor,
-    EpanPrefDescriptor, EpanPrefFilenameDescriptor,
+    EpanPrefFilenameDescriptor,
     EpanDissectorDescriptor,
 };
 
@@ -48,16 +48,10 @@ extern "C" fn plugin_register() {
         abbrev: "tezos.debug\0",
     })
     .set_ett_number(1)
-    .set_pref(EpanPrefDescriptor {
-        callback: Box::new(|v| {
-            let _ = v;
-            // here
-        }),
-        filename_fields: vec![EpanPrefFilenameDescriptor {
-            name: "identity_json_file\0",
-            title: "Identity JSON file\0",
-            description: "JSON file with node identity information\0",
-        }],
+    .set_pref_filename(EpanPrefFilenameDescriptor {
+        name: "identity_json_file\0",
+        title: "Identity JSON file\0",
+        description: "JSON file with node identity information\0",
     })
     .set_dissector(EpanDissectorDescriptor {
         name: "tcp\0",

@@ -15,6 +15,7 @@ pub struct DissectorInfo<'a> {
 }
 
 pub trait Dissector {
+    fn prefs_update(&mut self, filenames: Vec<&str>);
     fn recognize(&self, info: DissectorInfo<'_>) -> bool;
     fn consume(&mut self, info: DissectorInfo<'_>) -> usize;
 }
@@ -49,7 +50,7 @@ pub struct EpanPlugin<'a> {
     name_descriptor: EpanNameDescriptor<'a>,
     field_descriptors: Vec<(i32, EpanFieldDescriptor<'a>)>,
     ett: Vec<i32>,
-    pref_descriptor: Option<EpanPrefDescriptor<'a>>,
+    filename_descriptors: Vec<EpanPrefFilenameDescriptor<'a>>,
     dissector_descriptor: Option<EpanDissectorDescriptor<'a>>,
 }
 
@@ -79,13 +80,6 @@ impl<'a> EpanFieldDescriptor<'a> {
     }
 }
 
-pub struct EpanPrefDescriptor<'a> {
-    pub callback: Box<dyn FnMut(Vec<&'a str>)>,
-    pub filename_fields: Vec<EpanPrefFilenameDescriptor<'a>>,
-    // add more
-    // `pub string_fields: Vec<EpanPrefStringDescriptor<'a>>,`
-}
-
 pub struct EpanPrefFilenameDescriptor<'a> {
     pub name: &'a str,
     pub title: &'a str,
@@ -106,7 +100,7 @@ impl<'a> EpanPlugin<'a> {
             name_descriptor: name_descriptor,
             field_descriptors: Vec::new(),
             ett: Vec::new(),
-            pref_descriptor: None,
+            filename_descriptors: Vec::new(),
             dissector_descriptor: None,
         }
     }
@@ -123,9 +117,9 @@ impl<'a> EpanPlugin<'a> {
         s
     }
 
-    pub fn set_pref(self, pref_descriptor: EpanPrefDescriptor<'a>) -> Self {
+    pub fn set_pref_filename(self, filename_descriptor: EpanPrefFilenameDescriptor<'a>) -> Self {
         let mut s = self;
-        s.pref_descriptor = Some(pref_descriptor);
+        s.filename_descriptors.push(filename_descriptor);
         s
     }
 
@@ -153,6 +147,14 @@ impl EpanPlugin<'static> {
 
         unsafe fn context_mut() -> &'static mut EpanPlugin<'static> {
             CONTEXT.as_mut().unwrap()
+        }
+
+        unsafe fn dissector_mut() -> &'static mut Box<dyn Dissector> {
+            &mut context_mut()
+                .dissector_descriptor
+                .as_mut()
+                .unwrap()
+                .dissector
         }
 
         unsafe extern "C" fn register_protoinfo() {
@@ -230,25 +232,24 @@ impl EpanPlugin<'static> {
             unsafe extern "C" fn preferences_update_cb() {
                 use std::ffi::CStr;
 
-                if let Some(ref mut pref) = context_mut().pref_descriptor {
-                    (pref.callback)(
-                        context()
-                            .privates
-                            .pref_filenames
-                            .iter()
-                            .map(|&p| CStr::from_ptr(p).to_str().unwrap())
-                            .collect(),
-                    )
-                }
+                let d = dissector_mut();
+                let filenames = context()
+                    .privates
+                    .pref_filenames
+                    .iter()
+                    .map(|&p| CStr::from_ptr(p).to_str().unwrap())
+                    .collect();
+                d.prefs_update(filenames);
             }
 
-            if let Some(ref pref) = context().pref_descriptor {
+            let filename_descriptors = &context().filename_descriptors;
+            if !filename_descriptors.is_empty() {
                 let prefs = sys::prefs_register_protocol(proto, Some(preferences_update_cb));
                 context_mut()
                     .privates
                     .pref_filenames
-                    .resize(pref.filename_fields.len(), ptr::null());
-                for (i, d) in pref.filename_fields.iter().enumerate() {
+                    .resize(filename_descriptors.len(), ptr::null());
+                for (i, d) in filename_descriptors.iter().enumerate() {
                     sys::prefs_register_filename_preference(
                         prefs,
                         d.name.as_ptr() as _,
@@ -268,11 +269,7 @@ impl EpanPlugin<'static> {
                 tree: *mut sys::proto_tree,
                 data: *mut c_void,
             ) -> sys::gboolean {
-                let d = &mut context_mut()
-                    .dissector_descriptor
-                    .as_mut()
-                    .unwrap()
-                    .dissector;
+                let d = dissector_mut();
                 let fields = context().fields();
                 let info = DissectorInfo {
                     tvb: &mut *tvb,
@@ -297,17 +294,13 @@ impl EpanPlugin<'static> {
                 }
             }
 
-            unsafe extern "C" fn dissector(
+            unsafe extern "C" fn main_dissector(
                 tvb: *mut sys::tvbuff_t,
                 pinfo: *mut sys::packet_info,
                 tree: *mut sys::proto_tree,
                 data: *mut c_void,
             ) -> c_int {
-                let d = &mut context_mut()
-                    .dissector_descriptor
-                    .as_mut()
-                    .unwrap()
-                    .dissector;
+                let d = dissector_mut();
                 let fields = context().fields();
                 let info = DissectorInfo {
                     tvb: &mut *tvb,
@@ -322,7 +315,7 @@ impl EpanPlugin<'static> {
 
             if let Some(ref d) = context().dissector_descriptor {
                 let proto_handle = context().privates.proto_handle;
-                let handle = sys::create_dissector_handle(Some(dissector), proto_handle);
+                let handle = sys::create_dissector_handle(Some(main_dissector), proto_handle);
                 sys::heur_dissector_add(
                     d.name.as_ptr() as _,
                     Some(heur_dissector),
