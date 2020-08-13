@@ -56,7 +56,7 @@ extern "C" fn plugin_register() {
     .set_dissector(DissectorDescriptor {
         display_name: "Tezos\0",
         short_name: "tezos_tcp\0",
-        dissector: Box::new(TezosDissector),
+        dissector: Box::new(TezosDissector::new()),
     })
     .register()
 }

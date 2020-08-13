@@ -1,4 +1,4 @@
-#![forbid(unsafe_code)]
+// #![forbid(unsafe_code)]
 
 mod dissector;
 use self::dissector::TezosDissector;

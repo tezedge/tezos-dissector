@@ -16,8 +16,8 @@ pub struct DissectorInfo<'a, T> {
 
 pub trait Dissector {
     fn prefs_update(&mut self, filenames: Vec<&str>);
-    fn recognize(&mut self, info: DissectorInfo<'_, sys::tcpinfo>) -> usize;
-    fn consume(&mut self, info: DissectorInfo<'_, sys::tcpinfo>) -> usize;
+    fn recognize(&mut self, proto: i32, info: DissectorInfo<'_, sys::tcpinfo>) -> usize;
+    fn consume(&mut self, proto: i32, info: DissectorInfo<'_, sys::tcpinfo>) -> usize;
 }
 
 struct PluginPrivates<'a> {
@@ -278,7 +278,7 @@ impl Plugin<'static> {
                     fields: fields.clone(),
                     ett: context().ett.clone(),
                 };
-                let processed_length = d.recognize(info);
+                let processed_length = d.recognize(context().privates.proto_handle, info);
                 if processed_length != 0 {
                     let conversation = sys::find_or_create_conversation(pinfo);
                     let handle = context().privates.dissector_handle;
@@ -303,7 +303,7 @@ impl Plugin<'static> {
                     fields: fields,
                     ett: context().ett.clone(),
                 };
-                d.consume(info) as _
+                d.consume(context().privates.proto_handle, info) as _
             }
 
             if let Some(ref d) = context().dissector_descriptor {
