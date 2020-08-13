@@ -20,7 +20,7 @@ pub trait Dissector {
     fn consume(&mut self, info: DissectorInfo<'_>) -> usize;
 }
 
-struct EpanPluginPrivates<'a> {
+struct PluginPrivates<'a> {
     plugin: sys::proto_plugin,
     proto_handle: i32,
     hf: Vec<sys::hf_register_info>,
@@ -29,9 +29,9 @@ struct EpanPluginPrivates<'a> {
     dissector_handle: sys::dissector_handle_t,
 }
 
-impl<'a> EpanPluginPrivates<'a> {
+impl<'a> PluginPrivates<'a> {
     pub fn empty() -> Self {
-        EpanPluginPrivates {
+        PluginPrivates {
             plugin: sys::proto_plugin {
                 register_protoinfo: None,
                 register_handoff: None,
@@ -45,34 +45,34 @@ impl<'a> EpanPluginPrivates<'a> {
     }
 }
 
-pub struct EpanPlugin<'a> {
-    privates: EpanPluginPrivates<'a>,
-    name_descriptor: EpanNameDescriptor<'a>,
-    field_descriptors: Vec<(i32, EpanFieldDescriptor<'a>)>,
+pub struct Plugin<'a> {
+    privates: PluginPrivates<'a>,
+    name_descriptor: NameDescriptor<'a>,
+    field_descriptors: Vec<(i32, FieldDescriptor<'a>)>,
     ett: Vec<i32>,
-    filename_descriptors: Vec<EpanPrefFilenameDescriptor<'a>>,
-    dissector_descriptor: Option<EpanDissectorDescriptor<'a>>,
+    filename_descriptors: Vec<PrefFilenameDescriptor<'a>>,
+    dissector_descriptor: Option<DissectorDescriptor<'a>>,
 }
 
-pub struct EpanNameDescriptor<'a> {
+pub struct NameDescriptor<'a> {
     pub name: &'a str,
     pub short_name: &'a str,
     pub filter_name: &'a str,
 }
 
-pub enum EpanFieldDescriptor<'a> {
+pub enum FieldDescriptor<'a> {
     String { name: &'a str, abbrev: &'a str },
     Int64Dec { name: &'a str, abbrev: &'a str },
 }
 
-impl<'a> EpanFieldDescriptor<'a> {
+impl<'a> FieldDescriptor<'a> {
     pub fn abbrev(&self) -> &'a str {
         match self {
-            &EpanFieldDescriptor::String {
+            &FieldDescriptor::String {
                 name: _,
                 abbrev: ref abbrev,
             } => abbrev.clone(),
-            &EpanFieldDescriptor::Int64Dec {
+            &FieldDescriptor::Int64Dec {
                 name: _,
                 abbrev: ref abbrev,
             } => abbrev.clone(),
@@ -80,23 +80,23 @@ impl<'a> EpanFieldDescriptor<'a> {
     }
 }
 
-pub struct EpanPrefFilenameDescriptor<'a> {
+pub struct PrefFilenameDescriptor<'a> {
     pub name: &'a str,
     pub title: &'a str,
     pub description: &'a str,
 }
 
-pub struct EpanDissectorDescriptor<'a> {
+pub struct DissectorDescriptor<'a> {
     pub name: &'a str,
     pub display_name: &'a str,
     pub short_name: &'a str,
     pub dissector: Box<dyn Dissector>,
 }
 
-impl<'a> EpanPlugin<'a> {
-    pub fn new(name_descriptor: EpanNameDescriptor<'a>) -> Self {
-        EpanPlugin {
-            privates: EpanPluginPrivates::empty(),
+impl<'a> Plugin<'a> {
+    pub fn new(name_descriptor: NameDescriptor<'a>) -> Self {
+        Plugin {
+            privates: PluginPrivates::empty(),
             name_descriptor: name_descriptor,
             field_descriptors: Vec::new(),
             ett: Vec::new(),
@@ -105,7 +105,7 @@ impl<'a> EpanPlugin<'a> {
         }
     }
 
-    pub fn add_field(self, field_descriptor: EpanFieldDescriptor<'a>) -> Self {
+    pub fn add_field(self, field_descriptor: FieldDescriptor<'a>) -> Self {
         let mut s = self;
         s.field_descriptors.push((-1, field_descriptor));
         s
@@ -117,13 +117,13 @@ impl<'a> EpanPlugin<'a> {
         s
     }
 
-    pub fn set_pref_filename(self, filename_descriptor: EpanPrefFilenameDescriptor<'a>) -> Self {
+    pub fn set_pref_filename(self, filename_descriptor: PrefFilenameDescriptor<'a>) -> Self {
         let mut s = self;
         s.filename_descriptors.push(filename_descriptor);
         s
     }
 
-    pub fn set_dissector(self, dissector_descriptor: EpanDissectorDescriptor<'a>) -> Self {
+    pub fn set_dissector(self, dissector_descriptor: DissectorDescriptor<'a>) -> Self {
         let mut s = self;
         s.dissector_descriptor = Some(dissector_descriptor);
         s
@@ -137,15 +137,15 @@ impl<'a> EpanPlugin<'a> {
     }
 }
 
-impl EpanPlugin<'static> {
+impl Plugin<'static> {
     pub fn register(self) {
-        static mut CONTEXT: Option<EpanPlugin<'static>> = None;
+        static mut CONTEXT: Option<Plugin<'static>> = None;
 
-        unsafe fn context() -> &'static EpanPlugin<'static> {
+        unsafe fn context() -> &'static Plugin<'static> {
             CONTEXT.as_ref().unwrap()
         }
 
-        unsafe fn context_mut() -> &'static mut EpanPlugin<'static> {
+        unsafe fn context_mut() -> &'static mut Plugin<'static> {
             CONTEXT.as_mut().unwrap()
         }
 
@@ -171,7 +171,7 @@ impl EpanPlugin<'static> {
                 .map(|x| match x {
                     &mut (
                         ref mut field,
-                        EpanFieldDescriptor::String {
+                        FieldDescriptor::String {
                             name: ref mut name,
                             abbrev: ref mut abbrev,
                         },
@@ -194,7 +194,7 @@ impl EpanPlugin<'static> {
                     },
                     &mut (
                         ref mut field,
-                        EpanFieldDescriptor::Int64Dec {
+                        FieldDescriptor::Int64Dec {
                             name: ref mut name,
                             abbrev: ref mut abbrev,
                         },
