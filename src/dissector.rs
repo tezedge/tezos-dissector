@@ -1,4 +1,4 @@
-use wireshark_epan_adapter::{Dissector, DissectorInfo};
+use wireshark_epan_adapter::{Dissector, DissectorInfo, sys};
 
 pub struct TezosDissector;
 
@@ -9,15 +9,15 @@ impl Dissector for TezosDissector {
         // here
     }
 
-    fn recognize(&self, info: DissectorInfo<'_>) -> bool {
+    fn recognize(&mut self, info: DissectorInfo<'_, sys::tcpinfo>) -> usize {
         let _ = info;
         // here
-        true
+        info.tvb.length as _
     }
 
-    fn consume(&mut self, info: DissectorInfo<'_>) -> usize {
+    fn consume(&mut self, info: DissectorInfo<'_, sys::tcpinfo>) -> usize {
         let _ = info;
         // here
-        0
+        info.tvb.length as _
     }
 }

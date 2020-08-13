@@ -5,19 +5,19 @@ use std::{
 };
 use super::sys;
 
-pub struct DissectorInfo<'a> {
+pub struct DissectorInfo<'a, T> {
     pub tvb: &'a mut sys::tvbuff_t,
     pub pinfo: &'a mut sys::packet_info,
     pub tree: &'a mut sys::proto_tree,
-    pub mark: usize,
+    pub data: &'a mut T,
     pub fields: BTreeMap<&'a str, i32>,
     pub ett: Vec<i32>,
 }
 
 pub trait Dissector {
     fn prefs_update(&mut self, filenames: Vec<&str>);
-    fn recognize(&self, info: DissectorInfo<'_>) -> bool;
-    fn consume(&mut self, info: DissectorInfo<'_>) -> usize;
+    fn recognize(&mut self, info: DissectorInfo<'_, sys::tcpinfo>) -> usize;
+    fn consume(&mut self, info: DissectorInfo<'_, sys::tcpinfo>) -> usize;
 }
 
 struct PluginPrivates<'a> {
@@ -87,7 +87,6 @@ pub struct PrefFilenameDescriptor<'a> {
 }
 
 pub struct DissectorDescriptor<'a> {
-    pub name: &'a str,
     pub display_name: &'a str,
     pub short_name: &'a str,
     pub dissector: Box<dyn Dissector>,
@@ -275,23 +274,17 @@ impl Plugin<'static> {
                     tvb: &mut *tvb,
                     pinfo: &mut *pinfo,
                     tree: &mut *tree,
-                    mark: data as _,
+                    data: &mut *(data as *mut sys::tcpinfo),
                     fields: fields.clone(),
                     ett: context().ett.clone(),
                 };
-                if d.recognize(info) {
-                    d.consume(DissectorInfo {
-                        tvb: &mut *tvb,
-                        pinfo: &mut *pinfo,
-                        tree: &mut *tree,
-                        mark: data as _,
-                        fields: fields,
-                        ett: context().ett.clone(),
-                    });
-                    1
-                } else {
-                    0
+                let processed_length = d.recognize(info);
+                if processed_length != 0 {
+                    let conversation = sys::find_or_create_conversation(pinfo);
+                    let handle = context().privates.dissector_handle;
+                    sys::conversation_set_dissector(conversation, handle);
                 }
+                processed_length as _
             }
 
             unsafe extern "C" fn main_dissector(
@@ -306,7 +299,7 @@ impl Plugin<'static> {
                     tvb: &mut *tvb,
                     pinfo: &mut *pinfo,
                     tree: &mut *tree,
-                    mark: data as _,
+                    data: &mut *(data as *mut sys::tcpinfo),
                     fields: fields,
                     ett: context().ett.clone(),
                 };
@@ -317,7 +310,7 @@ impl Plugin<'static> {
                 let proto_handle = context().privates.proto_handle;
                 let handle = sys::create_dissector_handle(Some(main_dissector), proto_handle);
                 sys::heur_dissector_add(
-                    d.name.as_ptr() as _,
+                    "tcp\0".as_ptr() as _,
                     Some(heur_dissector),
                     d.display_name.as_ptr() as _,
                     d.short_name.as_ptr() as _,

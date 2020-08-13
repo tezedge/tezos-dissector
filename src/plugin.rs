@@ -54,7 +54,6 @@ extern "C" fn plugin_register() {
         description: "JSON file with node identity information\0",
     })
     .set_dissector(DissectorDescriptor {
-        name: "tcp\0",
         display_name: "Tezos\0",
         short_name: "tezos_tcp\0",
         dissector: Box::new(TezosDissector),
