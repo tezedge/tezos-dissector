@@ -1,71 +1,79 @@
-use wireshark_epan_adapter::{Dissector, DissectorInfo, sys};
-use std::{
-    collections::HashMap,
-    cell::RefCell,
-};
+use wireshark_epan_adapter::{Dissector, dissector::DissectorHelper};
+use serde::Deserialize;
 
-struct Conversation;
+#[derive(Deserialize, Clone, Debug, PartialEq)]
+/// Node identity information
+pub struct Identity {
+    pub peer_id: String,
+    pub public_key: String,
+    pub secret_key: String,
+    pub proof_of_work_stamp: String,
+}
 
 pub struct TezosDissector {
-    conversations: RefCell<HashMap<*const sys::tcp_analysis, Conversation>>,
+    identity: Option<Identity>,
 }
 
 impl TezosDissector {
     pub fn new() -> Self {
-        TezosDissector {
-            conversations: RefCell::new(HashMap::new()),
-        }
+        TezosDissector { identity: None }
     }
 }
 
 impl Dissector for TezosDissector {
     fn prefs_update(&mut self, filenames: Vec<&str>) {
-        let _identity_path = filenames.first().cloned().unwrap();
+        use std::fs;
+        use crypto::hash::HashType;
+
+        // TODO: error handling
+        if let Some(identity_path) = filenames.first().cloned() {
+            if !identity_path.is_empty() {
+                let content = fs::read_to_string(identity_path).unwrap();
+                let mut identity: Identity = serde_json::from_str(&content).unwrap();
+                let decoded = hex::decode(&identity.public_key).unwrap();
+                identity.public_key = HashType::CryptoboxPublicKeyHash.bytes_to_string(&decoded);
+                self.identity = Some(identity);
+            }
+        }
     }
 
-    fn recognize(&mut self, proto: i32, info: DissectorInfo<'_, sys::tcpinfo>) -> usize {
-        self.consume(proto, info)
+    fn recognize(&mut self, helper: DissectorHelper) -> usize {
+        self.consume(helper)
     }
 
-    fn consume(&mut self, proto: i32, info: DissectorInfo<'_, sys::tcpinfo>) -> usize {
-        unsafe extern "C" fn wmem_cb(
-            _allocator: *mut sys::wmem_allocator_t,
-            ev: sys::wmem_cb_event_t,
-            data: *mut std::os::raw::c_void,
-        ) -> sys::gboolean {
-            match ev {
-                sys::_wmem_cb_event_t_WMEM_CB_DESTROY_EVENT => unreachable!(),
-                _ => (),
-            }
+    fn consume(&mut self, helper: DissectorHelper) -> usize {
+        use crate::network::prelude::ConnectionMessage;
 
-            Box::from_raw(*(data as *mut *mut dyn Fn()))();
+        pub fn process_connection_msg(
+            payload: Vec<u8>,
+        ) -> Result<ConnectionMessage, failure::Error> {
+            use std::convert::TryFrom;
+            use tezos_messages::p2p::binary_message::BinaryChunk;
 
-            0
+            let chunk = BinaryChunk::try_from(payload)?;
+            let conn_msg = ConnectionMessage::try_from(chunk)?;
+            Ok(conn_msg)
         }
 
-        unsafe {
-            let conv = sys::find_or_create_conversation(info.pinfo);
-            let tcpd = sys::get_tcp_conversation_data(conv, info.pinfo);
-            let convd = sys::conversation_get_proto_data(conv, proto);
-            if convd.is_null() {
-                sys::conversation_add_proto_data(conv, proto, std::mem::transmute(1usize));
-                sys::wmem_register_callback(sys::wmem_file_scope(), Some(wmem_cb), Box::into_raw(Box::new(Box::new(|| self.conversations.borrow_mut().remove(&(tcpd as _))))) as _);
-            }
+        let mut helper = helper;
 
-            let ti = sys::proto_tree_add_item(info.tree, proto, info.tvb, 0, -1, sys::ENC_NA);
-            let t_tree = sys::proto_item_add_subtree(ti, info.ett[0]);
-            sys::proto_tree_add_int64_format(
-                t_tree,
-                info.fields["tezos.payload_len\0"],
-                info.tvb,
-                0,
-                0,
-                conv as i64,
-                "Tezos conversation: %p\0".as_ptr() as _,
-                conv,
-            );
-
-            sys::tvb_captured_length(info.tvb) as _
+        let mut context = helper.conversation_context::<()>();
+        let c = context.as_mut();
+        if c.is_none() {
+            log::info!("new conversation {:?}", c as *const _);
+            *c = Some(());
         }
+
+        let payload = helper.payload();
+        let length = payload.len();
+        match process_connection_msg(payload) {
+            Ok(connection) => helper.tree_mut().add_string_field(
+                0,
+                "tezos.connection_msg\0",
+                format!("{:?}\0", connection),
+            ),
+            Err(_) => (),
+        }
+        length
     }
 }

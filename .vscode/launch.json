@@ -7,9 +7,17 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
+            "name": "Debug Tshark",
             "program": "${workspaceFolder}/target/out/bin/tshark",
             "args": ["-o", "tezos.identity_json_file:data/identity.json", "-Vr", "data/cap-09.pcap"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Wireshark",
+            "program": "${workspaceFolder}/target/out/bin/wireshark",
+            "args": ["-o", "tezos.identity_json_file:data/identity.json"],
             "cwd": "${workspaceFolder}"
         },
         {

@@ -3,21 +3,13 @@ use std::{
     os::raw::{c_int, c_char, c_void},
     ptr,
 };
-use super::sys;
-
-pub struct DissectorInfo<'a, T> {
-    pub tvb: &'a mut sys::tvbuff_t,
-    pub pinfo: &'a mut sys::packet_info,
-    pub tree: &'a mut sys::proto_tree,
-    pub data: &'a mut T,
-    pub fields: BTreeMap<&'a str, i32>,
-    pub ett: Vec<i32>,
-}
+use crate::sys;
+use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, DissectorTree};
 
 pub trait Dissector {
     fn prefs_update(&mut self, filenames: Vec<&str>);
-    fn recognize(&mut self, proto: i32, info: DissectorInfo<'_, sys::tcpinfo>) -> usize;
-    fn consume(&mut self, proto: i32, info: DissectorInfo<'_, sys::tcpinfo>) -> usize;
+    fn recognize(&mut self, helper: DissectorHelper) -> usize;
+    fn consume(&mut self, helper: DissectorHelper) -> usize;
 }
 
 struct PluginPrivates<'a> {
@@ -270,15 +262,20 @@ impl Plugin<'static> {
             ) -> sys::gboolean {
                 let d = dissector_mut();
                 let fields = context().fields();
-                let info = DissectorInfo {
-                    tvb: &mut *tvb,
-                    pinfo: &mut *pinfo,
-                    tree: &mut *tree,
-                    data: &mut *(data as *mut sys::tcpinfo),
-                    fields: fields.clone(),
-                    ett: context().ett.clone(),
-                };
-                let processed_length = d.recognize(context().privates.proto_handle, info);
+                let helper = DissectorHelper::new(
+                    SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
+                    context().privates.proto_handle,
+                    PacketInfo::new(pinfo),
+                    tvb,
+                    DissectorTree::new(
+                        context().privates.proto_handle,
+                        fields.clone(),
+                        context().ett.clone(),
+                        tvb,
+                        tree,
+                    ),
+                );
+                let processed_length = d.recognize(helper);
                 if processed_length != 0 {
                     let conversation = sys::find_or_create_conversation(pinfo);
                     let handle = context().privates.dissector_handle;
@@ -295,15 +292,20 @@ impl Plugin<'static> {
             ) -> c_int {
                 let d = dissector_mut();
                 let fields = context().fields();
-                let info = DissectorInfo {
-                    tvb: &mut *tvb,
-                    pinfo: &mut *pinfo,
-                    tree: &mut *tree,
-                    data: &mut *(data as *mut sys::tcpinfo),
-                    fields: fields,
-                    ett: context().ett.clone(),
-                };
-                d.consume(context().privates.proto_handle, info) as _
+                let helper = DissectorHelper::new(
+                    SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
+                    context().privates.proto_handle,
+                    PacketInfo::new(pinfo),
+                    tvb,
+                    DissectorTree::new(
+                        context().privates.proto_handle,
+                        fields.clone(),
+                        context().ett.clone(),
+                        tvb,
+                        tree,
+                    ),
+                );
+                d.consume(helper) as _
             }
 
             if let Some(ref d) = context().dissector_descriptor {

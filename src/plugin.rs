@@ -18,6 +18,12 @@ static plugin_want_minor: i32 = 2;
 
 #[no_mangle]
 extern "C" fn plugin_register() {
+    let file = env!("PWD")
+        .parse::<std::path::PathBuf>()
+        .unwrap()
+        .join("target/log.txt");
+    simple_logging::log_to_file(file, log::LevelFilter::Info).unwrap();
+
     Plugin::new(NameDescriptor {
         name: "Tezos Protocol\0",
         short_name: "tezos\0",

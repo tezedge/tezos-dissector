@@ -4,3 +4,6 @@ mod dissector;
 use self::dissector::TezosDissector;
 
 mod plugin;
+
+#[allow(warnings)]
+mod network;
