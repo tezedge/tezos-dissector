@@ -8,7 +8,6 @@ use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Dissecto
 
 pub trait Dissector {
     fn prefs_update(&mut self, filenames: Vec<&str>);
-    fn recognize(&mut self, helper: DissectorHelper) -> usize;
     fn consume(&mut self, helper: DissectorHelper) -> usize;
 }
 
@@ -18,7 +17,6 @@ struct PluginPrivates<'a> {
     hf: Vec<sys::hf_register_info>,
     ett: Vec<&'a mut c_int>,
     pref_filenames: Vec<*const c_char>,
-    dissector_handle: sys::dissector_handle_t,
 }
 
 impl<'a> PluginPrivates<'a> {
@@ -32,7 +30,6 @@ impl<'a> PluginPrivates<'a> {
             hf: Vec::new(),
             ett: Vec::new(),
             pref_filenames: Vec::new(),
-            dissector_handle: ptr::null_mut(),
         }
     }
 }
@@ -275,42 +272,12 @@ impl Plugin<'static> {
                         tree,
                     ),
                 );
-                let processed_length = d.recognize(helper);
-                if processed_length != 0 {
-                    let conversation = sys::find_or_create_conversation(pinfo);
-                    let handle = context().privates.dissector_handle;
-                    sys::conversation_set_dissector(conversation, handle);
-                }
+                let processed_length = d.consume(helper);
                 processed_length as _
-            }
-
-            unsafe extern "C" fn main_dissector(
-                tvb: *mut sys::tvbuff_t,
-                pinfo: *mut sys::packet_info,
-                tree: *mut sys::proto_tree,
-                data: *mut c_void,
-            ) -> c_int {
-                let d = dissector_mut();
-                let fields = context().fields();
-                let helper = DissectorHelper::new(
-                    SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
-                    context().privates.proto_handle,
-                    PacketInfo::new(pinfo),
-                    tvb,
-                    DissectorTree::new(
-                        context().privates.proto_handle,
-                        fields.clone(),
-                        context().ett.clone(),
-                        tvb,
-                        tree,
-                    ),
-                );
-                d.consume(helper) as _
             }
 
             if let Some(ref d) = context().dissector_descriptor {
                 let proto_handle = context().privates.proto_handle;
-                let handle = sys::create_dissector_handle(Some(main_dissector), proto_handle);
                 sys::heur_dissector_add(
                     "tcp\0".as_ptr() as _,
                     Some(heur_dissector),
@@ -319,7 +286,6 @@ impl Plugin<'static> {
                     proto_handle,
                     sys::heuristic_enable_e_HEURISTIC_ENABLE,
                 );
-                context_mut().privates.dissector_handle = handle;
             }
         }
 

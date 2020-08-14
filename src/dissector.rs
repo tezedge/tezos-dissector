@@ -1,5 +1,6 @@
 use wireshark_epan_adapter::{Dissector, dissector::DissectorHelper};
 use serde::Deserialize;
+use crate::network::prelude::ConnectionMessage;
 
 #[derive(Deserialize, Clone, Debug, PartialEq)]
 /// Node identity information
@@ -37,13 +38,7 @@ impl Dissector for TezosDissector {
         }
     }
 
-    fn recognize(&mut self, helper: DissectorHelper) -> usize {
-        self.consume(helper)
-    }
-
     fn consume(&mut self, helper: DissectorHelper) -> usize {
-        use crate::network::prelude::ConnectionMessage;
-
         pub fn process_connection_msg(
             payload: Vec<u8>,
         ) -> Result<ConnectionMessage, failure::Error> {
@@ -56,23 +51,18 @@ impl Dissector for TezosDissector {
         }
 
         let mut helper = helper;
-
-        let mut context = helper.conversation_context::<()>();
-        let c = context.as_mut();
-        if c.is_none() {
-            log::info!("new conversation {:?}", c as *const _);
-            *c = Some(());
-        }
-
         let payload = helper.payload();
         let length = payload.len();
         match process_connection_msg(payload) {
-            Ok(connection) => helper.tree_mut().add_string_field(
-                0,
-                "tezos.connection_msg\0",
-                format!("{:?}\0", connection),
-                0..length,
-            ),
+            Ok(connection) => {
+                let subtree = helper.tree_mut().subtree(0, 0..length);
+                helper.tree_mut().add_string_field(
+                    &subtree,
+                    "tezos.connection_msg\0",
+                    format!("{:?}\0", connection),
+                    0..length,
+                )
+            },
             Err(_) => (),
         }
         length

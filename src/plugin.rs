@@ -1,4 +1,4 @@
-use super::TezosDissector;
+use super::dissector::TezosDissector;
 
 #[rustfmt::skip]
 use wireshark_epan_adapter::{
