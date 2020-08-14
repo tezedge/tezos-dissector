@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, ptr};
+use std::{collections::BTreeMap, ptr, ops::Range};
 use crate::sys;
 
 pub struct DissectorTree {
@@ -51,7 +51,13 @@ impl DissectorTree {
         }
     }
 
-    pub fn add_string_field(&mut self, index: usize, field_abbrev: &'static str, value: String) {
+    pub fn add_string_field(
+        &mut self,
+        index: usize,
+        field_abbrev: &'static str,
+        value: String,
+        range: Range<usize>,
+    ) {
         use std::os::raw::{c_char, c_int};
 
         if let Some(subtree) = self.subtree(index) {
@@ -60,8 +66,8 @@ impl DissectorTree {
                     subtree,
                     self.fields[field_abbrev],
                     self.tvb,
-                    0,
-                    0,
+                    range.start as _,
+                    range.len() as _,
                     value.as_ptr() as _,
                     b"%.*s\0".as_ptr() as _,
                     (value.len() + 1) as c_int,

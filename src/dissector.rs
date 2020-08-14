@@ -71,6 +71,7 @@ impl Dissector for TezosDissector {
                 0,
                 "tezos.connection_msg\0",
                 format!("{:?}\0", connection),
+                0..length,
             ),
             Err(_) => (),
         }
