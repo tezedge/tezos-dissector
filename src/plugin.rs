@@ -1,4 +1,4 @@
-use super::dissector::TezosDissector;
+use super::dissector::{TezosDissector, Context};
 
 #[rustfmt::skip]
 use wireshark_epan_adapter::{
@@ -24,7 +24,7 @@ extern "C" fn plugin_register() {
         .join("target/log.txt");
     simple_logging::log_to_file(file, log::LevelFilter::Info).unwrap();
 
-    Plugin::new(NameDescriptor {
+    Plugin::new::<Context>(NameDescriptor {
         name: "Tezos Protocol\0",
         short_name: "tezos\0",
         filter_name: "tezos\0",

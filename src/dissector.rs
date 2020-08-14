@@ -53,6 +53,7 @@ impl Dissector for TezosDissector {
         let mut helper = helper;
         let payload = helper.payload();
         let length = payload.len();
+        let mut _c = helper.context::<Context>();
         match process_connection_msg(payload) {
             Ok(connection) => {
                 let subtree = helper.tree_mut().subtree(0, 0..length);
@@ -66,5 +67,22 @@ impl Dissector for TezosDissector {
             Err(_) => (),
         }
         length
+    }
+}
+
+pub struct Context(Vec<u8>);
+
+impl Default for Context {
+    fn default() -> Self {
+        let mut x = Vec::new();
+        x.resize(0x100, 0);
+        log::info!("allocated {:?}", x.as_ptr());
+        Context(x)
+    }
+}
+
+impl Drop for Context {
+    fn drop(&mut self) {
+        log::info!("dropped {:?}", self.0.as_ptr());
     }
 }
