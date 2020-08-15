@@ -1,4 +1,7 @@
-use wireshark_epan_adapter::{Dissector, dissector::DissectorHelper};
+use wireshark_epan_adapter::{
+    Dissector,
+    dissector::{DissectorHelper, Tree},
+};
 use serde::Deserialize;
 use crate::network::prelude::ConnectionMessage;
 
@@ -38,7 +41,7 @@ impl Dissector for TezosDissector {
         }
     }
 
-    fn consume(&mut self, helper: &mut DissectorHelper) -> usize {
+    fn consume(&mut self, helper: &mut DissectorHelper, root: &mut Tree) -> usize {
         use wireshark_epan_adapter::dissector::TreeLeaf;
 
         pub fn process_connection_msg(
@@ -55,7 +58,6 @@ impl Dissector for TezosDissector {
         let payload = helper.payload();
         let length = payload.len();
         let mut _c = helper.context::<Context>();
-        let root = helper.root();
 
         let mut main_node = root.leaf("tezos", 0..length, TreeLeaf::N).subtree();
         match process_connection_msg(payload) {

@@ -4,14 +4,14 @@ use std::{
     ptr,
 };
 use crate::sys;
-use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, DissectorTree};
+use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Tree};
 
 pub trait Dissector {
     fn prefs_update(&mut self, filenames: Vec<&str>) {
         let _ = filenames;
     }
 
-    fn consume(&mut self, helper: &mut DissectorHelper) -> usize;
+    fn consume(&mut self, helper: &mut DissectorHelper, root: &mut Tree) -> usize;
 }
 
 pub(crate) struct Contexts {
@@ -338,10 +338,10 @@ impl Plugin<'static> {
                     SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
                     PacketInfo::new(pinfo),
                     tvb,
-                    DissectorTree::root(context().fields(), context().ett.clone(), tvb, tree),
                     &mut context_mut().contexts,
                 );
-                let processed_length = d.consume(&mut helper);
+                let mut tree = Tree::root(context().fields(), context().ett.clone(), tvb, tree);
+                let processed_length = d.consume(&mut helper, &mut tree);
                 processed_length as _
             }
 

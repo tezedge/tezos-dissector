@@ -3,7 +3,7 @@ use wireshark_epan_adapter::{
     Plugin, NameDescriptor, FieldDescriptor,
     DissectorDescriptor,
     Dissector,
-    dissector::DissectorHelper,
+    dissector::{DissectorHelper, Tree},
 };
 
 #[no_mangle]
@@ -54,12 +54,11 @@ extern "C" fn plugin_register() {
 struct SimpleDissector;
 
 impl Dissector for SimpleDissector {
-    fn consume(&mut self, helper: &mut DissectorHelper) -> usize {
+    fn consume(&mut self, helper: &mut DissectorHelper, root: &mut Tree) -> usize {
         use wireshark_epan_adapter::dissector::TreeLeaf;
 
         let payload = helper.payload();
         let length = payload.len();
-        let root = helper.root();
 
         let mut main_node = root
             .leaf("simple_tree_example", 0..length, TreeLeaf::N)

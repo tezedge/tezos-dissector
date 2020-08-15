@@ -1,4 +1,4 @@
-use super::{PacketInfo, DissectorTree};
+use super::PacketInfo;
 use crate::{sys, Contexts};
 
 pub enum SuperDissectorData {
@@ -9,7 +9,6 @@ pub struct DissectorHelper {
     _data: SuperDissectorData,
     packet_info: PacketInfo,
     tvb: *mut sys::tvbuff_t,
-    root: DissectorTree,
     contexts: &'static mut Contexts,
 }
 
@@ -18,14 +17,12 @@ impl DissectorHelper {
         data: SuperDissectorData,
         packet_info: PacketInfo,
         tvb: *mut sys::tvbuff_t,
-        root: DissectorTree,
         contexts: &'static mut Contexts,
     ) -> Self {
         DissectorHelper {
             _data: data,
             packet_info,
             tvb,
-            root,
             contexts,
         }
     }
@@ -44,10 +41,6 @@ impl DissectorHelper {
 
     pub fn packet_info(&self) -> &PacketInfo {
         &self.packet_info
-    }
-
-    pub fn root(&mut self) -> &mut DissectorTree {
-        &mut self.root
     }
 
     pub fn payload(&mut self) -> Vec<u8> {

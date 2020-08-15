@@ -7,7 +7,7 @@ struct Common {
     tvb: *mut sys::tvbuff_t,
 }
 
-pub struct DissectorTree {
+pub struct Tree {
     common: Rc<RefCell<Common>>,
     parent_path: Option<String>,
     base: usize,
@@ -27,7 +27,7 @@ impl TreeLeaf<String> {
     pub const N: Self = TreeLeaf::Nothing;
 }
 
-impl DissectorTree {
+impl Tree {
     pub(crate) fn root(
         fields: BTreeMap<String, i32>,
         ett: Vec<i32>,
@@ -36,7 +36,7 @@ impl DissectorTree {
     ) -> Self {
         let common = Common { fields, ett, tvb };
 
-        DissectorTree {
+        Tree {
             common: Rc::new(RefCell::new(common)),
             parent_path: None,
             base: 0,
@@ -45,7 +45,7 @@ impl DissectorTree {
     }
 
     pub fn subtree(&mut self) -> Self {
-        DissectorTree {
+        Tree {
             common: self.common.clone(),
             parent_path: self.parent_path.clone(),
             base: self.base,
@@ -100,7 +100,7 @@ impl DissectorTree {
             },
         };
 
-        DissectorTree {
+        Tree {
             common: self.common.clone(),
             parent_path: Some(full_path),
             base: range.start,
