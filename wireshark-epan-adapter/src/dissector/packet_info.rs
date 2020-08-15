@@ -48,6 +48,7 @@ impl PacketInfo {
     }
 }
 
+#[derive(Debug)]
 pub enum AddressConvertError {
     AddressType,
     AddressLength,

@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, ops::Range, rc::Rc, cell::RefCell};
+use std::{collections::BTreeMap, ops::Range, rc::Rc, cell::RefCell, fmt};
 use crate::sys;
 
 struct Common {
@@ -16,7 +16,7 @@ pub struct Tree {
 
 pub enum TreeLeaf<D>
 where
-    D: std::fmt::Display,
+    D: fmt::Display,
 {
     Nothing,
     Display(D),
@@ -55,7 +55,7 @@ impl Tree {
 
     pub fn leaf<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
     where
-        D: std::fmt::Display,
+        D: fmt::Display,
         P: AsRef<str>,
     {
         let full_path = if let &Some(ref base) = &self.parent_path {
