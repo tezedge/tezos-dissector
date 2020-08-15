@@ -39,7 +39,7 @@ impl Dissector for TezosDissector {
     }
 
     fn consume(&mut self, helper: &mut DissectorHelper) -> usize {
-        use wireshark_epan_adapter::dissector::DissectorTreeLeaf::{Nothing, String};
+        use wireshark_epan_adapter::dissector::TreeLeaf;
 
         pub fn process_connection_msg(
             payload: Vec<u8>,
@@ -57,13 +57,13 @@ impl Dissector for TezosDissector {
         let mut _c = helper.context::<Context>();
         let root = helper.root();
 
-        let mut main_node = root.leaf("tezos\0", 0..length, Nothing).subtree();
+        let mut main_node = root.leaf("tezos", 0..length, TreeLeaf::N).subtree();
         match process_connection_msg(payload) {
             Ok(connection) => {
                 main_node.leaf(
-                    "tezos.connection_msg\0",
+                    "connection_msg",
                     0..length,
-                    String(format!("{:?}", connection)),
+                    TreeLeaf::Display(format!("{:?}", connection)),
                 );
             },
             Err(_) => (),

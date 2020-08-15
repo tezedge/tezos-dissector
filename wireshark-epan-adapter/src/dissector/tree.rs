@@ -2,27 +2,34 @@ use std::{collections::BTreeMap, ops::Range, rc::Rc, cell::RefCell};
 use crate::sys;
 
 struct Common {
-    fields: BTreeMap<&'static str, i32>,
+    fields: BTreeMap<String, i32>,
     ett: Vec<i32>,
     tvb: *mut sys::tvbuff_t,
 }
 
 pub struct DissectorTree {
     common: Rc<RefCell<Common>>,
-    parent_path: &'static str,
+    parent_path: Option<String>,
     base: usize,
     node: *mut sys::proto_tree,
 }
 
-pub enum DissectorTreeLeaf {
+pub enum TreeLeaf<D>
+where
+    D: std::fmt::Display,
+{
     Nothing,
-    String(String),
+    Display(D),
     Int64Dec(i64),
+}
+
+impl TreeLeaf<String> {
+    pub const N: Self = TreeLeaf::Nothing;
 }
 
 impl DissectorTree {
     pub(crate) fn root(
-        fields: BTreeMap<&'static str, i32>,
+        fields: BTreeMap<String, i32>,
         ett: Vec<i32>,
         tvb: *mut sys::tvbuff_t,
         root: *mut sys::proto_tree,
@@ -31,7 +38,7 @@ impl DissectorTree {
 
         DissectorTree {
             common: Rc::new(RefCell::new(common)),
-            parent_path: "#",
+            parent_path: None,
             base: 0,
             node: root,
         }
@@ -40,30 +47,40 @@ impl DissectorTree {
     pub fn subtree(&mut self) -> Self {
         DissectorTree {
             common: self.common.clone(),
-            parent_path: self.parent_path,
+            parent_path: self.parent_path.clone(),
             base: self.base,
             node: unsafe { sys::proto_item_add_subtree(self.node, self.common.borrow().ett[0]) },
         }
     }
 
-    pub fn leaf(&mut self, path: &'static str, range: Range<usize>, v: DissectorTreeLeaf) -> Self {
+    pub fn leaf<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
+    where
+        D: std::fmt::Display,
+        P: AsRef<str>,
+    {
+        let full_path = if let &Some(ref base) = &self.parent_path {
+            format!("{}.{}\0", base.trim_end_matches('\0'), path.as_ref())
+        } else {
+            format!("{}\0", path.as_ref())
+        };
+
         let node = match v {
-            DissectorTreeLeaf::Nothing => unsafe {
+            TreeLeaf::Nothing => unsafe {
                 sys::proto_tree_add_item(
                     self.node,
-                    self.common.borrow().fields[path],
+                    self.common.borrow().fields[&full_path],
                     self.common.borrow().tvb,
                     (self.base + range.start) as _,
                     range.len() as _,
                     sys::ENC_NA,
                 )
             },
-            DissectorTreeLeaf::String(mut value) => {
-                value.push('\0');
+            TreeLeaf::Display(value) => {
+                let value = format!("{}\0", value);
                 unsafe {
                     sys::proto_tree_add_string(
                         self.node,
-                        self.common.borrow().fields[path],
+                        self.common.borrow().fields[&full_path],
                         self.common.borrow().tvb,
                         (self.base + range.start) as _,
                         range.len() as _,
@@ -71,12 +88,21 @@ impl DissectorTree {
                     )
                 }
             },
-            DissectorTreeLeaf::Int64Dec(_) => unimplemented!(),
+            TreeLeaf::Int64Dec(value) => unsafe {
+                sys::proto_tree_add_int64(
+                    self.node,
+                    self.common.borrow().fields[&full_path],
+                    self.common.borrow().tvb,
+                    (self.base + range.start) as _,
+                    range.len() as _,
+                    value,
+                )
+            },
         };
 
         DissectorTree {
             common: self.common.clone(),
-            parent_path: path,
+            parent_path: Some(full_path),
             base: range.start,
             node,
         }

@@ -55,45 +55,25 @@ struct SimpleDissector;
 
 impl Dissector for SimpleDissector {
     fn consume(&mut self, helper: &mut DissectorHelper) -> usize {
-        use wireshark_epan_adapter::dissector::DissectorTreeLeaf::{Nothing, String};
+        use wireshark_epan_adapter::dissector::TreeLeaf;
 
         let payload = helper.payload();
         let length = payload.len();
         let root = helper.root();
 
         let mut main_node = root
-            .leaf("simple_tree_example\0", 0..length, Nothing)
+            .leaf("simple_tree_example", 0..length, TreeLeaf::N)
             .subtree();
         if length > 100 {
             let mut foo_node = main_node
-                .leaf(
-                    "simple_tree_example.foo\0",
-                    0..length,
-                    String("foo data".to_owned()),
-                )
+                .leaf("foo", 0..length, TreeLeaf::Display("foo data"))
                 .subtree();
             let mut bar0_node = foo_node
-                .leaf(
-                    "simple_tree_example.foo.bar0\0",
-                    0..100,
-                    String("bar0 data".to_owned()),
-                )
+                .leaf("bar0", 0..100, TreeLeaf::Display("bar0 data"))
                 .subtree();
-            bar0_node.leaf(
-                "simple_tree_example.foo.bar0.baz0\0",
-                0..20,
-                String("baz0 data".to_owned()),
-            );
-            bar0_node.leaf(
-                "simple_tree_example.foo.bar0.baz1\0",
-                20..100,
-                String("baz1 data".to_owned()),
-            );
-            foo_node.leaf(
-                "simple_tree_example.foo.bar1\0",
-                100..length,
-                String("bar1 data".to_owned()),
-            );
+            bar0_node.leaf("baz0", 0..20, TreeLeaf::Display("baz0 data"));
+            bar0_node.leaf("baz1", 20..100, TreeLeaf::Display("baz1 data"));
+            foo_node.leaf("bar1", 100..length, TreeLeaf::Display("bar1 data"));
         }
 
         length

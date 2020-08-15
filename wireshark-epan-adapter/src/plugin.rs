@@ -164,19 +164,22 @@ impl<'a> Plugin<'a> {
         s
     }
 
-    fn fields(&self) -> BTreeMap<&'a str, i32> {
+    fn fields(&self) -> BTreeMap<String, i32> {
         use std::iter;
 
         // subfields names
         let it = self
             .field_descriptors
             .iter()
-            .map(|(field, descriptor)| (descriptor.abbrev(), field.clone()));
+            .map(|(field, descriptor)| (descriptor.abbrev().to_owned(), field.clone()));
 
         // self name
-        iter::once((self.name_descriptor.filter_name, self.privates.proto_handle))
-            .chain(it)
-            .collect()
+        iter::once((
+            self.name_descriptor.filter_name.to_owned(),
+            self.privates.proto_handle,
+        ))
+        .chain(it)
+        .collect()
     }
 }
 
