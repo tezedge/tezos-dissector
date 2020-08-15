@@ -119,7 +119,7 @@ impl EncryptedMessageDecoder {
         }
     }
 
-    /// Try deserializing decyphered message, this will work IFF encrypted received message
+    /// Try deserializing deciphered message, this will work IFF encrypted received message
     /// was correctly serialized
     fn try_deserialize(&mut self, mut msg: Vec<u8>) -> Option<EncryptedMessage> {
         if !self.metadata {
@@ -228,6 +228,6 @@ impl EncryptedMessageDecoder {
 
     /// Store decrypted message
     fn store_message(&mut self, msg: PeerMessageResponse) {
-        //log::trace!("Message received: {:?}", msg);
+        log::trace!("Message received: {:?}", msg);
     }
 }

@@ -9,7 +9,7 @@ pub struct DissectorHelper {
     _data: SuperDissectorData,
     packet_info: PacketInfo,
     tvb: *mut sys::tvbuff_t,
-    tree: DissectorTree,
+    root: DissectorTree,
     contexts: &'static mut Contexts,
 }
 
@@ -18,14 +18,14 @@ impl DissectorHelper {
         data: SuperDissectorData,
         packet_info: PacketInfo,
         tvb: *mut sys::tvbuff_t,
-        tree: DissectorTree,
+        root: DissectorTree,
         contexts: &'static mut Contexts,
     ) -> Self {
         DissectorHelper {
             _data: data,
             packet_info,
             tvb,
-            tree,
+            root,
             contexts,
         }
     }
@@ -46,8 +46,8 @@ impl DissectorHelper {
         &self.packet_info
     }
 
-    pub fn tree_mut(&mut self) -> &mut DissectorTree {
-        &mut self.tree
+    pub fn root(&mut self) -> &mut DissectorTree {
+        &mut self.root
     }
 
     pub fn payload(&mut self) -> Vec<u8> {

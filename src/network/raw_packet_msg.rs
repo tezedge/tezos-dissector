@@ -9,8 +9,8 @@ pub enum RawMessageDirection {
 impl fmt::Display for RawMessageDirection {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            INCOMING => write!(f, "incoming"),
-            OUTGOING => write!(f, "outgoing"),
+            RawMessageDirection::INCOMING => write!(f, "incoming"),
+            RawMessageDirection::OUTGOING => write!(f, "outgoing"),
         }
     }
 }

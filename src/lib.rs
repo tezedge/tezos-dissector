@@ -4,5 +4,5 @@ mod dissector;
 
 mod plugin;
 
-#[allow(warnings)]
-mod network;
+#[allow(dead_code)]
+pub mod network;

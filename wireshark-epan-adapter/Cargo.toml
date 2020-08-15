@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["Vladislav Melnik <vladislav.melnik@simplestaking.com>"]
 edition = "2018"
 
+[[example]]
+name = "tree"
+path = "examples/tree.rs"
+crate-type = ["cdylib"]
+
 [build-dependencies]
 bindgen = "0.54"
 

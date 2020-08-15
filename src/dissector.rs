@@ -38,7 +38,9 @@ impl Dissector for TezosDissector {
         }
     }
 
-    fn consume(&mut self, helper: DissectorHelper) -> usize {
+    fn consume(&mut self, helper: &mut DissectorHelper) -> usize {
+        use wireshark_epan_adapter::dissector::DissectorTreeLeaf::{Nothing, String};
+
         pub fn process_connection_msg(
             payload: Vec<u8>,
         ) -> Result<ConnectionMessage, failure::Error> {
@@ -50,19 +52,19 @@ impl Dissector for TezosDissector {
             Ok(conn_msg)
         }
 
-        let mut helper = helper;
         let payload = helper.payload();
         let length = payload.len();
         let mut _c = helper.context::<Context>();
+        let root = helper.root();
+
+        let mut main_node = root.leaf("tezos\0", 0..length, Nothing).subtree();
         match process_connection_msg(payload) {
             Ok(connection) => {
-                let subtree = helper.tree_mut().subtree(0, 0..length);
-                helper.tree_mut().add_string_field(
-                    &subtree,
+                main_node.leaf(
                     "tezos.connection_msg\0",
-                    format!("{:?}\0", connection),
                     0..length,
-                )
+                    String(format!("{:?}", connection)),
+                );
             },
             Err(_) => (),
         }
@@ -70,19 +72,18 @@ impl Dissector for TezosDissector {
     }
 }
 
-pub struct Context(Vec<u8>);
+pub enum Context {
+    Nothing,
+}
 
 impl Default for Context {
     fn default() -> Self {
-        let mut x = Vec::new();
-        x.resize(0x100, 0);
-        log::info!("allocated {:?}", x.as_ptr());
-        Context(x)
+        Context::Nothing
     }
 }
 
 impl Drop for Context {
     fn drop(&mut self) {
-        log::info!("dropped {:?}", self.0.as_ptr());
+        log::info!("context drop {:?}", self as *mut _);
     }
 }

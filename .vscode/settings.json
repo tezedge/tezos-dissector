@@ -9,6 +9,7 @@
         "cflags",
         "cmake",
         "concat",
+        "decrypter",
         "destport",
         "ftenum",
         "ftypes",

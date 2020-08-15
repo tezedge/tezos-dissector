@@ -7,8 +7,11 @@ use crate::sys;
 use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, DissectorTree};
 
 pub trait Dissector {
-    fn prefs_update(&mut self, filenames: Vec<&str>);
-    fn consume(&mut self, helper: DissectorHelper) -> usize;
+    fn prefs_update(&mut self, filenames: Vec<&str>) {
+        let _ = filenames;
+    }
+
+    fn consume(&mut self, helper: &mut DissectorHelper) -> usize;
 }
 
 pub(crate) struct Contexts {
@@ -162,9 +165,17 @@ impl<'a> Plugin<'a> {
     }
 
     fn fields(&self) -> BTreeMap<&'a str, i32> {
-        self.field_descriptors
+        use std::iter;
+
+        // subfields names
+        let it = self
+            .field_descriptors
             .iter()
-            .map(|(field, descriptor)| (descriptor.abbrev(), field.clone()))
+            .map(|(field, descriptor)| (descriptor.abbrev(), field.clone()));
+
+        // self name
+        iter::once((self.name_descriptor.filter_name, self.privates.proto_handle))
+            .chain(it)
             .collect()
     }
 }
@@ -320,21 +331,14 @@ impl Plugin<'static> {
                 data: *mut c_void,
             ) -> sys::gboolean {
                 let d = dissector_mut();
-                let fields = context().fields();
-                let helper = DissectorHelper::new(
+                let mut helper = DissectorHelper::new(
                     SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
                     PacketInfo::new(pinfo),
                     tvb,
-                    DissectorTree::new(
-                        context().privates.proto_handle,
-                        fields.clone(),
-                        context().ett.clone(),
-                        tvb,
-                        tree,
-                    ),
+                    DissectorTree::root(context().fields(), context().ett.clone(), tvb, tree),
                     &mut context_mut().contexts,
                 );
-                let processed_length = d.consume(helper);
+                let processed_length = d.consume(&mut helper);
                 processed_length as _
             }
 

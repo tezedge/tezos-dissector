@@ -1,84 +1,84 @@
-use std::{collections::BTreeMap, ops::Range};
+use std::{collections::BTreeMap, ops::Range, rc::Rc, cell::RefCell};
 use crate::sys;
 
-pub struct DissectorSubtree(*mut sys::proto_tree);
-
-pub struct DissectorTree {
-    proto_handle: i32,
+struct Common {
     fields: BTreeMap<&'static str, i32>,
     ett: Vec<i32>,
     tvb: *mut sys::tvbuff_t,
-    tree: *mut sys::proto_tree,
+}
+
+pub struct DissectorTree {
+    common: Rc<RefCell<Common>>,
+    parent_path: &'static str,
+    base: usize,
+    node: *mut sys::proto_tree,
+}
+
+pub enum DissectorTreeLeaf {
+    Nothing,
+    String(String),
+    Int64Dec(i64),
 }
 
 impl DissectorTree {
-    pub(crate) fn new(
-        proto_handle: i32,
+    pub(crate) fn root(
         fields: BTreeMap<&'static str, i32>,
         ett: Vec<i32>,
         tvb: *mut sys::tvbuff_t,
-        tree: *mut sys::proto_tree,
+        root: *mut sys::proto_tree,
     ) -> Self {
+        let common = Common { fields, ett, tvb };
+
         DissectorTree {
-            proto_handle,
-            fields,
-            tvb,
-            ett,
-            tree,
+            common: Rc::new(RefCell::new(common)),
+            parent_path: "#",
+            base: 0,
+            node: root,
         }
     }
 
-    pub fn subtree(&mut self, index: usize, range: Range<usize>) -> DissectorSubtree {
-        unsafe {
-            let ti = sys::proto_tree_add_item(
-                self.tree,
-                self.proto_handle,
-                self.tvb,
-                range.start as _,
-                range.len() as _,
-                sys::ENC_NA,
-            );
-            DissectorSubtree(sys::proto_item_add_subtree(ti, self.ett[index]))
+    pub fn subtree(&mut self) -> Self {
+        DissectorTree {
+            common: self.common.clone(),
+            parent_path: self.parent_path,
+            base: self.base,
+            node: unsafe { sys::proto_item_add_subtree(self.node, self.common.borrow().ett[0]) },
         }
     }
 
-    pub fn add_string_field(
-        &mut self,
-        subtree: &DissectorSubtree,
-        field_abbrev: &'static str,
-        value: String,
-        range: Range<usize>,
-    ) {
-        let mut value = value;
-        value.push('\0');
-        unsafe {
-            sys::proto_tree_add_string(
-                subtree.0,
-                self.fields[field_abbrev],
-                self.tvb,
-                range.start as _,
-                range.len() as _,
-                value.as_ptr() as _,
-            );
-        }
-    }
+    pub fn leaf(&mut self, path: &'static str, range: Range<usize>, v: DissectorTreeLeaf) -> Self {
+        let node = match v {
+            DissectorTreeLeaf::Nothing => unsafe {
+                sys::proto_tree_add_item(
+                    self.node,
+                    self.common.borrow().fields[path],
+                    self.common.borrow().tvb,
+                    (self.base + range.start) as _,
+                    range.len() as _,
+                    sys::ENC_NA,
+                )
+            },
+            DissectorTreeLeaf::String(mut value) => {
+                value.push('\0');
+                unsafe {
+                    sys::proto_tree_add_string(
+                        self.node,
+                        self.common.borrow().fields[path],
+                        self.common.borrow().tvb,
+                        (self.base + range.start) as _,
+                        range.len() as _,
+                        value.as_ptr() as _,
+                    )
+                }
+            },
+            DissectorTreeLeaf::Int64Dec(_) => unimplemented!(),
+        };
 
-    pub fn add_int_field(
-        &mut self,
-        subtree: &DissectorSubtree,
-        field_abbrev: &'static str,
-        value: i64,
-        range: Range<usize>,
-    ) {
-        unsafe {
-            sys::proto_tree_add_int64(
-                subtree.0,
-                self.fields[field_abbrev],
-                self.tvb,
-                range.start as _,
-                range.len() as _,
-                value,
-            );
+        DissectorTree {
+            common: self.common.clone(),
+            parent_path: path,
+            base: range.start,
+            node,
         }
     }
 }
