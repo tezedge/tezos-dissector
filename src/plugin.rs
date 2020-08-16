@@ -1,4 +1,7 @@
-use super::dissector::{TezosDissector, Context};
+use super::{
+    dissector::TezosDissector,
+    context::Context,
+};
 
 #[rustfmt::skip]
 use wireshark_epan_adapter::{
@@ -30,28 +33,44 @@ extern "C" fn plugin_register() {
         filter_name: "tezos\0",
     })
     .add_field(FieldDescriptor::Int64Dec {
-        name: "Tezos Packet Counter\0",
-        abbrev: "tezos.packet_counter\0",
-    })
-    .add_field(FieldDescriptor::Int64Dec {
-        name: "Tezos Payload Length\0",
-        abbrev: "tezos.payload_len\0",
+        name: "Chunk Length\0",
+        abbrev: "tezos.chunk_length\0",
     })
     .add_field(FieldDescriptor::String {
-        name: "Tezos Connection Msg\0",
+        name: "Buffering incomplete chunk\0",
+        abbrev: "tezos.buffering\0",
+    })
+    .add_field(FieldDescriptor::String {
+        name: "Conversation\0",
+        abbrev: "tezos.conversation_id\0",
+    })
+    .add_field(FieldDescriptor::String {
+        name: "Connection Message\0",
         abbrev: "tezos.connection_msg\0",
     })
+    .add_field(FieldDescriptor::Int64Dec {
+        name: "Port\0",
+        abbrev: "tezos.connection_msg.port\0",
+    })
     .add_field(FieldDescriptor::String {
-        name: "Tezos Decrypted Msg\0",
+        name: "Public Key\0",
+        abbrev: "tezos.connection_msg.pk\0",
+    })
+    .add_field(FieldDescriptor::String {
+        name: "Proof Of Work\0",
+        abbrev: "tezos.connection_msg.pow\0",
+    })
+    .add_field(FieldDescriptor::String {
+        name: "Nonce\0",
+        abbrev: "tezos.connection_msg.nonce\0",
+    })
+    .add_field(FieldDescriptor::String {
+        name: "Version\0",
+        abbrev: "tezos.connection_msg.version\0",
+    })
+    .add_field(FieldDescriptor::String {
+        name: "Decrypted Message\0",
         abbrev: "tezos.decrypted_msg\0",
-    })
-    .add_field(FieldDescriptor::String {
-        name: "Tezos Error\0",
-        abbrev: "tezos.error\0",
-    })
-    .add_field(FieldDescriptor::String {
-        name: "Tezos Debug\0",
-        abbrev: "tezos.debug\0",
     })
     .set_ett_number(1)
     .set_pref_filename(PrefFilenameDescriptor {

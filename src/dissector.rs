@@ -1,18 +1,5 @@
-use wireshark_epan_adapter::{
-    Dissector,
-    dissector::{DissectorHelper, Tree},
-};
-use serde::Deserialize;
-use crate::network::prelude::ConnectionMessage;
-
-#[derive(Deserialize, Clone, Debug, PartialEq)]
-/// Node identity information
-pub struct Identity {
-    pub peer_id: String,
-    pub public_key: String,
-    pub secret_key: String,
-    pub proof_of_work_stamp: String,
-}
+use wireshark_epan_adapter::{Dissector, dissector::{DissectorHelper, Tree, PacketInfo}};
+use super::{context::Context, identity::Identity};
 
 pub struct TezosDissector {
     identity: Option<Identity>,
@@ -26,66 +13,32 @@ impl TezosDissector {
 
 impl Dissector for TezosDissector {
     fn prefs_update(&mut self, filenames: Vec<&str>) {
-        use std::fs;
-        use crypto::hash::HashType;
-
-        // TODO: error handling
         if let Some(identity_path) = filenames.first().cloned() {
             if !identity_path.is_empty() {
-                let content = fs::read_to_string(identity_path).unwrap();
-                let mut identity: Identity = serde_json::from_str(&content).unwrap();
-                let decoded = hex::decode(&identity.public_key).unwrap();
-                identity.public_key = HashType::CryptoboxPublicKeyHash.bytes_to_string(&decoded);
-                self.identity = Some(identity);
+                self.identity = Identity::from_path(identity_path)
+                    .map_err(|e| {
+                        log::error!("Identity: {}", e);
+                        e
+                    })
+                    .ok();
             }
         }
     }
 
-    fn consume(&mut self, helper: &mut DissectorHelper, root: &mut Tree) -> usize {
-        use wireshark_epan_adapter::dissector::TreeLeaf;
-
-        pub fn process_connection_msg(
-            payload: Vec<u8>,
-        ) -> Result<ConnectionMessage, failure::Error> {
-            use std::convert::TryFrom;
-            use tezos_messages::p2p::binary_message::BinaryChunk;
-
-            let chunk = BinaryChunk::try_from(payload)?;
-            let conn_msg = ConnectionMessage::try_from(chunk)?;
-            Ok(conn_msg)
-        }
-
+    fn consume(
+        &mut self,
+        helper: &mut DissectorHelper,
+        root: &mut Tree,
+        packet_info: &PacketInfo,
+    ) -> usize {
         let payload = helper.payload();
-        let length = payload.len();
-        let mut _c = helper.context::<Context>();
-
-        let mut main_node = root.leaf("tezos", 0..length, TreeLeaf::N).subtree();
-        match process_connection_msg(payload) {
-            Ok(connection) => {
-                main_node.leaf(
-                    "connection_msg",
-                    0..length,
-                    TreeLeaf::Display(format!("{:?}", connection)),
-                );
-            },
-            Err(_) => (),
+        let context = helper.context::<Context>(packet_info);
+        context.consume(payload.as_ref(), packet_info);
+        if !context.invalid() {
+            context.visualize(payload.as_ref(), packet_info, root, &self.identity);
+            payload.len()
+        } else {
+            0
         }
-        length
-    }
-}
-
-pub enum Context {
-    Nothing,
-}
-
-impl Default for Context {
-    fn default() -> Self {
-        Context::Nothing
-    }
-}
-
-impl Drop for Context {
-    fn drop(&mut self) {
-        log::info!("context drop {:?}", self as *mut _);
     }
 }

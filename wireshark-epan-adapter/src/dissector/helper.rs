@@ -7,7 +7,6 @@ pub enum SuperDissectorData {
 
 pub struct DissectorHelper {
     _data: SuperDissectorData,
-    packet_info: PacketInfo,
     tvb: *mut sys::tvbuff_t,
     contexts: &'static mut Contexts,
 }
@@ -15,32 +14,27 @@ pub struct DissectorHelper {
 impl DissectorHelper {
     pub(crate) fn new(
         data: SuperDissectorData,
-        packet_info: PacketInfo,
         tvb: *mut sys::tvbuff_t,
         contexts: &'static mut Contexts,
     ) -> Self {
         DissectorHelper {
             _data: data,
-            packet_info,
             tvb,
             contexts,
         }
     }
 
     // safety, C should be the same in `Plugin::new::<C>` and in `DissectorHelper::context::<C>`
-    pub fn context<C>(&mut self) -> &mut C
+    pub fn context<C>(&mut self, packet_info: &PacketInfo) -> &mut C
     where
         C: 'static + Default,
     {
         let key = unsafe {
-            let pinfo = self.packet_info.inner_mut();
-            sys::find_or_create_conversation(pinfo)
+            let pinfo = packet_info.inner() as *const _ as *mut _;
+            let conversation = sys::find_or_create_conversation(pinfo);
+            sys::get_tcp_conversation_data(conversation, pinfo)
         };
-        self.contexts.get_or_new(key)
-    }
-
-    pub fn packet_info(&self) -> &PacketInfo {
-        &self.packet_info
+        self.contexts.get_or_new(key as _)
     }
 
     pub fn payload(&mut self) -> Vec<u8> {

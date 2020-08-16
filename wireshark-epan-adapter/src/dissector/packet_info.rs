@@ -17,10 +17,6 @@ impl PacketInfo {
         unsafe { &*self.inner }
     }
 
-    pub(crate) fn inner_mut(&mut self) -> &mut sys::packet_info {
-        unsafe { &mut *self.inner }
-    }
-
     fn fd(&self) -> &sys::frame_data {
         unsafe { &*self.inner().fd }
     }

@@ -11,16 +11,21 @@ pub trait Dissector {
         let _ = filenames;
     }
 
-    fn consume(&mut self, helper: &mut DissectorHelper, root: &mut Tree) -> usize;
+    fn consume(
+        &mut self,
+        helper: &mut DissectorHelper,
+        root: &mut Tree,
+        packet_info: &PacketInfo,
+    ) -> usize;
 }
 
 pub(crate) struct Contexts {
-    inner: BTreeMap<*mut sys::conversation, *mut ()>,
+    inner: BTreeMap<*mut c_void, *mut ()>,
     clear: Box<dyn Fn(&mut Contexts)>,
 }
 
 impl Contexts {
-    fn inner_mut<C>(&mut self) -> &mut BTreeMap<*mut sys::conversation, C> {
+    fn inner_mut<C>(&mut self) -> &mut BTreeMap<*mut c_void, C> {
         use std::mem;
 
         unsafe { mem::transmute(&mut self.inner) }
@@ -45,7 +50,7 @@ impl Contexts {
         self.inner_mut::<C>().clear();
     }
 
-    pub fn get_or_new<C>(&mut self, key: *mut sys::conversation) -> &mut C
+    pub fn get_or_new<C>(&mut self, key: *mut c_void) -> &mut C
     where
         C: 'static + Default,
     {
@@ -336,12 +341,12 @@ impl Plugin<'static> {
                 let d = dissector_mut();
                 let mut helper = DissectorHelper::new(
                     SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
-                    PacketInfo::new(pinfo),
                     tvb,
                     &mut context_mut().contexts,
                 );
                 let mut tree = Tree::root(context().fields(), context().ett.clone(), tvb, tree);
-                let processed_length = d.consume(&mut helper, &mut tree);
+                let packet_info = PacketInfo::new(pinfo);
+                let processed_length = d.consume(&mut helper, &mut tree, &packet_info);
                 processed_length as _
             }
 

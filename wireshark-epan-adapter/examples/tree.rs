@@ -3,7 +3,7 @@ use wireshark_epan_adapter::{
     Plugin, NameDescriptor, FieldDescriptor,
     DissectorDescriptor,
     Dissector,
-    dissector::{DissectorHelper, Tree},
+    dissector::{DissectorHelper, Tree, PacketInfo},
 };
 
 #[no_mangle]
@@ -54,25 +54,30 @@ extern "C" fn plugin_register() {
 struct SimpleDissector;
 
 impl Dissector for SimpleDissector {
-    fn consume(&mut self, helper: &mut DissectorHelper, root: &mut Tree) -> usize {
+    fn consume(
+        &mut self,
+        helper: &mut DissectorHelper,
+        root: &mut Tree, 
+        _packet_info: &PacketInfo) -> usize
+    {
         use wireshark_epan_adapter::dissector::TreeLeaf;
 
         let payload = helper.payload();
         let length = payload.len();
 
         let mut main_node = root
-            .leaf("simple_tree_example", 0..length, TreeLeaf::N)
+            .add("simple_tree_example", 0..length, TreeLeaf::nothing())
             .subtree();
         if length > 100 {
             let mut foo_node = main_node
-                .leaf("foo", 0..length, TreeLeaf::Display("foo data"))
+                .add("foo", 0..length, TreeLeaf::Display("foo data"))
                 .subtree();
             let mut bar0_node = foo_node
-                .leaf("bar0", 0..100, TreeLeaf::Display("bar0 data"))
+                .add("bar0", 0..100, TreeLeaf::Display("bar0 data"))
                 .subtree();
-            bar0_node.leaf("baz0", 0..20, TreeLeaf::Display("baz0 data"));
-            bar0_node.leaf("baz1", 20..100, TreeLeaf::Display("baz1 data"));
-            foo_node.leaf("bar1", 100..length, TreeLeaf::Display("bar1 data"));
+            bar0_node.add("baz0", 0..20, TreeLeaf::Display("baz0 data"));
+            bar0_node.add("baz1", 20..100, TreeLeaf::Display("baz1 data"));
+            foo_node.add("bar1", 100..length, TreeLeaf::Display("bar1 data"));
         }
 
         length

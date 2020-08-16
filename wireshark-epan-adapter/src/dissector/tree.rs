@@ -24,7 +24,13 @@ where
 }
 
 impl TreeLeaf<String> {
-    pub const N: Self = TreeLeaf::Nothing;
+    pub fn dec(v: i64) -> Self {
+        TreeLeaf::Int64Dec(v)
+    }
+
+    pub fn nothing() -> Self {
+        TreeLeaf::Nothing
+    }
 }
 
 impl Tree {
@@ -53,7 +59,7 @@ impl Tree {
         }
     }
 
-    pub fn leaf<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
+    pub fn add<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
     where
         D: fmt::Display,
         P: AsRef<str>,

@@ -2,6 +2,10 @@
 
 mod dissector;
 
+mod context;
+
+mod identity;
+
 mod plugin;
 
 #[allow(dead_code)]
