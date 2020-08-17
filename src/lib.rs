@@ -2,11 +2,8 @@
 
 mod dissector;
 
-mod context;
+mod conversation;
 
 mod identity;
 
 mod plugin;
-
-#[allow(dead_code)]
-pub mod network;

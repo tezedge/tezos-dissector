@@ -9,9 +9,9 @@ use tezos_messages::p2p::{
         cache::{CachedData, CacheReader, CacheWriter, BinaryDataCache},
     },
 };
-use std::{io::Cursor, convert::TryFrom};
 use serde::{Serialize, Deserialize};
 use tezos_encoding::encoding::{Field, HasEncoding, Encoding};
+use std::{io::Cursor, convert::TryFrom};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 /// Mapped connection message as defined in tezos protocol
@@ -24,28 +24,6 @@ pub struct ConnectionMessage {
 
     #[serde(skip_serializing)]
     body: BinaryDataCache,
-}
-
-impl ConnectionMessage {
-    /// Create new connection message from its parts
-    pub fn new(
-        port: u16,
-        public_key: &str,
-        proof_of_work_stamp: &str,
-        message_nonce: &[u8],
-        versions: Vec<Version>,
-    ) -> Self {
-        ConnectionMessage {
-            port,
-            versions,
-            public_key: hex::decode(public_key)
-                .expect("Failed to decode public ket from hex string"),
-            proof_of_work_stamp: hex::decode(proof_of_work_stamp)
-                .expect("Failed to decode proof of work stamp from hex string"),
-            message_nonce: message_nonce.into(),
-            body: Default::default(),
-        }
-    }
 }
 
 impl TryFrom<BinaryChunk> for ConnectionMessage {

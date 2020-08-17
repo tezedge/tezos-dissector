@@ -1,5 +1,5 @@
 use wireshark_epan_adapter::{Dissector, dissector::{DissectorHelper, Tree, PacketInfo}};
-use super::{context::Context, identity::Identity};
+use super::{conversation::Context, identity::Identity};
 
 pub struct TezosDissector {
     identity: Option<Identity>,
@@ -33,9 +33,11 @@ impl Dissector for TezosDissector {
     ) -> usize {
         let payload = helper.payload();
         let context = helper.context::<Context>(packet_info);
-        context.consume(payload.as_ref(), packet_info);
+        if !packet_info.visited() {
+            context.consume(payload.as_ref(), packet_info, self.identity.as_ref());
+        }
         if !context.invalid() {
-            context.visualize(payload.as_ref(), packet_info, root, &self.identity);
+            context.visualize(payload.as_ref(), packet_info, root);
             payload.len()
         } else {
             0

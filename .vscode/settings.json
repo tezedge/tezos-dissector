@@ -19,6 +19,7 @@
         "libtezos",
         "memset",
         "pinfo",
+        "precompute",
         "prefs",
         "proto",
         "protoinfo",

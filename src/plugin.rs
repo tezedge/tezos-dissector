@@ -1,6 +1,6 @@
 use super::{
     dissector::TezosDissector,
-    context::Context,
+    conversation::Context,
 };
 
 #[rustfmt::skip]
@@ -33,7 +33,7 @@ extern "C" fn plugin_register() {
         filter_name: "tezos\0",
     })
     .add_field(FieldDescriptor::Int64Dec {
-        name: "Chunk Length\0",
+        name: "Chunk length\0",
         abbrev: "tezos.chunk_length\0",
     })
     .add_field(FieldDescriptor::String {
@@ -45,7 +45,7 @@ extern "C" fn plugin_register() {
         abbrev: "tezos.conversation_id\0",
     })
     .add_field(FieldDescriptor::String {
-        name: "Connection Message\0",
+        name: "Connection message\0",
         abbrev: "tezos.connection_msg\0",
     })
     .add_field(FieldDescriptor::Int64Dec {
@@ -53,11 +53,11 @@ extern "C" fn plugin_register() {
         abbrev: "tezos.connection_msg.port\0",
     })
     .add_field(FieldDescriptor::String {
-        name: "Public Key\0",
+        name: "Public key\0",
         abbrev: "tezos.connection_msg.pk\0",
     })
     .add_field(FieldDescriptor::String {
-        name: "Proof Of Work\0",
+        name: "Proof of work\0",
         abbrev: "tezos.connection_msg.pow\0",
     })
     .add_field(FieldDescriptor::String {
@@ -67,6 +67,14 @@ extern "C" fn plugin_register() {
     .add_field(FieldDescriptor::String {
         name: "Version\0",
         abbrev: "tezos.connection_msg.version\0",
+    })
+    .add_field(FieldDescriptor::String {
+        name: "Error\0",
+        abbrev: "tezos.error\0",
+    })
+    .add_field(FieldDescriptor::String {
+        name: "Identity required\0",
+        abbrev: "tezos.identity_required\0",
     })
     .add_field(FieldDescriptor::String {
         name: "Decrypted Message\0",
