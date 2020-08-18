@@ -1,4 +1,7 @@
-use wireshark_epan_adapter::{Dissector, dissector::{DissectorHelper, Tree, PacketInfo}};
+use wireshark_epan_adapter::{
+    Dissector,
+    dissector::{DissectorHelper, Tree, PacketInfo},
+};
 use super::{conversation::Context, identity::Identity};
 
 pub struct TezosDissector {

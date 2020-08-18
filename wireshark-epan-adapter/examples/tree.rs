@@ -57,9 +57,9 @@ impl Dissector for SimpleDissector {
     fn consume(
         &mut self,
         helper: &mut DissectorHelper,
-        root: &mut Tree, 
-        _packet_info: &PacketInfo) -> usize
-    {
+        root: &mut Tree,
+        _packet_info: &PacketInfo,
+    ) -> usize {
         use wireshark_epan_adapter::dissector::TreeLeaf;
 
         let payload = helper.payload();

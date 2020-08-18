@@ -1,7 +1,4 @@
-use super::{
-    dissector::TezosDissector,
-    conversation::Context,
-};
+use super::{dissector::TezosDissector, conversation::Context};
 
 #[rustfmt::skip]
 use wireshark_epan_adapter::{

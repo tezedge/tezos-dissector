@@ -1,4 +1,7 @@
-use std::{fmt, net::{SocketAddr, IpAddr}};
+use std::{
+    fmt,
+    net::{SocketAddr, IpAddr},
+};
 use crate::sys;
 
 /// It might panic or return error, but let's do not care
@@ -9,7 +12,7 @@ pub enum SocketAddress {
         ip_type: i32,
         ip: Vec<u8>,
         port: u16,
-    }
+    },
 }
 
 impl fmt::Display for SocketAddress {

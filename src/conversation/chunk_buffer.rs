@@ -1,9 +1,5 @@
 use tezos_messages::p2p::binary_message::{BinaryChunk, BinaryChunkError, CONTENT_LENGTH_FIELD_BYTES};
-use std::{
-    collections::BTreeMap,
-    convert::TryFrom,
-    task::Poll,
-};
+use std::{collections::BTreeMap, convert::TryFrom, task::Poll};
 
 pub struct ChunkBuffer {
     first_frame: u64,
@@ -45,7 +41,9 @@ impl ChunkBuffer {
     }
 
     pub fn chunk_index(&self, frame_index: u64) -> Option<ChunkIndex> {
-        self.chunk_description.get(&FrameIndex(frame_index)).cloned()
+        self.chunk_description
+            .get(&FrameIndex(frame_index))
+            .cloned()
     }
 
     pub fn last_chunks_index(&self) -> u64 {
@@ -95,18 +93,17 @@ impl ChunkBuffer {
         // and does not do allocation in case of error
         match BinaryChunk::try_from(self.buffer.clone()) {
             Ok(chunk) => {
-                self.chunk_description.insert(FrameIndex(frame_index), chunk_index);
+                self.chunk_description
+                    .insert(FrameIndex(frame_index), chunk_index);
                 self.first_frame = 0;
                 self.chunk_index += 1;
                 self.frames_count = 0;
                 self.buffer.clear();
                 Poll::Ready(Ok(chunk))
             },
-            Err(BinaryChunkError::IncorrectSizeInformation { 
-                expected,
-                actual,
-            }) => {
-                self.chunk_description.insert(FrameIndex(frame_index), chunk_index);
+            Err(BinaryChunkError::IncorrectSizeInformation { expected, actual }) => {
+                self.chunk_description
+                    .insert(FrameIndex(frame_index), chunk_index);
                 if actual < expected {
                     self.frames_count += 1;
                     Poll::Pending
@@ -122,7 +119,8 @@ impl ChunkBuffer {
                 }
             },
             Err(BinaryChunkError::MissingSizeInformation) => {
-                self.chunk_description.insert(FrameIndex(frame_index), chunk_index);
+                self.chunk_description
+                    .insert(FrameIndex(frame_index), chunk_index);
                 Poll::Pending
             },
             Err(BinaryChunkError::OverflowError) => {
