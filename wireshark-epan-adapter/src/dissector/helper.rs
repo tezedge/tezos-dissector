@@ -1,5 +1,5 @@
 use super::PacketInfo;
-use crate::{sys, Contexts};
+use crate::sys;
 
 pub enum SuperDissectorData {
     Tcp(*mut sys::tcpinfo),
@@ -8,33 +8,20 @@ pub enum SuperDissectorData {
 pub struct DissectorHelper {
     _data: SuperDissectorData,
     tvb: *mut sys::tvbuff_t,
-    contexts: &'static mut Contexts,
 }
 
 impl DissectorHelper {
-    pub(crate) fn new(
-        data: SuperDissectorData,
-        tvb: *mut sys::tvbuff_t,
-        contexts: &'static mut Contexts,
-    ) -> Self {
-        DissectorHelper {
-            _data: data,
-            tvb,
-            contexts,
-        }
+    pub(crate) fn new(data: SuperDissectorData, tvb: *mut sys::tvbuff_t) -> Self {
+        DissectorHelper { _data: data, tvb }
     }
 
-    // safety, C should be the same in `Plugin::new::<C>` and in `DissectorHelper::context::<C>`
-    pub fn context<C>(&mut self, packet_info: &PacketInfo) -> &mut C
-    where
-        C: 'static + Default,
-    {
+    pub fn context_key(&mut self, packet_info: &PacketInfo) -> usize {
         let key = unsafe {
             let pinfo = packet_info.inner() as *const _ as *mut _;
             let conversation = sys::find_or_create_conversation(pinfo);
             sys::get_tcp_conversation_data(conversation, pinfo)
         };
-        self.contexts.get_or_new(key as _)
+        key as _
     }
 
     pub fn payload(&mut self) -> Vec<u8> {

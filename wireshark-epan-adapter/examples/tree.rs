@@ -17,7 +17,7 @@ static plugin_want_minor: i32 = 2;
 
 #[no_mangle]
 extern "C" fn plugin_register() {
-    Plugin::new::<usize>(NameDescriptor {
+    Plugin::new(NameDescriptor {
         name: "Simple Protocol\0",
         short_name: "simple_protocol\0",
         filter_name: "simple_tree_example\0",
@@ -81,5 +81,11 @@ impl Dissector for SimpleDissector {
         }
 
         length
+    }
+}
+
+impl Drop for SimpleDissector {
+    fn drop(&mut self) {
+        log::info!("drop");
     }
 }

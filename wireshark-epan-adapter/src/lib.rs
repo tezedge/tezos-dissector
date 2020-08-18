@@ -9,6 +9,5 @@ mod plugin;
 pub use self::plugin::{
     Plugin, NameDescriptor, FieldDescriptor, PrefFilenameDescriptor, DissectorDescriptor, Dissector,
 };
-use self::plugin::Contexts;
 
 pub mod dissector;

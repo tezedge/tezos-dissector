@@ -2,15 +2,20 @@ use wireshark_epan_adapter::{
     Dissector,
     dissector::{DissectorHelper, Tree, PacketInfo},
 };
+use std::collections::BTreeMap;
 use super::{conversation::Context, identity::Identity};
 
 pub struct TezosDissector {
     identity: Option<Identity>,
+    contexts: BTreeMap<usize, Context>,
 }
 
 impl TezosDissector {
     pub fn new() -> Self {
-        TezosDissector { identity: None }
+        TezosDissector {
+            identity: None,
+            contexts: BTreeMap::new(),
+        }
     }
 }
 
@@ -35,7 +40,8 @@ impl Dissector for TezosDissector {
         packet_info: &PacketInfo,
     ) -> usize {
         let payload = helper.payload();
-        let context = helper.context::<Context>(packet_info);
+        let context_key = helper.context_key(packet_info);
+        let context = self.contexts.entry(context_key).or_default();
         if !packet_info.visited() {
             context.consume(payload.as_ref(), packet_info, self.identity.as_ref());
         }

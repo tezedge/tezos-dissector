@@ -19,51 +19,13 @@ pub trait Dissector {
     ) -> usize;
 }
 
-pub(crate) struct Contexts {
-    inner: BTreeMap<*mut c_void, *mut ()>,
-    clear: Box<dyn Fn(&mut Contexts)>,
-}
-
-impl Contexts {
-    fn inner_mut<C>(&mut self) -> &mut BTreeMap<*mut c_void, C> {
-        use std::mem;
-
-        unsafe { mem::transmute(&mut self.inner) }
-    }
-
-    pub fn new<C>() -> Self
-    where
-        C: 'static + Default,
-    {
-        use std::mem;
-
-        Contexts {
-            inner: unsafe { mem::transmute(BTreeMap::<*mut sys::conversation, C>::new()) },
-            clear: Box::new(Contexts::clear::<C>),
-        }
-    }
-
-    pub fn clear<C>(&mut self)
-    where
-        C: 'static + Default,
-    {
-        self.inner_mut::<C>().clear();
-    }
-
-    pub fn get_or_new<C>(&mut self, key: *mut c_void) -> &mut C
-    where
-        C: 'static + Default,
-    {
-        self.inner_mut().entry(key).or_default()
-    }
-}
-
 struct PluginPrivates<'a> {
     plugin: sys::proto_plugin,
     proto_handle: i32,
     hf: Vec<sys::hf_register_info>,
     ett: Vec<&'a mut c_int>,
     pref_filenames: Vec<*const c_char>,
+    callback_registered: bool,
 }
 
 impl<'a> PluginPrivates<'a> {
@@ -77,6 +39,7 @@ impl<'a> PluginPrivates<'a> {
             hf: Vec::new(),
             ett: Vec::new(),
             pref_filenames: Vec::new(),
+            callback_registered: false,
         }
     }
 }
@@ -88,7 +51,6 @@ pub struct Plugin<'a> {
     ett: Vec<i32>,
     filename_descriptors: Vec<PrefFilenameDescriptor<'a>>,
     dissector_descriptor: Option<DissectorDescriptor<'a>>,
-    contexts: Contexts,
 }
 
 pub struct NameDescriptor<'a> {
@@ -130,10 +92,7 @@ pub struct DissectorDescriptor<'a> {
 }
 
 impl<'a> Plugin<'a> {
-    pub fn new<C>(name_descriptor: NameDescriptor<'a>) -> Self
-    where
-        C: 'static + Default,
-    {
+    pub fn new(name_descriptor: NameDescriptor<'a>) -> Self {
         Plugin {
             privates: PluginPrivates::empty(),
             name_descriptor: name_descriptor,
@@ -141,7 +100,6 @@ impl<'a> Plugin<'a> {
             ett: Vec::new(),
             filename_descriptors: Vec::new(),
             dissector_descriptor: None,
-            contexts: Contexts::new::<C>(),
         }
     }
 
@@ -316,17 +274,12 @@ impl Plugin<'static> {
         unsafe extern "C" fn wmem_cb(
             _allocator: *mut sys::wmem_allocator_t,
             ev: sys::wmem_cb_event_t,
-            data: *mut std::os::raw::c_void,
+            _data: *mut std::os::raw::c_void,
         ) -> sys::gboolean {
             match ev {
-                sys::_wmem_cb_event_t_WMEM_CB_DESTROY_EVENT => {
-                    log::error!("BUG, should not call `wmem_cb` with WMEM_CB_DESTROY_EVENT")
-                },
-                _ => (),
+                sys::_wmem_cb_event_t_WMEM_CB_DESTROY_EVENT => (),
+                _ => context_mut().dissector_descriptor = None,
             }
-
-            let clear = &mut (&mut *(data as *mut Contexts)).clear;
-            clear(&mut *(data as *mut Contexts));
 
             0
         }
@@ -338,12 +291,18 @@ impl Plugin<'static> {
                 tree: *mut sys::proto_tree,
                 data: *mut c_void,
             ) -> sys::gboolean {
+                if !context_mut().privates.callback_registered {
+                    sys::wmem_register_callback(
+                        sys::wmem_file_scope(),
+                        Some(wmem_cb),
+                        ptr::null_mut(),
+                    );
+                    context_mut().privates.callback_registered = true;
+                }
+
                 let d = dissector_mut();
-                let mut helper = DissectorHelper::new(
-                    SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
-                    tvb,
-                    &mut context_mut().contexts,
-                );
+                let mut helper =
+                    DissectorHelper::new(SuperDissectorData::Tcp(data as *mut sys::tcpinfo), tvb);
                 let mut tree = Tree::root(context().fields(), context().ett.clone(), tvb, tree);
                 let packet_info = PacketInfo::new(pinfo);
                 let processed_length = d.consume(&mut helper, &mut tree, &packet_info);
@@ -361,9 +320,6 @@ impl Plugin<'static> {
                     sys::heuristic_enable_e_HEURISTIC_ENABLE,
                 );
             }
-
-            let user_data = &mut context_mut().contexts as *mut Contexts as _;
-            sys::wmem_register_callback(sys::wmem_file_scope(), Some(wmem_cb), user_data);
         }
 
         unsafe {
