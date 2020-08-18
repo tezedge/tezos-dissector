@@ -121,7 +121,10 @@ impl ChunkBuffer {
                     Poll::Ready(Ok(chunk))
                 }
             },
-            Err(BinaryChunkError::MissingSizeInformation) => Poll::Pending, // TODO: recheck
+            Err(BinaryChunkError::MissingSizeInformation) => {
+                self.chunk_description.insert(FrameIndex(frame_index), chunk_index);
+                Poll::Pending
+            },
             Err(BinaryChunkError::OverflowError) => {
                 let e = ChunkBufferError {
                     first_frame: self.first_frame,

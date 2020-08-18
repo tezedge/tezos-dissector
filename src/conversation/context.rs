@@ -295,7 +295,7 @@ impl Context {
         let r = self.from_responder.chunk_index(f);
         let (caption, message, index) = match (i, r) {
             (Some(_), Some(_)) => panic!(),
-            (None, None) => return,
+            (None, None) => panic!(),
             (Some(index), None) => (
                 "from initiator",
                 self.chunks_from_initiator.get(index.index as usize),
@@ -308,7 +308,7 @@ impl Context {
             ),
         };
 
-        let b = if index.offset == 0 {
+        let b = if index.offset == 0 && payload.len() >= 2 {
             let l = (&payload[0..2]).get_u16();
             main.add("chunk_length", 0..2, TreeLeaf::dec(l as _));
             2
