@@ -66,7 +66,7 @@ extern "C" fn plugin_register() {
         abbrev: "tezos.connection_msg.version\0",
     })
     .add_field(FieldDescriptor::String {
-        name: "Error\0",
+        name: "MAC mismatch\0",
         abbrev: "tezos.error\0",
     })
     .add_field(FieldDescriptor::String {
@@ -74,7 +74,7 @@ extern "C" fn plugin_register() {
         abbrev: "tezos.identity_required\0",
     })
     .add_field(FieldDescriptor::String {
-        name: "Decrypted Message\0",
+        name: "Decrypted message\0",
         abbrev: "tezos.decrypted_msg\0",
     })
     .set_ett_number(1)

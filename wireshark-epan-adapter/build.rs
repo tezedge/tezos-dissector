@@ -31,7 +31,4 @@ fn main() {
     bindings
         .write_to_file("src/sys.rs")
         .unwrap_or_else(|e| panic!("Unable to save bindings: {}", e));
-
-    println!("cargo:rustc-env=SODIUM_SHARED=1");
-    println!("cargo:rustc-env=SODIUM_USE_PKG_CONFIG=1");
 }
