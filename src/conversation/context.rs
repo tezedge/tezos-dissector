@@ -1,14 +1,15 @@
 use tezos_messages::p2p::binary_message::BinaryChunk;
 use wireshark_epan_adapter::dissector::{Tree, PacketInfo, SocketAddress};
 use crypto::crypto_box::CryptoError;
+use either::Either;
 use std::{
     convert::TryFrom,
     mem,
+    task::Poll,
 };
 use crate::identity::{Identity, Decipher, NonceAddition};
 use super::{
     connection_message::ConnectionMessage,
-    buffering_result::BufferingResult,
     chunk_buffer::{ChunkBuffer, ChunkBufferError},
 };
 
@@ -90,6 +91,8 @@ enum MaybePlain {
     Plain(Vec<u8>),
 }
 
+struct HandshakeError;
+
 impl Handshake {
     fn id(&self) -> String {
         match self {
@@ -101,6 +104,58 @@ impl Handshake {
         }
     }
 
+    fn initiator_message(
+        from_initiator: &mut ChunkBuffer,
+        payload: &[u8],
+        frame_number: u64,
+        addresses: Addresses,
+    ) -> (Self, Poll<Result<Sender<MaybePlain>, Either<ChunkBufferError, HandshakeError>>>) {
+        match from_initiator.consume(frame_number, payload) {
+            Poll::Ready(Ok(chunk)) => match ConnectionMessage::try_from(chunk) {
+                Ok(initiator_message) => (
+                    Handshake::IncomingMessage {
+                        initiator_message: initiator_message.clone(),
+                        addresses,
+                    },
+                    Poll::Ready(Ok(Sender::Initiator(MaybePlain::Connection(initiator_message.clone())))),
+                ),
+                Err(_) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
+            },
+            Poll::Ready(Err(e)) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Left(e)))),
+            Poll::Pending => (Handshake::IncomingBuffer { addresses }, Poll::Pending),
+        }
+    }
+
+    fn responder_message(
+        from_responder: &mut ChunkBuffer,
+        payload: &[u8],
+        frame_number: u64,
+        initiator_message: ConnectionMessage,
+        addresses: Addresses,
+        identity: Option<&Identity>,
+    ) -> (Self, Poll<Result<Sender<MaybePlain>, Either<ChunkBufferError, HandshakeError>>>) {
+        match from_responder.consume(frame_number, payload) {
+            Poll::Ready(Ok(chunk)) => match ConnectionMessage::try_from(chunk) {
+                Ok(responder_message) => {
+                    let decipher = identity
+                        .and_then(|i| i.decipher(&initiator_message, &responder_message));
+                    (
+                        Handshake::BothMessages {
+                            initiator_message,
+                            responder_message: responder_message.clone(),
+                            decipher,
+                            addresses,
+                        },
+                        Poll::Ready(Ok(Sender::Responder(MaybePlain::Connection(responder_message.clone())))),
+                    )
+                },
+                Err(_) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
+            },
+            Poll::Ready(Err(e)) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Left(e)))),
+            Poll::Pending => (Handshake::IncomingMessage { initiator_message, addresses }, Poll::Pending),
+        }
+    }
+
     fn consume(
         &mut self,
         from_initiator: &mut ChunkBuffer,
@@ -108,72 +163,24 @@ impl Handshake {
         payload: &[u8],
         packet_info: &PacketInfo,
         identity: Option<&Identity>,
-    ) -> BufferingResult<Sender<MaybePlain>, ChunkBufferError> {
+    ) -> Poll<Result<Sender<MaybePlain>, Either<ChunkBufferError, HandshakeError>>> {
         let f = packet_info.frame_number();
 
         let c = mem::replace(self, Handshake::Unrecognized);
-        let mut r = BufferingResult::Buffering;
-        let c = match c {
-            Handshake::Initial => {
-                match from_initiator.consume(f, payload) {
-                    BufferingResult::Ready(chunk) => match ConnectionMessage::try_from(chunk) {
-                        Ok(initiator_message) => {
-                            r = BufferingResult::Ready(Sender::Initiator(MaybePlain::Connection(initiator_message.clone())));
-                            Handshake::IncomingMessage {
-                                initiator_message,
-                                addresses: Addresses::new(packet_info),
-                            }
-                        },
-                        Err(_) => Handshake::Unrecognized,
-                    },
-                    BufferingResult::Buffering => Handshake::IncomingBuffer {
-                        addresses: Addresses::new(packet_info),
-                    },
-                    BufferingResult::Unrecognized(_e) => Handshake::Unrecognized,
-                }
-            },
+        let (c, r) = match c {
+            Handshake::Initial => Handshake::initiator_message(from_initiator, payload, f, Addresses::new(packet_info)),
             Handshake::IncomingBuffer {
                 addresses,
             } => match addresses.sender(packet_info) {
-                Sender::Initiator(()) => match from_initiator.consume(f, payload) {
-                    BufferingResult::Ready(chunk) => match ConnectionMessage::try_from(chunk) {
-                        Ok(initiator_message) => {
-                            r = BufferingResult::Ready(Sender::Initiator(MaybePlain::Connection(initiator_message.clone())));
-                            Handshake::IncomingMessage {
-                                initiator_message,
-                                addresses,
-                            }
-                        },
-                        Err(_) => Handshake::Unrecognized,
-                    },
-                    BufferingResult::Buffering => Handshake::IncomingBuffer { addresses },
-                    BufferingResult::Unrecognized(_e) => Handshake::Unrecognized,
-                },
-                Sender::Responder(()) => Handshake::Unrecognized,
+                Sender::Initiator(()) => Handshake::initiator_message(from_initiator, payload, f, addresses),
+                Sender::Responder(()) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
             },
             Handshake::IncomingMessage {
                 initiator_message,
                 addresses,
             } => match addresses.sender(packet_info) {
-                Sender::Initiator(()) => Handshake::Unrecognized,
-                Sender::Responder(()) => match from_responder.consume(f, payload) {
-                    BufferingResult::Ready(chunk) => match ConnectionMessage::try_from(chunk) {
-                        Ok(responder_message) => {
-                            r = BufferingResult::Ready(Sender::Responder(MaybePlain::Connection(responder_message.clone())));
-                            let decipher = identity
-                                .and_then(|i| i.decipher(&initiator_message, &responder_message));
-                            Handshake::BothMessages {
-                                initiator_message,
-                                responder_message,
-                                decipher,
-                                addresses,
-                            }
-                        },
-                        Err(_) => Handshake::Unrecognized,
-                    },
-                    BufferingResult::Buffering => Handshake::IncomingMessage { initiator_message, addresses },
-                    BufferingResult::Unrecognized(_e) => Handshake::Unrecognized,
-                }
+                Sender::Initiator(()) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
+                Sender::Responder(()) => Handshake::responder_message(from_responder, payload, f, initiator_message, addresses, identity),
             },
             Handshake::BothMessages {
                 initiator_message,
@@ -185,13 +192,13 @@ impl Handshake {
                     Sender::Initiator(()) => (NonceAddition::Initiator(from_initiator.last_chunks_index() - 1), from_initiator),
                     Sender::Responder(()) => (NonceAddition::Responder(from_responder.last_chunks_index() - 1), from_responder),
                 };
-                r = buffer
+                let r = buffer
                     .consume(f, payload)
-                    .or(|e| {
+                    .map_err(|e| {
                         log::error!("{:?} buffer overflow at {:?}", addresses, e);
-                        BufferingResult::Unrecognized(e)
+                        Either::Left(e)
                     })
-                    .map(|chunk| {
+                    .map_ok(|chunk| {
                         match decipher.as_ref() {
                             None => MaybePlain::RequiredIdentity(chunk),
                             Some(d) => match d.decrypt(chunk.content(), index) {
@@ -203,15 +210,18 @@ impl Handshake {
                             }
                         }
                     })
-                    .map(|m| addresses.sender(packet_info).map(|()| m));
-                Handshake::BothMessages {
-                    initiator_message,
-                    responder_message,
-                    decipher,
-                    addresses,
-                }
+                    .map_ok(|m| addresses.sender(packet_info).map(|()| m));
+                (
+                    Handshake::BothMessages {
+                        initiator_message,
+                        responder_message,
+                        decipher,
+                        addresses,
+                    },
+                    r,
+                )
             },
-            Handshake::Unrecognized => Handshake::Unrecognized,
+            Handshake::Unrecognized => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
         };
         let _ = mem::replace(self, c);
         r
@@ -228,8 +238,8 @@ impl Context {
 
     pub fn consume(&mut self, payload: &[u8], packet_info: &PacketInfo, identity: Option<&Identity>) {
         match self.handshake.consume(&mut self.from_initiator, &mut self.from_responder, payload, packet_info, identity) {
-            BufferingResult::Ready(Sender::Initiator(m)) => self.chunks_from_initiator.push(m),
-            BufferingResult::Ready(Sender::Responder(m)) => self.chunks_from_responder.push(m),
+            Poll::Ready(Ok(Sender::Initiator(m))) => self.chunks_from_initiator.push(m),
+            Poll::Ready(Ok(Sender::Responder(m))) => self.chunks_from_responder.push(m),
             _ => (),
         }
     }

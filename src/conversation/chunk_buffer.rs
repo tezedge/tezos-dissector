@@ -2,8 +2,8 @@ use tezos_messages::p2p::binary_message::{BinaryChunk, BinaryChunkError, CONTENT
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
+    task::Poll,
 };
-use super::buffering_result::BufferingResult;
 
 pub struct ChunkBuffer {
     first_frame: u64,
@@ -56,12 +56,8 @@ impl ChunkBuffer {
         &mut self,
         frame_index: u64,
         payload: &[u8],
-    ) -> BufferingResult<BinaryChunk, ChunkBufferError> {
+    ) -> Poll<Result<BinaryChunk, ChunkBufferError>> {
         use bytes::Buf;
-
-        if frame_index == 28462 {
-            log::warn!("here");
-        }
 
         if self.first_frame == 0 {
             self.first_frame = frame_index;
@@ -81,7 +77,7 @@ impl ChunkBuffer {
                 self.chunk_index += 1;
                 self.frames_count = 0;
                 self.buffer.clear();
-                BufferingResult::Ready(chunk)
+                Poll::Ready(Ok(chunk))
             },
             Err(BinaryChunkError::IncorrectSizeInformation { 
                 expected,
@@ -90,7 +86,7 @@ impl ChunkBuffer {
                 self.chunk_description.insert(FrameIndex(frame_index), chunk_index);
                 if actual < expected {
                     self.frames_count += 1;
-                    BufferingResult::Buffering
+                    Poll::Pending
                 } else {
                     self.first_frame = 0;
                     self.chunk_index += 1;
@@ -99,7 +95,7 @@ impl ChunkBuffer {
                     let (first, second) = self.buffer.split_at(mid);
                     let chunk = BinaryChunk::try_from(first.to_vec()).unwrap();
                     self.buffer = second.to_vec();
-                    BufferingResult::Ready(chunk)
+                    Poll::Ready(Ok(chunk))
                 }
             },
             Err(BinaryChunkError::MissingSizeInformation) => panic!(),
@@ -112,7 +108,7 @@ impl ChunkBuffer {
                 self.first_frame = 0;
                 self.frames_count = 0;
                 self.buffer.clear();
-                BufferingResult::Unrecognized(e)
+                Poll::Ready(Err(e))
             },
         }
     }
