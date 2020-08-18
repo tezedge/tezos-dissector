@@ -5,7 +5,10 @@ use crypto::{
     nonce::{NoncePair, Nonce, generate_nonces},
 };
 use tezos_messages::p2p::binary_message::{BinaryChunk, cache::CachedData};
-use std::path::Path;
+use std::{
+    path::Path,
+    ops::Add,
+};
 use num_bigint::BigUint;
 use crate::conversation::ConnectionMessage;
 
@@ -72,14 +75,23 @@ pub enum NonceAddition {
     Responder(u64),
 }
 
+impl Add<usize> for NonceAddition {
+    type Output = Self;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        match self {
+            NonceAddition::Initiator(x) => NonceAddition::Initiator(x + rhs as u64),
+            NonceAddition::Responder(x) => NonceAddition::Responder(x + rhs as u64),
+        }
+    }
+}
+
 impl Decipher {
     pub fn decrypt(
         &self,
         enc: &[u8],
         chunk_number: NonceAddition,
     ) -> Result<Vec<u8>, CryptoError> {
-        use std::ops::Add;
-
         let add = |nonce: &Nonce, addition: u64| -> Nonce {
             let bytes = nonce.get_bytes();
             let n = BigUint::from_bytes_be(bytes.as_slice());

@@ -56,6 +56,29 @@ impl ChunkBuffer {
         &mut self,
         frame_index: u64,
         payload: &[u8],
+    ) -> Poll<Result<Vec<BinaryChunk>, ChunkBufferError>> {
+        let mut p = payload;
+        let mut v = Vec::new();
+        loop {
+            match self.consume_one(frame_index, p) {
+                Poll::Ready(Ok(c)) => v.push(c),
+                Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
+                Poll::Pending => {
+                    return if v.is_empty() {
+                        Poll::Pending
+                    } else {
+                        Poll::Ready(Ok(v))
+                    }
+                },
+            }
+            p = &[];
+        }
+    }
+
+    pub fn consume_one(
+        &mut self,
+        frame_index: u64,
+        payload: &[u8],
     ) -> Poll<Result<BinaryChunk, ChunkBufferError>> {
         use bytes::Buf;
 
@@ -69,7 +92,7 @@ impl ChunkBuffer {
         };
         self.buffer.extend_from_slice(payload);
         // Hope, rust backend is smart enough to optimize it
-        // and do not do allocation in case of error
+        // and does not do allocation in case of error
         match BinaryChunk::try_from(self.buffer.clone()) {
             Ok(chunk) => {
                 self.chunk_description.insert(FrameIndex(frame_index), chunk_index);
@@ -98,7 +121,7 @@ impl ChunkBuffer {
                     Poll::Ready(Ok(chunk))
                 }
             },
-            Err(BinaryChunkError::MissingSizeInformation) => panic!(),
+            Err(BinaryChunkError::MissingSizeInformation) => Poll::Pending, // TODO: recheck
             Err(BinaryChunkError::OverflowError) => {
                 let e = ChunkBufferError {
                     first_frame: self.first_frame,
