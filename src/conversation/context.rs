@@ -1,17 +1,9 @@
 use tezos_messages::p2p::binary_message::BinaryChunk;
 use wireshark_epan_adapter::dissector::{Tree, PacketInfo, SocketAddress};
 use crypto::crypto_box::CryptoError;
-use either::Either;
-use std::{
-    convert::TryFrom,
-    mem,
-    task::Poll,
-};
+use std::{convert::TryFrom, mem, task::Poll};
 use crate::identity::{Identity, Decipher, NonceAddition};
-use super::{
-    connection_message::ConnectionMessage,
-    chunk_buffer::{ChunkBuffer, ChunkBufferError},
-};
+use super::{connection_message::ConnectionMessage, chunk_buffer::ChunkBuffer};
 
 pub struct Context {
     handshake: Handshake,
@@ -109,27 +101,23 @@ impl Handshake {
         payload: &[u8],
         frame_number: u64,
         addresses: Addresses,
-    ) -> (Self, Poll<Result<Sender<Vec<MaybePlain>>, Either<ChunkBufferError, HandshakeError>>>) {
+    ) -> (Self, Poll<Result<Sender<Vec<MaybePlain>>, HandshakeError>>) {
         match from_initiator.consume(frame_number, payload) {
-            Poll::Ready(Ok(mut chunks)) => {
-                if chunks.len() == 1 {
-                    let chunk = chunks.swap_remove(0);
-                    match ConnectionMessage::try_from(chunk) {
-                        Ok(initiator_message) => (
-                            Handshake::IncomingMessage {
-                                initiator_message: initiator_message.clone(),
-                                addresses,
-                            },
-                            Poll::Ready(Ok(Sender::Initiator(vec![MaybePlain::Connection(initiator_message.clone())]))),
-                        ),
-                        Err(_) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
-                    }
-                } else {
-                    (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError))))
+            Poll::Pending => (Handshake::IncomingBuffer { addresses }, Poll::Pending),
+            Poll::Ready((0, mut chunks)) if chunks.len() == 1 => {
+                let chunk = chunks.swap_remove(0);
+                match ConnectionMessage::try_from(chunk) {
+                    Ok(initiator_message) => (
+                        Handshake::IncomingMessage {
+                            initiator_message: initiator_message.clone(),
+                            addresses,
+                        },
+                        Poll::Ready(Ok(Sender::Initiator(vec![MaybePlain::Connection(initiator_message.clone())]))),
+                    ),
+                    Err(_) => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
                 }
             },
-            Poll::Ready(Err(e)) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Left(e)))),
-            Poll::Pending => (Handshake::IncomingBuffer { addresses }, Poll::Pending),
+            _ => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
         }
     }
 
@@ -140,33 +128,29 @@ impl Handshake {
         initiator_message: ConnectionMessage,
         addresses: Addresses,
         identity: Option<&Identity>,
-    ) -> (Self, Poll<Result<Sender<Vec<MaybePlain>>, Either<ChunkBufferError, HandshakeError>>>) {
+    ) -> (Self, Poll<Result<Sender<Vec<MaybePlain>>, HandshakeError>>) {
         match from_responder.consume(frame_number, payload) {
-            Poll::Ready(Ok(mut chunks)) => {
-                if chunks.len() == 1 {
-                    let chunk = chunks.swap_remove(0);
-                    match ConnectionMessage::try_from(chunk) {
-                        Ok(responder_message) => {
-                            let decipher = identity
-                                .and_then(|i| i.decipher(&initiator_message, &responder_message));
-                            (
-                                Handshake::BothMessages {
-                                    initiator_message,
-                                    responder_message: responder_message.clone(),
-                                    decipher,
-                                    addresses,
-                                },
-                                Poll::Ready(Ok(Sender::Responder(vec![MaybePlain::Connection(responder_message.clone())]))),
-                            )
-                        },
-                        Err(_) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
-                    }
-                } else {
-                    (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError))))
+            Poll::Pending => (Handshake::IncomingMessage { initiator_message, addresses }, Poll::Pending),
+            Poll::Ready((0, mut chunks)) if chunks.len() == 1 => {
+                let chunk = chunks.swap_remove(0);
+                match ConnectionMessage::try_from(chunk) {
+                    Ok(responder_message) => {
+                        let decipher = identity
+                            .and_then(|i| i.decipher(&initiator_message, &responder_message));
+                        (
+                            Handshake::BothMessages {
+                                initiator_message,
+                                responder_message: responder_message.clone(),
+                                decipher,
+                                addresses,
+                            },
+                            Poll::Ready(Ok(Sender::Responder(vec![MaybePlain::Connection(responder_message.clone())]))),
+                        )
+                    },
+                    Err(_) => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
                 }
             },
-            Poll::Ready(Err(e)) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Left(e)))),
-            Poll::Pending => (Handshake::IncomingMessage { initiator_message, addresses }, Poll::Pending),
+            _ => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
         }
     }
 
@@ -177,7 +161,7 @@ impl Handshake {
         payload: &[u8],
         packet_info: &PacketInfo,
         identity: Option<&Identity>,
-    ) -> Poll<Result<Sender<Vec<MaybePlain>>, Either<ChunkBufferError, HandshakeError>>> {
+    ) -> Poll<Result<Sender<Vec<MaybePlain>>, HandshakeError>> {
         let f = packet_info.frame_number();
 
         let c = mem::replace(self, Handshake::Unrecognized);
@@ -187,13 +171,13 @@ impl Handshake {
                 addresses,
             } => match addresses.sender(packet_info) {
                 Sender::Initiator(()) => Handshake::initiator_message(from_initiator, payload, f, addresses),
-                Sender::Responder(()) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
+                Sender::Responder(()) => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
             },
             Handshake::IncomingMessage {
                 initiator_message,
                 addresses,
             } => match addresses.sender(packet_info) {
-                Sender::Initiator(()) => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
+                Sender::Initiator(()) => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
                 Sender::Responder(()) => Handshake::responder_message(from_responder, payload, f, initiator_message, addresses, identity),
             },
             Handshake::BothMessages {
@@ -202,35 +186,41 @@ impl Handshake {
                 decipher,
                 addresses,
             } => {
-                let (index, buffer) = match addresses.sender(packet_info) {
-                    Sender::Initiator(()) => (NonceAddition::Initiator(from_initiator.last_chunks_index() - 1), from_initiator),
-                    Sender::Responder(()) => (NonceAddition::Responder(from_responder.last_chunks_index() - 1), from_responder),
+                let sender = addresses.sender(packet_info);
+                let buffer = match sender {
+                    Sender::Initiator(()) => from_initiator,
+                    Sender::Responder(()) => from_responder,
                 };
                 let r = buffer
                     .consume(f, payload)
-                    .map_err(|e| {
-                        log::error!("{:?} buffer overflow at {:?}", addresses, e);
-                        Either::Left(e)
-                    })
-                    .map_ok(|chunks| {
+                    .map(|(nonce, chunks)| {
                         chunks
                             .into_iter()
                             .enumerate()
                             .map(|(i, chunk)| {
                                 match decipher.as_ref() {
                                     None => MaybePlain::RequiredIdentity(chunk),
-                                    Some(d) => match d.decrypt(chunk.content(), index + i) {
-                                        Ok(data) => MaybePlain::Plain(data),
-                                        Err(e) => {
-                                            log::error!("{:?}, {:?}", addresses, e);
-                                            MaybePlain::Error(chunk, e)
-                                        },
-                                    }
+                                    Some(d) => {
+                                        let i = i as u64;
+                                        // first message is connection message (plain)
+                                        let nonce = nonce - 1;
+                                        let nonce = match &sender {
+                                            &Sender::Initiator(()) => NonceAddition::Initiator(nonce + i),
+                                            &Sender::Responder(()) => NonceAddition::Responder(nonce + i),
+                                        };
+                                        match d.decrypt(chunk.content(), nonce) {
+                                            Ok(data) => MaybePlain::Plain(data),
+                                            Err(e) => {
+                                                log::error!("{:?}, {:?}", addresses, e);
+                                                MaybePlain::Error(chunk, e)
+                                            },
+                                        }
+                                    },
                                 }
                             })
                             .collect()
                     })
-                    .map_ok(|m| addresses.sender(packet_info).map(|()| m));
+                    .map(|m| Ok(sender.map(|()| m)));
                 (
                     Handshake::BothMessages {
                         initiator_message,
@@ -241,7 +231,7 @@ impl Handshake {
                     r,
                 )
             },
-            Handshake::Unrecognized => (Handshake::Unrecognized, Poll::Ready(Err(Either::Right(HandshakeError)))),
+            Handshake::Unrecognized => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
         };
         let _ = mem::replace(self, c);
         r
@@ -268,14 +258,8 @@ impl Context {
         self.handshake.id()
     }
 
-    pub fn visualize(
-        &mut self,
-        payload: &[u8],
-        packet_info: &PacketInfo,
-        root: &mut Tree,
-    ) {
+    pub fn visualize(&mut self, payload: &[u8], packet_info: &PacketInfo, root: &mut Tree) {
         use wireshark_epan_adapter::dissector::TreeLeaf;
-        use bytes::Buf;
 
         fn show_connection_message(m: &ConnectionMessage, tree: &mut Tree, l: usize) {
             // TODO: ranges
@@ -288,52 +272,41 @@ impl Context {
 
         let mut main = root.add("tezos", 0..payload.len(), TreeLeaf::nothing()).subtree();
         main.add("conversation_id", 0..0, TreeLeaf::Display(self.id()));
-        let l = payload.len();
 
         let f = packet_info.frame_number();
-        let i = self.from_initiator.chunk_index(f);
-        let r = self.from_responder.chunk_index(f);
-        let (caption, message, index) = match (i, r) {
+        let i = self.from_initiator.frames_description(f);
+        let r = self.from_responder.frames_description(f);
+        let (caption, messages) = match (i, r) {
             (Some(_), Some(_)) => panic!(),
             (None, None) => panic!(),
-            (Some(index), None) => (
+            (Some(range), None) => (
                 "from initiator",
-                self.chunks_from_initiator.get(index.index as usize),
-                index,
+                &self.chunks_from_initiator[(range.start.index as usize)..(range.end.index as usize)]
             ),
-            (None, Some(index)) => (
+            (None, Some(range)) => (
                 "from responder",
-                self.chunks_from_responder.get(index.index as usize),
-                index,
+                &self.chunks_from_responder[(range.start.index as usize)..(range.end.index as usize)]
             ),
         };
 
-        let b = if index.offset == 0 && payload.len() >= 2 {
-            let l = (&payload[0..2]).get_u16();
-            main.add("chunk_length", 0..2, TreeLeaf::dec(l as _));
-            2
-        } else {
-            0
-        };
-
-        match message {
-            None => {
-                main.add("buffering", b..l, TreeLeaf::Display(format!("{}", caption)));
+        let l = payload.len();
+        for message in messages {
+            match message {
+                &MaybePlain::RequiredIdentity(ref chunk) => {
+                    let _ = chunk;
+                    main.add("identity_required", 0..0, TreeLeaf::Display(format!("{}, encrypted {}", caption, hex::encode(chunk.content()))));
+                },
+                &MaybePlain::Error(ref chunk, ref error) => {
+                    main.add("error", 0..0, TreeLeaf::Display(format!("{}, error: {}, encrypted {}", caption, error, hex::encode(chunk.content()))));
+                },
+                &MaybePlain::Connection(ref connection) => {
+                    let mut msg_tree = main.add("connection_msg", 0..0, TreeLeaf::Display(caption)).subtree();
+                    show_connection_message(connection, &mut msg_tree, l - 2);
+                },
+                &MaybePlain::Plain(ref plain) => {
+                    main.add("decrypted_msg", 0..0, TreeLeaf::Display(format!("{}: {}", caption, hex::encode(plain))));
+                },
             }
-            Some(&MaybePlain::RequiredIdentity(ref chunk)) => {
-                let _ = chunk;
-                main.add("identity_required", b..l, TreeLeaf::Display(format!("{}, encrypted {}", caption, hex::encode(chunk.content()))));
-            },
-            Some(&MaybePlain::Error(ref chunk, ref error)) => {
-                main.add("error", b..l, TreeLeaf::Display(format!("{}, error: {}, encrypted {}", caption, error, hex::encode(chunk.content()))));
-            },
-            Some(&MaybePlain::Connection(ref connection)) => {
-                let mut msg_tree = main.add("connection_msg", b..l, TreeLeaf::Display(caption)).subtree();
-                show_connection_message(connection, &mut msg_tree, l - 2);
-            },
-            Some(&MaybePlain::Plain(ref plain)) => {
-                main.add("decrypted_msg", b..l, TreeLeaf::Display(format!("{}: {}", caption, hex::encode(plain))));
-            },
         }
     }
 }
