@@ -129,12 +129,12 @@ impl Tree {
 /// let the message contains of two chunks, but both of them only partially containing in the packet:
 /// |size||            body            ||               MAC              ||size||        body        ||              MAC               |
 /// <000e><1212121212121212121212121212><56565656565656565656565656565656><000a><ac6bc9e6fe0ca3ad3310><755463a7e211ef4bbf5146aa8254d881>
-///         packet starts here -|121212  56565656565656565656565656565656  000a  ac6bc9e6fe0ca3|- packet ends here
+///         packet starts here -|121212  56565656565656565656565656565656  000a  ac6bc9e6fe0ca3ad|- packet ends here
 ///
 /// so the packet contain part of previous chunk, and part of some chunk
 /// the map will contain two entries:
 /// `TreeMessageMapItem { offset_in_message: 11, offset_in_packet: 0, size: 3 }`
-/// `TreeMessageMapItem { offset_in_message: 14, offset_in_packet: 21, size: 7 }`
+/// `TreeMessageMapItem { offset_in_message: 14, offset_in_packet: 21, size: 8 }`
 pub struct TreeMessageMapItem {
     pub offset_in_message: usize,
     pub offset_in_packet: usize,
