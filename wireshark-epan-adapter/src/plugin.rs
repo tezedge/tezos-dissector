@@ -209,7 +209,7 @@ impl Plugin<'static> {
                 state.proto_handle = proto;
 
                 let mut field_handles = {
-                    let len = p.field_descriptors.len();
+                    let len = p.field_descriptors.iter().map(|x| x.len()).sum();
                     let mut v = Vec::new();
                     v.resize(len, -1);
                     v

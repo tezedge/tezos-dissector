@@ -115,19 +115,34 @@ impl Tree {
         }
     }
 
-    pub fn show<M>(&mut self, message: M, offset: isize)
+    pub fn show<M>(&mut self, message: &M, map: &[TreeMessageMapItem])
     where
         M: TreeMessage,
     {
-        let packet_length = unsafe { sys::tvb_captured_length(self.common.borrow().tvb) } as usize;
-        message.show_on_tree(self, packet_length, offset)
+        message.show_on_tree(self, map)
     }
+}
+
+/// The packet might contain some information not related to the message directly
+/// for example
+///
+/// let the message contains of two chunks, but both of them only partially containing in the packet:
+/// |size||            body            ||               MAC              ||size||        body        ||              MAC               |
+/// <000e><1212121212121212121212121212><56565656565656565656565656565656><000a><ac6bc9e6fe0ca3ad3310><755463a7e211ef4bbf5146aa8254d881>
+///         packet starts here -|121212  56565656565656565656565656565656  000a  ac6bc9e6fe0ca3|- packet ends here
+///
+/// so the packet contain part of previous chunk, and part of some chunk
+/// the map will contain one entry:
+/// `TreeMessageMapItem { offset_in_message: 11, offset_in_packet: 0, size: 3 }`
+/// `TreeMessageMapItem { offset_in_message: 14, offset_in_packet: 21, size: 7 }`
+pub struct TreeMessageMapItem {
+    pub offset_in_message: usize,
+    pub offset_in_packet: usize,
+    pub size: usize,
 }
 
 pub trait TreeMessage {
     const FIELDS: &'static [FieldDescriptor<'static>];
 
-    // offset is the index of byte on packet which is the first byte of the message
-    // might be negative, it meant that message starts on some of previous packet
-    fn show_on_tree(&self, node: &mut Tree, packet_length: usize, offset: isize);
+    fn show_on_tree(&self, node: &mut Tree, map: &[TreeMessageMapItem]);
 }

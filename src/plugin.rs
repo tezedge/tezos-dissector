@@ -1,10 +1,13 @@
-use super::dissector::TezosDissector;
-
 #[rustfmt::skip]
 use wireshark_epan_adapter::{
     Plugin, NameDescriptor, FieldDescriptor,
     PrefFilenameDescriptor,
     DissectorDescriptor,
+    dissector::TreeMessage,
+};
+use super::{
+    dissector::TezosDissector,
+    conversation::ConnectionMessage,
 };
 
 #[no_mangle]
@@ -43,36 +46,20 @@ extern "C" fn plugin_register() {
                     abbrev: "tezos.chunk_length\0",
                 },
                 FieldDescriptor::String {
-                    name: "Buffering incomplete chunk\0",
-                    abbrev: "tezos.buffering\0",
+                    name: "Decrypted data\0",
+                    abbrev: "tezos.decrypted_data\0",
+                },
+                FieldDescriptor::String {
+                    name: "Message authentication code\0",
+                    abbrev: "tezos.mac\0",
+                },
+                FieldDescriptor::String {
+                    name: "Direction\0",
+                    abbrev: "tezos.direction\0",
                 },
                 FieldDescriptor::String {
                     name: "Conversation\0",
                     abbrev: "tezos.conversation_id\0",
-                },
-                FieldDescriptor::String {
-                    name: "Connection message\0",
-                    abbrev: "tezos.connection_msg\0",
-                },
-                FieldDescriptor::Int64Dec {
-                    name: "Port\0",
-                    abbrev: "tezos.connection_msg.port\0",
-                },
-                FieldDescriptor::String {
-                    name: "Public key\0",
-                    abbrev: "tezos.connection_msg.pk\0",
-                },
-                FieldDescriptor::String {
-                    name: "Proof of work\0",
-                    abbrev: "tezos.connection_msg.pow\0",
-                },
-                FieldDescriptor::String {
-                    name: "Nonce\0",
-                    abbrev: "tezos.connection_msg.nonce\0",
-                },
-                FieldDescriptor::String {
-                    name: "Version\0",
-                    abbrev: "tezos.connection_msg.version\0",
                 },
                 FieldDescriptor::String {
                     name: "MAC mismatch\0",
@@ -82,11 +69,8 @@ extern "C" fn plugin_register() {
                     name: "Identity required\0",
                     abbrev: "tezos.identity_required\0",
                 },
-                FieldDescriptor::String {
-                    name: "Decrypted message\0",
-                    abbrev: "tezos.decrypted_msg\0",
-                },
             ],
+            ConnectionMessage::FIELDS,
         ],
         &[
             PrefFilenameDescriptor {

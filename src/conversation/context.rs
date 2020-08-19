@@ -261,50 +261,60 @@ impl Context {
     pub fn visualize(&mut self, payload: &[u8], packet_info: &PacketInfo, root: &mut Tree) {
         use wireshark_epan_adapter::dissector::TreeLeaf;
 
-        fn show_connection_message(m: &ConnectionMessage, tree: &mut Tree, l: usize) {
-            // TODO: ranges
-            tree.add("port", 0..2, TreeLeaf::dec(m.port as _));
-            tree.add("pk", 2..34, TreeLeaf::Display(hex::encode(&m.public_key)));
-            tree.add("pow", 34..58, TreeLeaf::Display(hex::encode(&m.proof_of_work_stamp)));
-            tree.add("nonce", 58..82, TreeLeaf::Display(hex::encode(&m.message_nonce)));
-            tree.add("version", 82..l, TreeLeaf::Display(format!("{:?}", m.versions)));
-        }
-
         let mut main = root.add("tezos", 0..payload.len(), TreeLeaf::nothing()).subtree();
         main.add("conversation_id", 0..0, TreeLeaf::Display(self.id()));
 
         let f = packet_info.frame_number();
         let i = self.from_initiator.frames_description(f);
         let r = self.from_responder.frames_description(f);
-        let (caption, messages) = match (i, r) {
+        let (caption, messages, _first_offset, _last_offset) = match (i, r) {
             (Some(_), Some(_)) => panic!(),
             (None, None) => panic!(),
             (Some(range), None) => (
                 "from initiator",
-                &self.chunks_from_initiator[(range.start.index as usize)..(range.end.index as usize)]
+                &self.chunks_from_initiator[(range.start.index as usize)..(range.end.index as usize)],
+                range.start.offset as usize,
+                range.end.offset as usize,
             ),
             (None, Some(range)) => (
                 "from responder",
-                &self.chunks_from_responder[(range.start.index as usize)..(range.end.index as usize)]
+                &self.chunks_from_responder[(range.start.index as usize)..(range.end.index as usize)],
+                range.start.offset as usize,
+                range.end.offset as usize,
             ),
         };
+        main.add("direction", 0..0, TreeLeaf::Display(caption));
 
-        let l = payload.len();
-        for message in messages {
+        for (_i, message) in messages.iter().enumerate() {
+            /*let chunk_header_range = match i {
+                // first chunk in the packet
+                0 => if first_offset < 2 {
+                    Some(first_offset..2)
+                } else {
+                    None
+                },
+                // middle chunk in the packet
+                l if l < messages.len() - 1 => Some(0..2),
+                // last chunk in the packet
+                l if l == messages.len() - 1 => if last_offset >= 2 {
+                    Some(0..last_offset)
+                } else {
+                    None
+                },
+                _ => None,
+            };*/
             match message {
                 &MaybePlain::RequiredIdentity(ref chunk) => {
-                    let _ = chunk;
                     main.add("identity_required", 0..0, TreeLeaf::Display(format!("{}, encrypted {}", caption, hex::encode(chunk.content()))));
                 },
                 &MaybePlain::Error(ref chunk, ref error) => {
                     main.add("error", 0..0, TreeLeaf::Display(format!("{}, error: {}, encrypted {}", caption, error, hex::encode(chunk.content()))));
                 },
                 &MaybePlain::Connection(ref connection) => {
-                    let mut msg_tree = main.add("connection_msg", 0..0, TreeLeaf::Display(caption)).subtree();
-                    show_connection_message(connection, &mut msg_tree, l - 2);
+                    main.show(connection, &[]);
                 },
                 &MaybePlain::Plain(ref plain) => {
-                    main.add("decrypted_msg", 0..0, TreeLeaf::Display(format!("{}: {}", caption, hex::encode(plain))));
+                    main.add("decrypted_data", 0..0, TreeLeaf::Display(format!("{}: {}", caption, hex::encode(plain))));
                 },
             }
         }
