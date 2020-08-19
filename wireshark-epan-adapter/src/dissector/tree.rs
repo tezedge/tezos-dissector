@@ -1,9 +1,10 @@
 use std::{collections::BTreeMap, ops::Range, rc::Rc, cell::RefCell, fmt};
+use crate::plugin::FieldDescriptor;
 use crate::sys;
 
 struct Common {
     fields: BTreeMap<String, i32>,
-    ett: Vec<i32>,
+    ett: i32,
     tvb: *mut sys::tvbuff_t,
 }
 
@@ -36,7 +37,7 @@ impl TreeLeaf<String> {
 impl Tree {
     pub(crate) fn root(
         fields: BTreeMap<String, i32>,
-        ett: Vec<i32>,
+        ett: i32,
         tvb: *mut sys::tvbuff_t,
         root: *mut sys::proto_tree,
     ) -> Self {
@@ -55,7 +56,7 @@ impl Tree {
             common: self.common.clone(),
             parent_path: self.parent_path.clone(),
             base: self.base,
-            node: unsafe { sys::proto_item_add_subtree(self.node, self.common.borrow().ett[0]) },
+            node: unsafe { sys::proto_item_add_subtree(self.node, self.common.borrow().ett) },
         }
     }
 
@@ -113,4 +114,22 @@ impl Tree {
             node,
         }
     }
+
+    pub fn show<M>(&mut self, message: M, offset: isize)
+    where
+        M: TreeMessage,
+    {
+        let packet_length = unsafe {
+            sys::tvb_captured_length(self.common.borrow().tvb)
+        } as usize;
+        message.show_on_tree(self, packet_length, offset)
+    }
+}
+
+pub trait TreeMessage {
+    const FIELDS: &'static [FieldDescriptor<'static>];
+
+    // offset is the index of byte on packet which is the first byte of the message
+    // might be negative, it meant that message starts on some of previous packet
+    fn show_on_tree(&self, node: &mut Tree, packet_length: usize, offset: isize);
 }

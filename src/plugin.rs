@@ -77,7 +77,6 @@ extern "C" fn plugin_register() {
         name: "Decrypted message\0",
         abbrev: "tezos.decrypted_msg\0",
     })
-    .set_ett_number(1)
     .set_pref_filename(PrefFilenameDescriptor {
         name: "identity_json_file\0",
         title: "Identity JSON file\0",

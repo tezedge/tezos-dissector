@@ -5,4 +5,4 @@ mod helper;
 pub use self::helper::{SuperDissectorData, DissectorHelper};
 
 mod tree;
-pub use self::tree::{Tree, TreeLeaf};
+pub use self::tree::{Tree, TreeLeaf, TreeMessage};

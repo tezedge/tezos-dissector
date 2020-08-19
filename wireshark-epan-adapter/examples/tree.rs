@@ -42,7 +42,6 @@ extern "C" fn plugin_register() {
         name: "Foo Bar0 Baz1\0",
         abbrev: "simple_tree_example.foo.bar0.baz1\0",
     })
-    .set_ett_number(1)
     .set_dissector(DissectorDescriptor {
         display_name: "Simple\0",
         short_name: "simple_tcp\0",
