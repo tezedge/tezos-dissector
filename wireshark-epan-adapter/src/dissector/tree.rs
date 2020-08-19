@@ -132,7 +132,7 @@ impl Tree {
 ///         packet starts here -|121212  56565656565656565656565656565656  000a  ac6bc9e6fe0ca3|- packet ends here
 ///
 /// so the packet contain part of previous chunk, and part of some chunk
-/// the map will contain one entry:
+/// the map will contain two entries:
 /// `TreeMessageMapItem { offset_in_message: 11, offset_in_packet: 0, size: 3 }`
 /// `TreeMessageMapItem { offset_in_message: 14, offset_in_packet: 21, size: 7 }`
 pub struct TreeMessageMapItem {
