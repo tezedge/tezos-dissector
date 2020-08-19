@@ -17,11 +17,17 @@ static plugin_want_minor: i32 = 2;
 
 #[no_mangle]
 extern "C" fn plugin_register() {
-    Plugin::new(NameDescriptor {
-        name: "Simple Protocol\0",
-        short_name: "simple_protocol\0",
-        filter_name: "simple_tree_example\0",
-    })
+    Plugin::new(
+        NameDescriptor {
+            name: "Simple Protocol\0",
+            short_name: "simple_protocol\0",
+            filter_name: "simple_tree_example\0",
+        },
+        DissectorDescriptor {
+            display_name: "Simple\0",
+            short_name: "simple_tcp\0",
+        },
+    )
     .add_field(FieldDescriptor::String {
         name: "Foo\0",
         abbrev: "simple_tree_example.foo\0",
@@ -42,12 +48,7 @@ extern "C" fn plugin_register() {
         name: "Foo Bar0 Baz1\0",
         abbrev: "simple_tree_example.foo.bar0.baz1\0",
     })
-    .set_dissector(DissectorDescriptor {
-        display_name: "Simple\0",
-        short_name: "simple_tcp\0",
-        dissector: Box::new(SimpleDissector),
-    })
-    .register()
+    .register(Box::new(SimpleDissector))
 }
 
 struct SimpleDissector;

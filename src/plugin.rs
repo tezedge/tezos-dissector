@@ -24,11 +24,17 @@ extern "C" fn plugin_register() {
         .join("target/log.txt");
     simple_logging::log_to_file(file, log::LevelFilter::Info).unwrap();
 
-    Plugin::new(NameDescriptor {
-        name: "Tezos Protocol\0",
-        short_name: "tezos\0",
-        filter_name: "tezos\0",
-    })
+    Plugin::new(
+        NameDescriptor {
+            name: "Tezos Protocol\0",
+            short_name: "tezos\0",
+            filter_name: "tezos\0",
+        },
+        DissectorDescriptor {
+            display_name: "Tezos\0",
+            short_name: "tezos_tcp\0",
+        },
+    )
     .add_field(FieldDescriptor::Int64Dec {
         name: "Chunk length\0",
         abbrev: "tezos.chunk_length\0",
@@ -82,10 +88,5 @@ extern "C" fn plugin_register() {
         title: "Identity JSON file\0",
         description: "JSON file with node identity information\0",
     })
-    .set_dissector(DissectorDescriptor {
-        display_name: "Tezos\0",
-        short_name: "tezos_tcp\0",
-        dissector: Box::new(TezosDissector::new()),
-    })
-    .register()
+    .register(Box::new(TezosDissector::new()))
 }

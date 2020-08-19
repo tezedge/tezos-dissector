@@ -16,8 +16,8 @@ impl DissectorHelper {
     }
 
     pub fn context_key(&mut self, packet_info: &PacketInfo) -> usize {
+        let pinfo = packet_info.inner() as *const _ as *mut _;
         let key = unsafe {
-            let pinfo = packet_info.inner() as *const _ as *mut _;
             let conversation = sys::find_or_create_conversation(pinfo);
             sys::get_tcp_conversation_data(conversation, pinfo)
         };

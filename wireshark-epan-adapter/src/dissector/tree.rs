@@ -119,9 +119,7 @@ impl Tree {
     where
         M: TreeMessage,
     {
-        let packet_length = unsafe {
-            sys::tvb_captured_length(self.common.borrow().tvb)
-        } as usize;
+        let packet_length = unsafe { sys::tvb_captured_length(self.common.borrow().tvb) } as usize;
         message.show_on_tree(self, packet_length, offset)
     }
 }
