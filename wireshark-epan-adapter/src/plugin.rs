@@ -5,7 +5,7 @@ use std::{
     ptr,
 };
 use crate::sys;
-use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Tree, TreeMessage};
+use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Tree};
 
 pub trait Dissector {
     fn prefs_update(&mut self, filenames: Vec<&str>) {
@@ -53,8 +53,8 @@ pub struct Plugin<'a> {
     privates: RefCell<PluginPrivates>,
     dissector_descriptor: DissectorDescriptor<'a>,
     name_descriptor: NameDescriptor<'a>,
-    field_descriptors: Vec<FieldDescriptor<'a>>,
-    filename_descriptors: Vec<PrefFilenameDescriptor<'a>>,
+    field_descriptors: &'a [&'a [FieldDescriptor<'a>]],
+    filename_descriptors: &'a [PrefFilenameDescriptor<'a>],
 }
 
 pub struct NameDescriptor<'a> {
@@ -70,7 +70,52 @@ pub enum FieldDescriptor<'a> {
 }
 
 impl<'a> FieldDescriptor<'a> {
-    pub fn abbrev(&self) -> &'a str {
+    fn info(&self, handle: &mut c_int) -> sys::hf_register_info {
+        match self {
+            &FieldDescriptor::String {
+                name: ref name,
+                abbrev: ref abbrev,
+            } => sys::hf_register_info {
+                p_id: handle,
+                hfinfo: sys::header_field_info {
+                    name: name.as_ptr() as _,
+                    abbrev: abbrev.as_ptr() as _,
+                    type_: sys::ftenum_FT_STRING,
+                    display: sys::field_display_e_BASE_NONE as _,
+                    strings: ptr::null(),
+                    bitmask: 0,
+                    blurb: ptr::null(),
+                    id: -1,
+                    parent: 0,
+                    ref_type: sys::hf_ref_type_HF_REF_TYPE_NONE,
+                    same_name_prev_id: -1,
+                    same_name_next: ptr::null_mut(),
+                },
+            },
+            &FieldDescriptor::Int64Dec {
+                name: ref name,
+                abbrev: ref abbrev,
+            } => sys::hf_register_info {
+                p_id: handle,
+                hfinfo: sys::header_field_info {
+                    name: name.as_ptr() as _,
+                    abbrev: abbrev.as_ptr() as _,
+                    type_: sys::ftenum_FT_INT64,
+                    display: sys::field_display_e_BASE_DEC as _,
+                    strings: ptr::null(),
+                    bitmask: 0,
+                    blurb: ptr::null(),
+                    id: -1,
+                    parent: 0,
+                    ref_type: sys::hf_ref_type_HF_REF_TYPE_NONE,
+                    same_name_prev_id: -1,
+                    same_name_next: ptr::null_mut(),
+                },
+            },
+        }
+    }
+
+    fn abbrev(&self) -> &'a str {
         match self {
             &FieldDescriptor::String {
                 name: _,
@@ -97,37 +142,18 @@ pub struct DissectorDescriptor<'a> {
 
 impl<'a> Plugin<'a> {
     pub const fn new(
-        name_descriptor: NameDescriptor<'a>,
         dissector_descriptor: DissectorDescriptor<'a>,
+        name_descriptor: NameDescriptor<'a>,
+        field_descriptors: &'a [&'a [FieldDescriptor<'a>]],
+        filename_descriptors: &'a [PrefFilenameDescriptor<'a>],
     ) -> Self {
         Plugin {
             privates: RefCell::new(PluginPrivates::EMPTY),
             dissector_descriptor,
             name_descriptor,
-            field_descriptors: Vec::new(),
-            filename_descriptors: Vec::new(),
+            field_descriptors,
+            filename_descriptors,
         }
-    }
-
-    pub fn register_message<M>(self) -> Self
-    where
-        M: TreeMessage,
-    {
-        let mut s = self;
-        s.field_descriptors.extend_from_slice(M::FIELDS);
-        s
-    }
-
-    pub fn add_field(self, field_descriptor: FieldDescriptor<'a>) -> Self {
-        let mut s = self;
-        s.field_descriptors.push(field_descriptor);
-        s
-    }
-
-    pub fn set_pref_filename(self, filename_descriptor: PrefFilenameDescriptor<'a>) -> Self {
-        let mut s = self;
-        s.filename_descriptors.push(filename_descriptor);
-        s
     }
 
     fn fields(&self) -> BTreeMap<String, i32> {
@@ -139,6 +165,8 @@ impl<'a> Plugin<'a> {
         let it = self
             .field_descriptors
             .iter()
+            .map(|x| x.iter())
+            .flatten()
             .zip(state.field_handles.iter())
             .map(|(descriptor, field)| (descriptor.abbrev().to_owned(), field.clone()));
 
@@ -158,7 +186,7 @@ impl Plugin<'static> {
             static CONTEXT: RefCell<Option<Plugin<'static>>> = RefCell::new(None);
         }
 
-        pub fn with_plugin<F, R>(f: F) -> R
+        fn with_plugin<F, R>(f: F) -> R
         where
             F: FnOnce(&Plugin<'static>) -> R,
         {
@@ -189,49 +217,10 @@ impl Plugin<'static> {
                 state.hf = p
                     .field_descriptors
                     .iter()
+                    .map(|x| x.iter())
+                    .flatten()        
                     .zip(field_handles.iter_mut())
-                    .map(|(descriptor, handle)| match descriptor {
-                        &FieldDescriptor::String {
-                            name: ref name,
-                            abbrev: ref abbrev,
-                        } => sys::hf_register_info {
-                            p_id: handle,
-                            hfinfo: sys::header_field_info {
-                                name: name.as_ptr() as _,
-                                abbrev: abbrev.as_ptr() as _,
-                                type_: sys::ftenum_FT_STRING,
-                                display: sys::field_display_e_BASE_NONE as _,
-                                strings: ptr::null(),
-                                bitmask: 0,
-                                blurb: ptr::null(),
-                                id: -1,
-                                parent: 0,
-                                ref_type: sys::hf_ref_type_HF_REF_TYPE_NONE,
-                                same_name_prev_id: -1,
-                                same_name_next: ptr::null_mut(),
-                            },
-                        },
-                        &FieldDescriptor::Int64Dec {
-                            name: ref name,
-                            abbrev: ref abbrev,
-                        } => sys::hf_register_info {
-                            p_id: handle,
-                            hfinfo: sys::header_field_info {
-                                name: name.as_ptr() as _,
-                                abbrev: abbrev.as_ptr() as _,
-                                type_: sys::ftenum_FT_INT64,
-                                display: sys::field_display_e_BASE_DEC as _,
-                                strings: ptr::null(),
-                                bitmask: 0,
-                                blurb: ptr::null(),
-                                id: -1,
-                                parent: 0,
-                                ref_type: sys::hf_ref_type_HF_REF_TYPE_NONE,
-                                same_name_prev_id: -1,
-                                same_name_next: ptr::null_mut(),
-                            },
-                        },
-                    })
+                    .map(|(descriptor, handle)| descriptor.info(handle))
                     .collect();
                 state.field_handles = field_handles;
                 state.ett_info = &mut state.ett_handle;
