@@ -43,7 +43,11 @@ impl Context {
             let c_range = (range.start.index as usize)..(range.end.index as usize);
             (
                 if initiator { "from initiator" } else { "from responder" },
-                &self.chunks_from_initiator[c_range],
+                if initiator {
+                    &self.chunks_from_initiator[c_range]
+                } else {
+                    &self.chunks_from_responder[c_range]
+                },
                 range.start.offset as usize,
                 range.end.offset as usize,
             )
