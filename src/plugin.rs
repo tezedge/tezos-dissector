@@ -38,33 +38,40 @@ extern "C" fn plugin_register() {
         },
         &[
             &[
-                FieldDescriptor::Int64Dec {
-                    name: "Chunk length\0",
-                    abbrev: "tezos.chunk_length\0",
-                },
-                FieldDescriptor::String {
-                    name: "Decrypted data\0",
-                    abbrev: "tezos.decrypted_data\0",
-                },
-                FieldDescriptor::String {
-                    name: "Message authentication code\0",
-                    abbrev: "tezos.mac\0",
-                },
-                FieldDescriptor::String {
-                    name: "Direction\0",
-                    abbrev: "tezos.direction\0",
-                },
                 FieldDescriptor::String {
                     name: "Conversation\0",
                     abbrev: "tezos.conversation_id\0",
                 },
                 FieldDescriptor::String {
+                    name: "Direction\0",
+                    abbrev: "tezos.direction\0",
+                },
+            ],
+            // chunk
+            &[
+                FieldDescriptor::Int64Dec {
+                    name: "Chunk\0",
+                    abbrev: "tezos.chunk\0",
+                },
+                FieldDescriptor::Int64Dec {
+                    name: "Chunk length\0",
+                    abbrev: "tezos.chunk.length\0",
+                },
+                FieldDescriptor::String {
+                    name: "Decrypted data\0",
+                    abbrev: "tezos.chunk.decrypted_data\0",
+                },
+                FieldDescriptor::String {
                     name: "MAC mismatch\0",
-                    abbrev: "tezos.error\0",
+                    abbrev: "tezos.chunk.mac_error\0",
                 },
                 FieldDescriptor::String {
                     name: "Identity required\0",
-                    abbrev: "tezos.identity_required\0",
+                    abbrev: "tezos.chunk.identity_required\0",
+                },
+                FieldDescriptor::String {
+                    name: "Message authentication code\0",
+                    abbrev: "tezos.chunk.mac\0",
                 },
             ],
             ConnectionMessage::FIELDS,
