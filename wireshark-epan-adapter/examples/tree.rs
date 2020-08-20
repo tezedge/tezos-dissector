@@ -27,30 +27,28 @@ extern "C" fn plugin_register() {
             short_name: "simple_protocol\0",
             filter_name: "simple_tree_example\0",
         },
-        &[
-            &[
-                FieldDescriptor::String {
-                    name: "Foo\0",
-                    abbrev: "simple_tree_example.foo\0",
-                },
-                FieldDescriptor::String {
-                    name: "Foo Bar0\0",
-                    abbrev: "simple_tree_example.foo.bar0\0",
-                },
-                FieldDescriptor::String {
-                    name: "Foo Bar1\0",
-                    abbrev: "simple_tree_example.foo.bar1\0",
-                },
-                FieldDescriptor::String {
-                    name: "Foo Bar0 Baz0\0",
-                    abbrev: "simple_tree_example.foo.bar0.baz0\0",
-                },
-                FieldDescriptor::String {
-                    name: "Foo Bar0 Baz1\0",
-                    abbrev: "simple_tree_example.foo.bar0.baz1\0",
-                },
-            ],
-        ],
+        &[&[
+            FieldDescriptor::String {
+                name: "Foo\0",
+                abbrev: "simple_tree_example.foo\0",
+            },
+            FieldDescriptor::String {
+                name: "Foo Bar0\0",
+                abbrev: "simple_tree_example.foo.bar0\0",
+            },
+            FieldDescriptor::String {
+                name: "Foo Bar1\0",
+                abbrev: "simple_tree_example.foo.bar1\0",
+            },
+            FieldDescriptor::String {
+                name: "Foo Bar0 Baz0\0",
+                abbrev: "simple_tree_example.foo.bar0.baz0\0",
+            },
+            FieldDescriptor::String {
+                name: "Foo Bar0 Baz1\0",
+                abbrev: "simple_tree_example.foo.bar0.baz1\0",
+            },
+        ]],
         &[],
     );
 

@@ -11,7 +11,10 @@ use tezos_messages::p2p::{
 };
 use serde::{Serialize, Deserialize};
 use tezos_encoding::encoding::{Field, HasEncoding, Encoding};
-use wireshark_epan_adapter::{FieldDescriptor, dissector::{Tree, TreeMessage, TreeMessageMapItem}};
+use wireshark_epan_adapter::{
+    FieldDescriptor,
+    dissector::{Tree, TreeMessage, TreeMessageMapItem},
+};
 use std::{io::Cursor, convert::TryFrom};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

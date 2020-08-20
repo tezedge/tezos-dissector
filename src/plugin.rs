@@ -5,10 +5,7 @@ use wireshark_epan_adapter::{
     DissectorDescriptor,
     dissector::TreeMessage,
 };
-use super::{
-    dissector::TezosDissector,
-    conversation::ConnectionMessage,
-};
+use super::{dissector::TezosDissector, conversation::ConnectionMessage};
 
 #[no_mangle]
 static plugin_version: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");
@@ -72,13 +69,11 @@ extern "C" fn plugin_register() {
             ],
             ConnectionMessage::FIELDS,
         ],
-        &[
-            PrefFilenameDescriptor {
-                name: "identity_json_file\0",
-                title: "Identity JSON file\0",
-                description: "JSON file with node identity information\0",
-            },
-        ],
+        &[PrefFilenameDescriptor {
+            name: "identity_json_file\0",
+            title: "Identity JSON file\0",
+            description: "JSON file with node identity information\0",
+        }],
     )
     .register(Box::new(TezosDissector::new()))
 }

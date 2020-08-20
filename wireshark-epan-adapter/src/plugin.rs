@@ -218,7 +218,7 @@ impl Plugin<'static> {
                     .field_descriptors
                     .iter()
                     .map(|x| x.iter())
-                    .flatten()        
+                    .flatten()
                     .zip(field_handles.iter_mut())
                     .map(|(descriptor, handle)| descriptor.info(handle))
                     .collect();
