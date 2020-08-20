@@ -1,5 +1,5 @@
 mod chunk_buffer;
-use self::chunk_buffer::ChunkBuffer;
+use self::chunk_buffer::{ChunkBuffer, FrameCoordinate};
 
 mod connection_message;
 pub use self::connection_message::ConnectionMessage;

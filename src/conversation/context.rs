@@ -1,22 +1,17 @@
 use wireshark_epan_adapter::dissector::{Tree, PacketInfo};
 use std::task::Poll;
 use crate::identity::Identity;
-use super::{Handshake, Sender, ChunkBuffer, MaybePlain, DecryptionError};
+use super::{Handshake, Sender, MaybePlain, DecryptionError};
 
 pub struct Context {
     handshake: Handshake,
-    from_initiator: ChunkBuffer,
-    from_responder: ChunkBuffer,
     chunks_from_initiator: Vec<MaybePlain>,
     chunks_from_responder: Vec<MaybePlain>,
 }
 
 impl Context {
     pub fn invalid(&self) -> bool {
-        match &self.handshake {
-            &Handshake::Unrecognized => true,
-            _ => false,
-        }
+        self.handshake.invalid()
     }
 
     pub fn consume(
@@ -25,9 +20,7 @@ impl Context {
         packet_info: &PacketInfo,
         identity: Option<&Identity>,
     ) {
-        let i = &mut self.from_initiator;
-        let r = &mut self.from_responder;
-        match self.handshake.consume(i, r, payload, packet_info, identity) {
+        match self.handshake.consume(payload, packet_info, identity) {
             Poll::Ready(Ok(Sender::Initiator(mut m))) => self.chunks_from_initiator.append(&mut m),
             Poll::Ready(Ok(Sender::Responder(mut m))) => self.chunks_from_responder.append(&mut m),
             _ => (),
@@ -45,29 +38,15 @@ impl Context {
         main.add("conversation_id", 0..0, TreeLeaf::Display(self.id()));
 
         let f = packet_info.frame_number();
-        let i = self.from_initiator.frames_description(f);
-        let r = self.from_responder.frames_description(f);
-        let (caption, messages, first_offset, last_offset) = match (i, r) {
-            (Some(_), Some(_)) => panic!(),
-            (None, None) => panic!(),
-            (Some(range), None) => {
-                let c_range = (range.start.index as usize)..(range.end.index as usize);
-                (
-                    "from initiator",
-                    &self.chunks_from_initiator[c_range],
-                    range.start.offset as usize,
-                    range.end.offset as usize,
-                )
-            },
-            (None, Some(range)) => {
-                let c_range = (range.start.index as usize)..(range.end.index as usize);
-                (
-                    "from responder",
-                    &self.chunks_from_responder[c_range],
-                    range.start.offset as usize,
-                    range.end.offset as usize,
-                )
-            },
+        let (caption, messages, first_offset, last_offset) = {
+            let (initiator, range) = self.handshake.frame_description(f);
+            let c_range = (range.start.index as usize)..(range.end.index as usize);
+            (
+                if initiator { "from initiator" } else { "from responder" },
+                &self.chunks_from_initiator[c_range],
+                range.start.offset as usize,
+                range.end.offset as usize,
+            )
         };
         main.add("direction", 0..0, TreeLeaf::Display(caption));
 
@@ -135,9 +114,7 @@ impl Context {
 impl Default for Context {
     fn default() -> Self {
         Context {
-            handshake: Handshake::Initial,
-            from_initiator: ChunkBuffer::new(),
-            from_responder: ChunkBuffer::new(),
+            handshake: Handshake::new(),
             chunks_from_initiator: Vec::new(),
             chunks_from_responder: Vec::new(),
         }
