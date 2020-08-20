@@ -44,17 +44,30 @@ where
         fn recursive(base: &str, name: &str, encoding: &Encoding) -> Vec<FieldDescriptorOwned> {
             let new_base = format!("{}.{}", base, name);
             let (kind, more) = match encoding {
-                &Encoding::Unit => (Some(FieldKind::Nothing), Vec::new()),
+                &Encoding::Unit => (None, Vec::new()),
                 &Encoding::Int8 | &Encoding::Uint8
                 | &Encoding::Int16 | &Encoding::Uint16
                 | &Encoding::Int31 | &Encoding::Int32 | &Encoding::Uint32
                 | &Encoding::Int64 | &Encoding::RangedInt => (Some(FieldKind::IntDec), Vec::new()),
                 &Encoding::Z | &Encoding::Mutez => unimplemented!(),
                 &Encoding::Float | &Encoding::RangedFloat => unimplemented!(),
-                &Encoding::Bool => unimplemented!(),
+                &Encoding::Bool => (Some(FieldKind::String), Vec::new()),
                 &Encoding::String | &Encoding::Bytes => (Some(FieldKind::String), Vec::new()),
-                &Encoding::Tags(_, _) => unimplemented!(),
+                &Encoding::Tags(_, ref map) => (
+                    Some(FieldKind::Nothing),
+                    // have to probe all ids...
+                    (0..=u16::MAX)
+                        .filter_map(|id| map.find_by_id(id))
+                        .map(|tag| {
+                            recursive(new_base.as_str(), tag.get_variant(), tag.get_encoding())
+                        })
+                        .flatten()
+                        .collect()
+                ),
                 &Encoding::List(ref encoding) => (None, recursive(base, name, encoding)),
+                &Encoding::Enum => (Some(FieldKind::String), Vec::new()),
+                &Encoding::Option(ref encoding)
+                | &Encoding::OptionalField(ref encoding) => (None, recursive(base, name, encoding)),
                 &Encoding::Obj(ref fields) => (
                     Some(FieldKind::Nothing),
                     fields.iter()
@@ -64,13 +77,28 @@ where
                         .flatten()
                         .collect()
                 ),
+                &Encoding::Tup(ref e) => (
+                    None,
+                    e.iter()
+                        .map(|encoding| recursive(base, name, encoding))
+                        .flatten()
+                        .collect(),
+                ),
+                &Encoding::Dynamic(ref encoding) => (None, recursive(base, name, encoding)),
                 &Encoding::Sized(_, ref encoding) => (None, recursive(base, name, encoding)),
-                _ => panic!(),
+                &Encoding::Greedy(ref encoding) => (None, recursive(base, name, encoding)),
+                &Encoding::Hash(_) => (Some(FieldKind::String), Vec::new()),
+                &Encoding::Split(_) => {
+                    // unimplemented!()
+                    (Some(FieldKind::Nothing), Vec::new())
+                },
+                &Encoding::Timestamp => (Some(FieldKind::String), Vec::new()),
+                &Encoding::Lazy(_) => (Some(FieldKind::Nothing), Vec::new()),
             };
             kind
                 .map(|kind| to_descriptor(base, name, kind))
                 .into_iter()
-                .chain(more.into_iter())
+                .chain(more)
                 .collect()
         }
         recursive("tezos", T::NAME, &T::encoding())
