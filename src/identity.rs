@@ -39,10 +39,14 @@ impl Identity {
     ) -> Option<Decipher> {
         let initiator_pk_string =
             HashType::CryptoboxPublicKeyHash.bytes_to_string(&initiator_message.public_key);
+        let responder_pk_string =
+            HashType::CryptoboxPublicKeyHash.bytes_to_string(&initiator_message.public_key);
         let other_pk = if initiator_pk_string == self.public_key {
             responder_message.public_key.clone()
-        } else {
+        } else if responder_pk_string == self.public_key {
             initiator_message.public_key.clone()
+        } else {
+            None?
         };
 
         let initiator_cache = initiator_message.cache_reader().get().unwrap();

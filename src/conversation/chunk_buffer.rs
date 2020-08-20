@@ -22,7 +22,7 @@ impl ChunkBufferTemporal {
     }
 }
 
-#[derive(Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
 struct FrameIndex(u64);
 
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq)]
@@ -55,7 +55,6 @@ impl ChunkBuffer {
         self.temp.last_frame = Some(FrameIndex(frame_index));
 
         self.buffer.extend_from_slice(payload);
-        let offset = self.buffer.len() as u16;
 
         let mut v = Vec::new();
         loop {
@@ -63,7 +62,7 @@ impl ChunkBuffer {
                 Poll::Pending => {
                     let frame_end = FrameCoordinate {
                         index: self.temp.chunks_counter,
-                        offset: offset,
+                        offset: self.buffer.len() as u16,
                     };
                     self.frames_description
                         .insert(FrameIndex(frame_index), frame_start..frame_end);
@@ -77,7 +76,7 @@ impl ChunkBuffer {
                     if self.buffer.len() < length {
                         let frame_end = FrameCoordinate {
                             index: self.temp.chunks_counter,
-                            offset: offset,
+                            offset: self.buffer.len() as u16,
                         };
                         self.frames_description
                             .insert(FrameIndex(frame_index), frame_start..frame_end);

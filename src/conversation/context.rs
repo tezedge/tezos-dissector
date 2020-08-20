@@ -1,9 +1,13 @@
 use tezos_messages::p2p::binary_message::BinaryChunk;
-use wireshark_epan_adapter::dissector::{Tree, PacketInfo, SocketAddress};
-use crypto::crypto_box::CryptoError;
+use wireshark_epan_adapter::dissector::{Tree, PacketInfo};
+use failure::Fail;
 use std::{convert::TryFrom, mem, task::Poll};
 use crate::identity::{Identity, Decipher, NonceAddition};
-use super::{connection_message::ConnectionMessage, chunk_buffer::ChunkBuffer};
+use super::{
+    addresses::{Addresses, Sender},
+    connection_message::ConnectionMessage,
+    chunk_buffer::ChunkBuffer,
+};
 
 pub struct Context {
     handshake: Handshake,
@@ -31,56 +35,28 @@ enum Handshake {
     Unrecognized,
 }
 
-#[derive(Debug)]
-struct Addresses {
-    initiator: SocketAddress,
-    responder: SocketAddress,
-}
-
-impl Addresses {
-    fn new(packet_info: &PacketInfo) -> Self {
-        Addresses {
-            initiator: packet_info.source(),
-            responder: packet_info.destination(),
-        }
-    }
-
-    fn sender(&self, packet_info: &PacketInfo) -> Sender<()> {
-        if self.initiator == packet_info.source() {
-            assert_eq!(self.responder, packet_info.destination());
-            Sender::Initiator(())
-        } else if self.responder == packet_info.source() {
-            assert_eq!(self.initiator, packet_info.destination());
-            Sender::Responder(())
-        } else {
-            panic!()
-        }
-    }
-}
-
-#[derive(Eq, PartialEq)]
-pub enum Sender<T> {
-    Initiator(T),
-    Responder(T),
-}
-
-impl<T> Sender<T> {
-    fn map<F, U>(self, op: F) -> Sender<U>
-    where
-        F: FnOnce(T) -> U,
-    {
-        match self {
-            Sender::Initiator(t) => Sender::Initiator(op(t)),
-            Sender::Responder(t) => Sender::Responder(op(t)),
-        }
-    }
+#[derive(Debug, Fail)]
+enum DecryptionError {
+    #[fail(display = "wrong MAC")]
+    WrongMac,
+    #[fail(display = "identity needed")]
+    HasNoIdentity,
 }
 
 enum MaybePlain {
-    RequiredIdentity(BinaryChunk),
-    Error(BinaryChunk, CryptoError),
-    Connection(ConnectionMessage),
+    Error(BinaryChunk, DecryptionError),
+    Connection(usize, ConnectionMessage),
     Plain(Vec<u8>),
+}
+
+impl MaybePlain {
+    fn length(&self) -> usize {
+        match self {
+            &MaybePlain::Error(ref c, _) => c.content().len(),
+            &MaybePlain::Connection(l, _) => l,
+            &MaybePlain::Plain(ref d) => d.len() + 16, // MAC
+        }
+    }
 }
 
 struct HandshakeError;
@@ -106,13 +82,14 @@ impl Handshake {
             Poll::Pending => (Handshake::IncomingBuffer { addresses }, Poll::Pending),
             Poll::Ready((0, mut chunks)) if chunks.len() == 1 => {
                 let chunk = chunks.swap_remove(0);
+                let length = chunk.content().len();
                 match ConnectionMessage::try_from(chunk) {
                     Ok(initiator_message) => (
                         Handshake::IncomingMessage {
                             initiator_message: initiator_message.clone(),
                             addresses,
                         },
-                        Poll::Ready(Ok(Sender::Initiator(vec![MaybePlain::Connection(initiator_message.clone())]))),
+                        Poll::Ready(Ok(Sender::Initiator(vec![MaybePlain::Connection(length, initiator_message.clone())]))),
                     ),
                     Err(_) => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
                 }
@@ -133,6 +110,7 @@ impl Handshake {
             Poll::Pending => (Handshake::IncomingMessage { initiator_message, addresses }, Poll::Pending),
             Poll::Ready((0, mut chunks)) if chunks.len() == 1 => {
                 let chunk = chunks.swap_remove(0);
+                let length = chunk.content().len();
                 match ConnectionMessage::try_from(chunk) {
                     Ok(responder_message) => {
                         let decipher = identity
@@ -144,7 +122,7 @@ impl Handshake {
                                 decipher,
                                 addresses,
                             },
-                            Poll::Ready(Ok(Sender::Responder(vec![MaybePlain::Connection(responder_message.clone())]))),
+                            Poll::Ready(Ok(Sender::Responder(vec![MaybePlain::Connection(length, responder_message.clone())]))),
                         )
                     },
                     Err(_) => (Handshake::Unrecognized, Poll::Ready(Err(HandshakeError))),
@@ -199,7 +177,7 @@ impl Handshake {
                             .enumerate()
                             .map(|(i, chunk)| {
                                 match decipher.as_ref() {
-                                    None => MaybePlain::RequiredIdentity(chunk),
+                                    None => MaybePlain::Error(chunk, DecryptionError::HasNoIdentity),
                                     Some(d) => {
                                         let i = i as u64;
                                         // first message is connection message (plain)
@@ -212,7 +190,7 @@ impl Handshake {
                                             Ok(data) => MaybePlain::Plain(data),
                                             Err(e) => {
                                                 log::error!("{:?}, {:?}", addresses, e);
-                                                MaybePlain::Error(chunk, e)
+                                                MaybePlain::Error(chunk, DecryptionError::WrongMac)
                                             },
                                         }
                                     },
@@ -267,7 +245,7 @@ impl Context {
         let f = packet_info.frame_number();
         let i = self.from_initiator.frames_description(f);
         let r = self.from_responder.frames_description(f);
-        let (caption, messages, _first_offset, _last_offset) = match (i, r) {
+        let (caption, messages, first_offset, last_offset) = match (i, r) {
             (Some(_), Some(_)) => panic!(),
             (None, None) => panic!(),
             (Some(range), None) => (
@@ -285,38 +263,59 @@ impl Context {
         };
         main.add("direction", 0..0, TreeLeaf::Display(caption));
 
-        for (_i, message) in messages.iter().enumerate() {
-            /*let chunk_header_range = match i {
+        let mut offset = 0;
+        for (i, message) in messages.iter().enumerate() {
+            let chunk_header_range = match i {
                 // first chunk in the packet
-                0 => if first_offset < 2 {
-                    Some(first_offset..2)
-                } else {
-                    None
+                0 => {
+                    let r = if first_offset < 2 {
+                        Some(0..(2 - first_offset))
+                    } else {
+                        None
+                    };
+                    offset += message.length() - first_offset + 2;
+                    r
                 },
                 // middle chunk in the packet
-                l if l < messages.len() - 1 => Some(0..2),
+                l if l < messages.len() - 1 => {
+                    let r = Some(offset..(offset + 2));
+                    offset += message.length() + 2;
+                    r
+                },
                 // last chunk in the packet
-                l if l == messages.len() - 1 => if last_offset >= 2 {
-                    Some(0..last_offset)
+                l if l == messages.len() - 1 => if last_offset == 0 {
+                    let r = Some(offset..(offset + 2));
+                    offset += message.length() + 2;
+                    r
                 } else {
-                    None
+                    Some(offset..(offset + usize::min(2, last_offset)))
                 },
-                _ => None,
-            };*/
+                _ => panic!(),
+            };
+            let header_end = chunk_header_range.clone().unwrap_or(0..0).end;
+            if let Some(range) = chunk_header_range {
+                main.add("chunk_length", range, TreeLeaf::dec(message.length() as _));
+            }
+            let body_end = header_end + message.length() - 16;
+            let body_upper_bound = usize::min(payload.len(), body_end);
+            let body_range = header_end..body_upper_bound;
+            let mac_upper_bound = usize::min(payload.len(), body_end + 16);
+            let mac_range = body_upper_bound..mac_upper_bound;
             match message {
-                &MaybePlain::RequiredIdentity(ref chunk) => {
-                    main.add("identity_required", 0..0, TreeLeaf::Display(format!("{}, encrypted {}", caption, hex::encode(chunk.content()))));
+                &MaybePlain::Error(ref chunk, DecryptionError::HasNoIdentity) => {
+                    main.add("identity_required", body_range, TreeLeaf::Display(format!("encrypted: {}", hex::encode(chunk.content()))));
                 },
-                &MaybePlain::Error(ref chunk, ref error) => {
-                    main.add("error", 0..0, TreeLeaf::Display(format!("{}, error: {}, encrypted {}", caption, error, hex::encode(chunk.content()))));
+                &MaybePlain::Error(ref chunk, DecryptionError::WrongMac) => {
+                    main.add("error", body_range, TreeLeaf::Display(format!("encrypted: {}", hex::encode(chunk.content()))));
                 },
-                &MaybePlain::Connection(ref connection) => {
+                &MaybePlain::Connection(_, ref connection) => {
                     main.show(connection, &[]);
                 },
                 &MaybePlain::Plain(ref plain) => {
-                    main.add("decrypted_data", 0..0, TreeLeaf::Display(format!("{}: {}", caption, hex::encode(plain))));
+                    main.add("decrypted_data", body_range, TreeLeaf::Display(hex::encode(plain)));
                 },
             }
+            main.add("mac", mac_range, TreeLeaf::Display(""));
         }
     }
 }

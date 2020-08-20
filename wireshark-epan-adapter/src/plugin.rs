@@ -313,13 +313,13 @@ impl Plugin<'static> {
                     }
 
                     let fields = p.fields();
-                    let mut state = p.privates.borrow_mut();
                     let mut helper = DissectorHelper::new(
                         SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
                         tvb,
                     );
-                    let mut tree = Tree::root(fields, state.ett_handle, tvb, tree);
+                    let mut tree = Tree::root(fields, p.privates.borrow().ett_handle, tvb, tree);
                     let packet_info = PacketInfo::new(pinfo);
+                    let mut state = p.privates.borrow_mut();
                     let dissector = state.dissector.as_mut().unwrap();
                     let processed_length = dissector.consume(&mut helper, &mut tree, &packet_info);
                     processed_length as _
