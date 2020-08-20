@@ -3,7 +3,6 @@ use wireshark_epan_adapter::{
     Plugin, NameDescriptor, FieldDescriptor,
     PrefFilenameDescriptor,
     DissectorDescriptor,
-    dissector::TreeMessage,
 };
 use super::{dissector::TezosDissector, conversation::ConnectionMessage};
 
@@ -79,7 +78,6 @@ extern "C" fn plugin_register() {
                     abbrev: "tezos.chunk.mac\0",
                 },
             ],
-            ConnectionMessage::FIELDS,
         ],
         &[PrefFilenameDescriptor {
             name: "identity_json_file\0",
@@ -87,5 +85,6 @@ extern "C" fn plugin_register() {
             description: "JSON file with node identity information\0",
         }],
     )
+    .register_type::<ConnectionMessage>()
     .register(Box::new(TezosDissector::new()))
 }

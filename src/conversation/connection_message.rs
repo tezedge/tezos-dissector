@@ -12,8 +12,8 @@ use tezos_messages::p2p::{
 use serde::{Serialize, Deserialize};
 use tezos_encoding::encoding::{Field, HasEncoding, Encoding};
 use wireshark_epan_adapter::{
-    FieldDescriptor,
-    dissector::{Tree, TreeMessage, TreeMessageMapItem},
+    FieldDescriptor, FieldDescriptorOwned,
+    dissector::{Tree, TreeMessage, HasFields, TreeMessageMapItem},
 };
 use std::{io::Cursor, convert::TryFrom};
 
@@ -63,7 +63,7 @@ impl CachedData for ConnectionMessage {
     }
 }
 
-impl TreeMessage for ConnectionMessage {
+impl HasFields for ConnectionMessage {
     const FIELDS: &'static [FieldDescriptor<'static>] = &[
         FieldDescriptor::String {
             name: "Connection message\0",
@@ -91,6 +91,12 @@ impl TreeMessage for ConnectionMessage {
         },
     ];
 
+    fn fields() -> Vec<FieldDescriptorOwned> {
+        vec![]
+    }
+}
+
+impl TreeMessage for ConnectionMessage {
     fn show_on_tree(&self, node: &mut Tree, map: &[TreeMessageMapItem]) {
         use wireshark_epan_adapter::dissector::TreeLeaf;
 

@@ -1,5 +1,5 @@
 use std::{collections::BTreeMap, ops::Range, rc::Rc, cell::RefCell, fmt};
-use crate::plugin::FieldDescriptor;
+use crate::plugin::{FieldDescriptor, FieldDescriptorOwned};
 use crate::sys;
 
 struct Common {
@@ -142,7 +142,10 @@ pub struct TreeMessageMapItem {
 }
 
 pub trait TreeMessage {
-    const FIELDS: &'static [FieldDescriptor<'static>];
-
     fn show_on_tree(&self, node: &mut Tree, map: &[TreeMessageMapItem]);
+}
+
+pub trait HasFields {
+    const FIELDS: &'static [FieldDescriptor<'static>];
+    fn fields() -> Vec<FieldDescriptorOwned>;
 }

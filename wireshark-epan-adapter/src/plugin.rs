@@ -5,7 +5,7 @@ use std::{
     ptr,
 };
 use crate::sys;
-use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Tree};
+use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Tree, HasFields};
 
 pub trait Dissector {
     fn prefs_update(&mut self, filenames: Vec<&str>) {
@@ -54,6 +54,7 @@ pub struct Plugin<'a> {
     dissector_descriptor: DissectorDescriptor<'a>,
     name_descriptor: NameDescriptor<'a>,
     field_descriptors: &'a [&'a [FieldDescriptor<'a>]],
+    field_descriptors_owned: Vec<FieldDescriptorOwned>,
     filename_descriptors: &'a [PrefFilenameDescriptor<'a>],
 }
 
@@ -70,12 +71,32 @@ pub enum FieldDescriptor<'a> {
 }
 
 impl<'a> FieldDescriptor<'a> {
+    pub fn to_owned(&self) -> FieldDescriptorOwned {
+        match self {
+            &FieldDescriptor::String { name, abbrev } => {
+                FieldDescriptorOwned::String { name: name.to_owned(), abbrev: abbrev.to_owned() }
+            },
+            &FieldDescriptor::Int64Dec { name, abbrev } => {
+                FieldDescriptorOwned::Int64Dec { name: name.to_owned(), abbrev: abbrev.to_owned() }
+            },
+        }
+    }
+}
+
+#[derive(Clone)]
+pub enum FieldDescriptorOwned {
+    String { name: String, abbrev: String },
+    Int64Dec { name: String, abbrev: String },
+}
+
+trait Info {
+    fn info(&self, handle: &mut c_int) -> sys::hf_register_info;
+}
+
+impl<'a> Info for FieldDescriptor<'a> {
     fn info(&self, handle: &mut c_int) -> sys::hf_register_info {
         match self {
-            &FieldDescriptor::String {
-                name: ref name,
-                abbrev: ref abbrev,
-            } => sys::hf_register_info {
+            &FieldDescriptor::String { name, abbrev } => sys::hf_register_info {
                 p_id: handle,
                 hfinfo: sys::header_field_info {
                     name: name.as_ptr() as _,
@@ -92,10 +113,7 @@ impl<'a> FieldDescriptor<'a> {
                     same_name_next: ptr::null_mut(),
                 },
             },
-            &FieldDescriptor::Int64Dec {
-                name: ref name,
-                abbrev: ref abbrev,
-            } => sys::hf_register_info {
+            &FieldDescriptor::Int64Dec { name, abbrev } => sys::hf_register_info {
                 p_id: handle,
                 hfinfo: sys::header_field_info {
                     name: name.as_ptr() as _,
@@ -114,17 +132,41 @@ impl<'a> FieldDescriptor<'a> {
             },
         }
     }
+}
 
-    fn abbrev(&self) -> &'a str {
+impl Info for FieldDescriptorOwned {
+    fn info(&self, handle: &mut c_int) -> sys::hf_register_info {
         match self {
-            &FieldDescriptor::String {
-                name: _,
-                abbrev: ref abbrev,
-            } => abbrev.clone(),
-            &FieldDescriptor::Int64Dec {
-                name: _,
-                abbrev: ref abbrev,
-            } => abbrev.clone(),
+            &FieldDescriptorOwned::String { ref name, ref abbrev, .. } => {
+                FieldDescriptor::String { name, abbrev }
+                    .info(handle)
+            },
+            &FieldDescriptorOwned::Int64Dec { ref name, ref abbrev, .. } => {
+                FieldDescriptor::Int64Dec { name, abbrev }
+                    .info(handle)
+            },
+        }
+    }
+}
+
+trait Abbrev {
+    fn abbrev(&self) -> String;
+}
+
+impl<'a> Abbrev for FieldDescriptor<'a> {
+    fn abbrev(&self) -> String {
+        match self {
+            &FieldDescriptor::String { abbrev, .. } => abbrev.to_string(),
+            &FieldDescriptor::Int64Dec { abbrev, .. } => abbrev.to_string(),
+        }
+    }
+}
+
+impl Abbrev for FieldDescriptorOwned {
+    fn abbrev(&self) -> String {
+        match self {
+            &FieldDescriptorOwned::String { ref abbrev, .. } => abbrev.clone(),
+            &FieldDescriptorOwned::Int64Dec { ref abbrev, .. } => abbrev.clone(),
         }
     }
 }
@@ -152,8 +194,19 @@ impl<'a> Plugin<'a> {
             dissector_descriptor,
             name_descriptor,
             field_descriptors,
+            field_descriptors_owned: Vec::new(),
             filename_descriptors,
         }
+    }
+
+    pub fn register_type<T>(self) -> Self
+    where
+        T: HasFields,
+    {
+        let mut s = self;
+        s.field_descriptors_owned.extend_from_slice(T::fields().as_slice());
+        s.field_descriptors_owned.extend(T::FIELDS.iter().map(FieldDescriptor::to_owned));
+        s
     }
 
     fn fields(&self) -> BTreeMap<String, i32> {
@@ -167,8 +220,9 @@ impl<'a> Plugin<'a> {
             .iter()
             .map(|x| x.iter())
             .flatten()
-            .zip(state.field_handles.iter())
-            .map(|(descriptor, field)| (descriptor.abbrev().to_owned(), field.clone()));
+            .map(Abbrev::abbrev)
+            .chain(self.field_descriptors_owned.iter().map(Abbrev::abbrev))
+            .zip(state.field_handles.iter().cloned());
 
         // self name
         iter::once((
@@ -209,7 +263,8 @@ impl Plugin<'static> {
                 state.proto_handle = proto;
 
                 let mut field_handles = {
-                    let len = p.field_descriptors.iter().map(|x| x.len()).sum();
+                    let len = p.field_descriptors.iter().map(|x| x.len()).sum::<usize>();
+                    let len = len + p.field_descriptors_owned.len();
                     let mut v = Vec::new();
                     v.resize(len, -1);
                     v
@@ -219,6 +274,8 @@ impl Plugin<'static> {
                     .iter()
                     .map(|x| x.iter())
                     .flatten()
+                    .map(|x| x as &dyn Info)
+                    .chain(p.field_descriptors_owned.iter().map(|x| x as &dyn Info))
                     .zip(field_handles.iter_mut())
                     .map(|(descriptor, handle)| descriptor.info(handle))
                     .collect();
