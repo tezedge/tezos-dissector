@@ -64,8 +64,9 @@ pub struct NameDescriptor<'a> {
     pub filter_name: &'a str,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum FieldDescriptor<'a> {
+    Nothing { name: &'a str, abbrev: &'a str },
     String { name: &'a str, abbrev: &'a str },
     Int64Dec { name: &'a str, abbrev: &'a str },
 }
@@ -73,6 +74,9 @@ pub enum FieldDescriptor<'a> {
 impl<'a> FieldDescriptor<'a> {
     pub fn to_owned(&self) -> FieldDescriptorOwned {
         match self {
+            &FieldDescriptor::Nothing { name, abbrev } => {
+                FieldDescriptorOwned::Nothing { name: name.to_owned(), abbrev: abbrev.to_owned() }
+            },
             &FieldDescriptor::String { name, abbrev } => {
                 FieldDescriptorOwned::String { name: name.to_owned(), abbrev: abbrev.to_owned() }
             },
@@ -83,8 +87,9 @@ impl<'a> FieldDescriptor<'a> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum FieldDescriptorOwned {
+    Nothing { name: String, abbrev: String },
     String { name: String, abbrev: String },
     Int64Dec { name: String, abbrev: String },
 }
@@ -96,6 +101,23 @@ trait Info {
 impl<'a> Info for FieldDescriptor<'a> {
     fn info(&self, handle: &mut c_int) -> sys::hf_register_info {
         match self {
+            &FieldDescriptor::Nothing { name, abbrev } => sys::hf_register_info {
+                p_id: handle,
+                hfinfo: sys::header_field_info {
+                    name: name.as_ptr() as _,
+                    abbrev: abbrev.as_ptr() as _,
+                    type_: sys::ftenum_FT_NONE,
+                    display: sys::field_display_e_BASE_NONE as _,
+                    strings: ptr::null(),
+                    bitmask: 0,
+                    blurb: ptr::null(),
+                    id: -1,
+                    parent: 0,
+                    ref_type: sys::hf_ref_type_HF_REF_TYPE_NONE,
+                    same_name_prev_id: -1,
+                    same_name_next: ptr::null_mut(),
+                },
+            },
             &FieldDescriptor::String { name, abbrev } => sys::hf_register_info {
                 p_id: handle,
                 hfinfo: sys::header_field_info {
@@ -137,6 +159,10 @@ impl<'a> Info for FieldDescriptor<'a> {
 impl Info for FieldDescriptorOwned {
     fn info(&self, handle: &mut c_int) -> sys::hf_register_info {
         match self {
+            &FieldDescriptorOwned::Nothing { ref name, ref abbrev, .. } => {
+                FieldDescriptor::Nothing { name, abbrev }
+                    .info(handle)
+            },
             &FieldDescriptorOwned::String { ref name, ref abbrev, .. } => {
                 FieldDescriptor::String { name, abbrev }
                     .info(handle)
@@ -156,6 +182,7 @@ trait Abbrev {
 impl<'a> Abbrev for FieldDescriptor<'a> {
     fn abbrev(&self) -> String {
         match self {
+            &FieldDescriptor::Nothing { abbrev, .. } => abbrev.to_string(),
             &FieldDescriptor::String { abbrev, .. } => abbrev.to_string(),
             &FieldDescriptor::Int64Dec { abbrev, .. } => abbrev.to_string(),
         }
@@ -165,6 +192,7 @@ impl<'a> Abbrev for FieldDescriptor<'a> {
 impl Abbrev for FieldDescriptorOwned {
     fn abbrev(&self) -> String {
         match self {
+            &FieldDescriptorOwned::Nothing { ref abbrev, .. } => abbrev.to_string(),
             &FieldDescriptorOwned::String { ref abbrev, .. } => abbrev.clone(),
             &FieldDescriptorOwned::Int64Dec { ref abbrev, .. } => abbrev.clone(),
         }

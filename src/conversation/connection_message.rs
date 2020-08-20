@@ -65,7 +65,7 @@ impl CachedData for ConnectionMessage {
 
 impl HasFields for ConnectionMessage {
     const FIELDS: &'static [FieldDescriptor<'static>] = &[
-        FieldDescriptor::String {
+        FieldDescriptor::Nothing {
             name: "Connection message\0",
             abbrev: "tezos.connection_msg\0",
         },
@@ -101,7 +101,7 @@ impl TreeMessage for ConnectionMessage {
         use wireshark_epan_adapter::dissector::TreeLeaf;
 
         let _ = map;
-        let mut n = node.add("connection_msg", 0..0, TreeLeaf::Display("")).subtree();
+        let mut n = node.add("connection_msg", 0..0, TreeLeaf::nothing()).subtree();
         n.add("port", 0..0, TreeLeaf::dec(self.port as _));
         n.add("pk", 0..0, TreeLeaf::Display(hex::encode(&self.public_key)));
         n.add("pow", 0..0, TreeLeaf::Display(hex::encode(&self.proof_of_work_stamp)));
