@@ -46,7 +46,7 @@ impl Dissector for TezosDissector {
             context.consume(payload.as_ref(), packet_info, self.identity.as_ref());
         }
         if !context.invalid() {
-            context.visualize(payload.as_ref(), packet_info, root);
+            context.visualize(payload.len(), packet_info, root);
             payload.len()
         } else {
             0

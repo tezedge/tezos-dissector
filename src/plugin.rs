@@ -70,6 +70,11 @@ extern "C" fn plugin_register() {
                     abbrev: "tezos.chunk.identity_required\0",
                 },
                 FieldDescriptor::String {
+                    // only for first pass
+                    name: "Buffering\0",
+                    abbrev: "tezos.chunk.buffering\0",
+                },
+                FieldDescriptor::String {
                     name: "Message authentication code\0",
                     abbrev: "tezos.chunk.mac\0",
                 },
