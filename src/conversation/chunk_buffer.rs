@@ -58,12 +58,11 @@ impl ChunkBuffer {
 
         let mut v = Vec::new();
         loop {
-            match self.length() {
+            match self.enough_length() {
                 Poll::Pending => {
-                    let frame_end = FrameCoordinate {
-                        index: self.temp.chunks_counter,
-                        offset: self.buffer.len() as u16,
-                    };
+                    let offset = self.buffer.len() as u16;
+                    let index = self.temp.chunks_counter;
+                    let frame_end = FrameCoordinate { index, offset };
                     self.frames_description
                         .insert(FrameIndex(frame_index), frame_start..frame_end);
                     break if v.is_empty() {
@@ -73,33 +72,12 @@ impl ChunkBuffer {
                     };
                 },
                 Poll::Ready(length) => {
-                    if self.buffer.len() < length {
-                        let frame_end = FrameCoordinate {
-                            index: self.temp.chunks_counter,
-                            offset: self.buffer.len() as u16,
-                        };
-                        self.frames_description
-                            .insert(FrameIndex(frame_index), frame_start..frame_end);
-                        break {
-                            if v.is_empty() {
-                                Poll::Pending
-                            } else {
-                                Poll::Ready((nonce, v))
-                            }
-                        };
-                    } else {
-                        let buffer = std::mem::replace(&mut self.buffer, Vec::new());
-                        let (chunk_data, reminder) = buffer.split_at(length);
-                        self.temp.chunks_counter += 1;
-                        v.push(
-                            BinaryChunk::try_from(chunk_data.to_owned())
-                                .map_err(|e| {
-                                    log::error!("{}", e);
-                                })
-                                .unwrap(),
-                        );
-                        self.buffer = reminder.to_owned();
-                    }
+                    let buffer = std::mem::replace(&mut self.buffer, Vec::new());
+                    let (chunk_data, reminder) = buffer.split_at(length);
+                    self.temp.chunks_counter += 1;
+                    let chunk = BinaryChunk::try_from(chunk_data.to_owned()).unwrap();
+                    v.push(chunk);
+                    self.buffer = reminder.to_owned();
                 },
             }
         }
@@ -111,14 +89,19 @@ impl ChunkBuffer {
             .cloned()
     }
 
-    fn length(&self) -> Poll<usize> {
+    fn enough_length(&self) -> Poll<usize> {
         use bytes::Buf;
 
         if self.buffer.len() < CONTENT_LENGTH_FIELD_BYTES {
             Poll::Pending
         } else {
             let length = (&self.buffer[..CONTENT_LENGTH_FIELD_BYTES]).get_u16() as usize;
-            Poll::Ready(length + CONTENT_LENGTH_FIELD_BYTES)
+            let length = length + CONTENT_LENGTH_FIELD_BYTES;
+            if self.buffer.len() < length {
+                Poll::Pending
+            } else {
+                Poll::Ready(length)
+            }
         }
     }
 }

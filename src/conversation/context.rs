@@ -39,6 +39,10 @@ impl Context {
         main.add("conversation_id", 0..0, TreeLeaf::Display(self.id()));
 
         let f = packet_info.frame_number();
+
+        if f == 626 {
+            log::warn!("HERE");
+        }
         let (caption, messages, first_offset, last_offset, start) = {
             let (initiator, range) = self.handshake.frame_description(f);
             let c_range = (range.start.index as usize)..(range.end.index as usize);
@@ -66,19 +70,19 @@ impl Context {
                     2 - usize::min(2, first_offset)
                 },
                 // middle chunk in the packet
-                l if l < messages.len() - 1 => {
+                l if l < messages.len() => {
                     offset += message.length() + 2;
                     2
                 },
                 // last chunk in the packet
-                l if l == messages.len() - 1 => {
+                /*l if l == messages.len() - 1 => {
                     if last_offset == 0 {
                         offset += message.length() + 2;
                         2
                     } else {
                         usize::min(2, last_offset)
                     }
-                },
+                },*/
                 _ => panic!(),
             };
             let header_range = 0..header_end;
