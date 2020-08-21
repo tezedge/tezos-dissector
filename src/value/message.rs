@@ -135,3 +135,17 @@ pub fn show<'a>(
         t => panic!("{:?}", t),
     }
 }
+
+/*impl TreeMessage for ConnectionMessage {
+    fn show_on_tree(&self, node: &mut Tree, map: &[TreeMessageMapItem]) {
+        use wireshark_epan_adapter::dissector::TreeLeaf;
+
+        let _ = map;
+        let mut n = node.add("connection_msg", 0..0, TreeLeaf::nothing()).subtree();
+        n.add("port", 0..0, TreeLeaf::dec(self.port as _));
+        n.add("pk", 0..0, TreeLeaf::Display(hex::encode(&self.public_key)));
+        n.add("pow", 0..0, TreeLeaf::Display(hex::encode(&self.proof_of_work_stamp)));
+        n.add("nonce", 0..0, TreeLeaf::Display(hex::encode(&self.message_nonce)));
+        n.add("version", 0..0, TreeLeaf::Display(format!("{:?}", self.versions)));
+    }
+}*/

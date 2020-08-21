@@ -84,7 +84,6 @@ impl Context {
                     c_tree.add("mac_error", body_range, TreeLeaf::Display(l));
                 },
                 &MaybePlain::Connection(_, ref connection) => {
-                    main.show(connection, &[]);
                     let plain = connection.cache_reader().get().unwrap();
                     c_tree.add("decrypted_data", body_range, TreeLeaf::Display(hex::encode(plain)));
                 },

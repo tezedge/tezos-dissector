@@ -11,10 +11,6 @@ use tezos_messages::p2p::{
 };
 use serde::{Serialize, Deserialize};
 use tezos_encoding::encoding::{Field, HasEncoding, Encoding};
-use wireshark_epan_adapter::{
-    FieldDescriptor, FieldDescriptorOwned,
-    dissector::{Tree, TreeMessage, HasFields, TreeMessageMapItem},
-};
 use std::{io::Cursor, convert::TryFrom};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -60,52 +56,5 @@ impl CachedData for ConnectionMessage {
     #[inline]
     fn cache_writer(&mut self) -> Option<&mut dyn CacheWriter> {
         Some(&mut self.body)
-    }
-}
-
-impl HasFields for ConnectionMessage {
-    const FIELDS: &'static [FieldDescriptor<'static>] = &[
-        FieldDescriptor::Nothing {
-            name: "Connection message\0",
-            abbrev: "tezos.connection_msg\0",
-        },
-        FieldDescriptor::Int64Dec {
-            name: "Port\0",
-            abbrev: "tezos.connection_msg.port\0",
-        },
-        FieldDescriptor::String {
-            name: "Public key\0",
-            abbrev: "tezos.connection_msg.pk\0",
-        },
-        FieldDescriptor::String {
-            name: "Proof of work\0",
-            abbrev: "tezos.connection_msg.pow\0",
-        },
-        FieldDescriptor::String {
-            name: "Nonce\0",
-            abbrev: "tezos.connection_msg.nonce\0",
-        },
-        FieldDescriptor::String {
-            name: "Version\0",
-            abbrev: "tezos.connection_msg.version\0",
-        },
-    ];
-
-    fn fields() -> Vec<FieldDescriptorOwned> {
-        vec![]
-    }
-}
-
-impl TreeMessage for ConnectionMessage {
-    fn show_on_tree(&self, node: &mut Tree, map: &[TreeMessageMapItem]) {
-        use wireshark_epan_adapter::dissector::TreeLeaf;
-
-        let _ = map;
-        let mut n = node.add("connection_msg", 0..0, TreeLeaf::nothing()).subtree();
-        n.add("port", 0..0, TreeLeaf::dec(self.port as _));
-        n.add("pk", 0..0, TreeLeaf::Display(hex::encode(&self.public_key)));
-        n.add("pow", 0..0, TreeLeaf::Display(hex::encode(&self.proof_of_work_stamp)));
-        n.add("nonce", 0..0, TreeLeaf::Display(hex::encode(&self.message_nonce)));
-        n.add("version", 0..0, TreeLeaf::Display(format!("{:?}", self.versions)));
     }
 }

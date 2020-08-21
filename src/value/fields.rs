@@ -21,11 +21,12 @@ fn to_descriptor(base: &str, this: &str, kind: FieldKind) -> FieldDescriptorOwne
         v[0] = v[0].to_uppercase().nth(0).unwrap();
         v.into_iter()
             .map(|x| if x == '_' { ' ' } else { x })
+            .chain(std::iter::once('\0'))
             .collect()
     };
 
     let name = capitalized;
-    let abbrev = format!("{}.{}", base, this);
+    let abbrev = format!("{}.{}\0", base, this);
 
     match kind {
         FieldKind::Nothing => FieldDescriptorOwned::Nothing { name, abbrev },
@@ -103,17 +104,4 @@ where
         }
         recursive("tezos", T::NAME, &T::encoding())
     }
-}
-
-#[cfg(test)]
-#[test]
-fn connection_message_fields() {
-    use crate::conversation::ConnectionMessage;
-    
-    impl Named for ConnectionMessage {
-        const NAME: &'static str = "connection_message";
-    }
-
-    let fields = TezosEncoded::<ConnectionMessage>::fields();
-    println!("{:#?}", fields);
 }

@@ -4,7 +4,8 @@ use wireshark_epan_adapter::{
     PrefFilenameDescriptor,
     DissectorDescriptor,
 };
-use super::{dissector::TezosDissector, conversation::ConnectionMessage};
+use tezos_messages::p2p::encoding::{metadata::MetadataMessage, peer::PeerMessageResponse};
+use super::{dissector::TezosDissector, conversation::ConnectionMessage, value::TezosEncoded};
 
 #[no_mangle]
 static plugin_version: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");
@@ -85,6 +86,8 @@ extern "C" fn plugin_register() {
             description: "JSON file with node identity information\0",
         }],
     )
-    .register_type::<ConnectionMessage>()
+    .register_type::<TezosEncoded<ConnectionMessage>>()
+    .register_type::<TezosEncoded<MetadataMessage>>()
+    .register_type::<TezosEncoded<PeerMessageResponse>>()
     .register(Box::new(TezosDissector::new()))
 }
