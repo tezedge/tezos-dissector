@@ -42,9 +42,9 @@ impl Identity {
         let responder_pk_string =
             HashType::CryptoboxPublicKeyHash.bytes_to_string(&responder_chunk[4..36]);
         let other_pk = if initiator_pk_string == self.public_key {
-            initiator_chunk[2..34].to_owned()
+            responder_chunk[4..36].to_owned()
         } else if responder_pk_string == self.public_key {
-            responder_chunk[2..34].to_owned()
+            initiator_chunk[4..36].to_owned()
         } else {
             None?
         };

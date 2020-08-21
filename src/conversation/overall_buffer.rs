@@ -37,7 +37,7 @@ impl ConversationBuffer {
     fn can_upgrade(&self) -> bool {
         match (self.incoming.chunks().first(), self.outgoing.chunks().first()) {
             (Some(i), Some(o)) => {
-                self.incoming.data().len() >= i.end && self.outgoing.data().len() > o.end
+                self.incoming.data().len() >= i.end && self.outgoing.data().len() >= o.end
             },
             _ => false,
         }
@@ -91,16 +91,30 @@ impl Context {
             },
             &mut Context::Handshake(ref mut buffer, ref mut decipher) => {
                 buffer.consume(payload, packet_info);
+                if decipher.is_none() {
+                    let buffer = &*buffer;
+                    if buffer.can_upgrade() {
+                        identity
+                            .map(|i| {
+                                let initiator = &buffer.incoming.data()[buffer.incoming.chunks()[0].clone()];
+                                let responder = &buffer.outgoing.data()[buffer.outgoing.chunks()[0].clone()];
+                                *decipher = i.decipher_from_raw(initiator, responder);
+                            });
+                    }
+                }
                 if let &mut Some(ref decipher) = decipher {
                     if buffer.incoming.chunks().len() > buffer.incoming_decrypted {
                         let chunks = (&buffer.incoming.chunks()[buffer.incoming_decrypted..]).to_vec();
                         for chunk in chunks {
                             if buffer.incoming.data().len() >= chunk.end {
                                 let nonce = NonceAddition::Initiator((buffer.incoming_decrypted - 1) as u64);
-                                buffer.incoming_decrypted += 1;
                                 let data = &buffer.incoming.data()[(chunk.start + 2)..chunk.end];
                                 if let Ok(plain) = decipher.decrypt(data, nonce) {
+                                    buffer.incoming_decrypted += 1;
                                     buffer.incoming.data_mut()[(chunk.start + 2)..(chunk.end - 16)].clone_from_slice(plain.as_ref());
+                                } else {
+                                    *self = Context::Unrecognized;
+                                    panic!()
                                 }
                             } else {
                                 break
@@ -112,25 +126,18 @@ impl Context {
                         for chunk in chunks {
                             if buffer.outgoing.data().len() >= chunk.end {
                                 let nonce = NonceAddition::Responder((buffer.outgoing_decrypted - 1) as u64);
-                                buffer.outgoing_decrypted += 1;
                                 let data = &buffer.outgoing.data()[(chunk.start + 2)..chunk.end];
                                 if let Ok(plain) = decipher.decrypt(data, nonce) {
+                                    buffer.outgoing_decrypted += 1;
                                     buffer.outgoing.data_mut()[(chunk.start + 2)..(chunk.end - 16)].clone_from_slice(plain.as_ref());
+                                } else {
+                                    *self = Context::Unrecognized;
+                                    panic!()
                                 }
                             } else {
                                 break
                             }
                         }
-                    }
-                } else {
-                    let buffer = &*buffer;
-                    if buffer.can_upgrade() {
-                        identity
-                            .map(|i| {
-                                let initiator = &buffer.incoming.data()[buffer.incoming.chunks()[0].clone()];
-                                let responder = &buffer.outgoing.data()[buffer.outgoing.chunks()[0].clone()];
-                                *decipher = i.decipher_from_raw(initiator, responder);
-                            });
                     }
                 }
             }
@@ -195,8 +202,8 @@ impl Context {
                 _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
             };
             // already decrypted something
-            if buffer.decrypted(packet_info) > first_chunk && first_chunk < 2 {
-                show(
+            if buffer.decrypted(packet_info) > first_chunk {
+                let _ = show(
                     buffer.data(packet_info),
                     &mut chunks,
                     &encoding,
