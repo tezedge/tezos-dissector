@@ -8,21 +8,18 @@ use super::{
     ConnectionMessage,
 };
 use crate::{
-    identity::{Decipher, Identity, NonceAddition},
+    identity::{Decipher, Identity},
     value::{show, Named},
 };
 
 pub enum Context {
-    Empty,
-    Handshake(ConversationBuffer, Option<Decipher>),
+    Regular(ConversationBuffer, Option<Decipher>),
     Unrecognized,
 }
 
 pub struct ConversationBuffer {
     addresses: Addresses,
-    incoming_decrypted: usize,
     incoming: DirectBuffer,
-    outgoing_decrypted: usize,
     outgoing: DirectBuffer,
 }
 
@@ -64,32 +61,35 @@ impl ConversationBuffer {
         }
     }
 
+    fn decrypt(&mut self, decipher: &Decipher) -> Result<(), ()> {
+        self.incoming.decrypt(decipher)?;
+        self.outgoing.decrypt(decipher)?;
+        Ok(())
+    }
+
     fn decrypted(&self, packet_info: &PacketInfo) -> usize {
         match self.addresses.sender(packet_info) {
-            Sender::Initiator(()) => self.incoming_decrypted,
-            Sender::Responder(()) => self.outgoing_decrypted,
+            Sender::Initiator(()) => self.incoming.decrypted(),
+            Sender::Responder(()) => self.outgoing.decrypted(),
         }
     }
 }
 
 impl Context {
+    pub fn new(packet_info: &PacketInfo) -> Self {
+        Context::Regular(
+            ConversationBuffer {
+                addresses: Addresses::new(packet_info),
+                incoming: DirectBuffer::new(),
+                outgoing: DirectBuffer::new(),
+            },
+            None,
+        )
+    }
+
     pub fn consume(&mut self, payload: &[u8], packet_info: &PacketInfo, identity: Option<&Identity>) {
         match self {
-            &mut Context::Empty => {
-                let mut incoming = DirectBuffer::new();
-                incoming.consume(payload, packet_info.frame_number());
-                *self = Context::Handshake(
-                    ConversationBuffer {
-                        addresses: Addresses::new(packet_info),
-                        incoming_decrypted: 1,
-                        incoming,
-                        outgoing_decrypted: 1,
-                        outgoing: DirectBuffer::new(),
-                    },
-                    None,
-                );
-            },
-            &mut Context::Handshake(ref mut buffer, ref mut decipher) => {
+            &mut Context::Regular(ref mut buffer, ref mut decipher) => {
                 buffer.consume(payload, packet_info);
                 if decipher.is_none() {
                     let buffer = &*buffer;
@@ -103,41 +103,9 @@ impl Context {
                     }
                 }
                 if let &mut Some(ref decipher) = decipher {
-                    if buffer.incoming.chunks().len() > buffer.incoming_decrypted {
-                        let chunks = (&buffer.incoming.chunks()[buffer.incoming_decrypted..]).to_vec();
-                        for chunk in chunks {
-                            if buffer.incoming.data().len() >= chunk.end {
-                                let nonce = NonceAddition::Initiator((buffer.incoming_decrypted - 1) as u64);
-                                let data = &buffer.incoming.data()[(chunk.start + 2)..chunk.end];
-                                if let Ok(plain) = decipher.decrypt(data, nonce) {
-                                    buffer.incoming_decrypted += 1;
-                                    buffer.incoming.data_mut()[(chunk.start + 2)..(chunk.end - 16)].clone_from_slice(plain.as_ref());
-                                } else {
-                                    *self = Context::Unrecognized;
-                                    panic!()
-                                }
-                            } else {
-                                break
-                            }
-                        }
-                    }
-                    if buffer.outgoing.chunks().len() > buffer.outgoing_decrypted {
-                        let chunks = (&buffer.outgoing.chunks()[buffer.outgoing_decrypted..]).to_vec();
-                        for chunk in chunks {
-                            if buffer.outgoing.data().len() >= chunk.end {
-                                let nonce = NonceAddition::Responder((buffer.outgoing_decrypted - 1) as u64);
-                                let data = &buffer.outgoing.data()[(chunk.start + 2)..chunk.end];
-                                if let Ok(plain) = decipher.decrypt(data, nonce) {
-                                    buffer.outgoing_decrypted += 1;
-                                    buffer.outgoing.data_mut()[(chunk.start + 2)..(chunk.end - 16)].clone_from_slice(plain.as_ref());
-                                } else {
-                                    *self = Context::Unrecognized;
-                                    panic!()
-                                }
-                            } else {
-                                break
-                            }
-                        }
+                    if let Err(()) = buffer.decrypt(decipher) {
+                        log::warn!("cannot decrypt {}", self.id());
+                        *self = Context::Unrecognized;
                     }
                 }
             }
@@ -158,8 +126,7 @@ impl Context {
 
     fn buffer(&self) -> &ConversationBuffer {
         match self {
-            &Context::Empty => panic!(),
-            &Context::Handshake(ref buffer, _) => buffer,
+            &Context::Regular(ref buffer, _) => buffer,
             &Context::Unrecognized => panic!(),
         }
     }
@@ -214,11 +181,5 @@ impl Context {
                 );
             }
         }
-    }
-}
-
-impl Default for Context {
-    fn default() -> Self {
-        Context::Empty
     }
 }
