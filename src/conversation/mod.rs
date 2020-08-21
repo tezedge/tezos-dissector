@@ -12,3 +12,11 @@ pub use self::addresses::{Addresses, Sender};
 
 mod handshake;
 pub use self::handshake::{Handshake, MaybePlain, HandshakeError, DecryptionError};
+
+#[allow(dead_code)]
+mod overall_buffer;
+pub use self::overall_buffer::Context as NewContext;
+
+#[allow(dead_code)]
+mod direct_buffer;
+pub use self::direct_buffer::DirectBuffer;

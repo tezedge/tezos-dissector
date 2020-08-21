@@ -32,6 +32,29 @@ impl Identity {
         Ok(identity)
     }
 
+    pub fn decipher_from_raw(
+        &self,
+        initiator_chunk: &[u8],
+        responder_chunk: &[u8],
+    ) -> Option<Decipher> {
+        let initiator_pk_string =
+            HashType::CryptoboxPublicKeyHash.bytes_to_string(&initiator_chunk[4..36]);
+        let responder_pk_string =
+            HashType::CryptoboxPublicKeyHash.bytes_to_string(&responder_chunk[4..36]);
+        let other_pk = if initiator_pk_string == self.public_key {
+            initiator_chunk[2..34].to_owned()
+        } else if responder_pk_string == self.public_key {
+            responder_chunk[2..34].to_owned()
+        } else {
+            None?
+        };
+
+        Some(Decipher {
+            key: precompute(&hex::encode(&other_pk), &self.secret_key).ok()?,
+            nonce: generate_nonces(initiator_chunk, responder_chunk, false),
+        })
+    }
+
     pub fn decipher(
         &self,
         initiator_message: &ConnectionMessage,

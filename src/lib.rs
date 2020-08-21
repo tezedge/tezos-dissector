@@ -11,3 +11,5 @@ pub mod message;
 mod identity;
 
 mod plugin;
+
+pub use self::conversation::Context;

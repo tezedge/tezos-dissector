@@ -3,11 +3,11 @@ use wireshark_epan_adapter::{
     dissector::{DissectorHelper, Tree, PacketInfo},
 };
 use std::collections::BTreeMap;
-use super::{conversation::Context, identity::Identity};
+use super::{conversation::NewContext, identity::Identity};
 
 pub struct TezosDissector {
     identity: Option<Identity>,
-    contexts: BTreeMap<usize, Context>,
+    contexts: BTreeMap<usize, NewContext>,
 }
 
 impl TezosDissector {

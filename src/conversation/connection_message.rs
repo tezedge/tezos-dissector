@@ -3,7 +3,7 @@
 
 use tezos_encoding::binary_reader::BinaryReaderError;
 use tezos_messages::p2p::{
-    encoding::version::NetworkVersion as Version,
+    encoding::version::NetworkVersion,
     binary_message::{
         BinaryChunk, BinaryMessage,
         cache::{CachedData, CacheReader, CacheWriter, BinaryDataCache},
@@ -17,7 +17,7 @@ use std::{io::Cursor, convert::TryFrom};
 /// Mapped connection message as defined in tezos protocol
 pub struct ConnectionMessage {
     pub port: u16,
-    pub versions: Vec<Version>,
+    pub versions: Vec<NetworkVersion>,
     pub public_key: Vec<u8>,
     pub proof_of_work_stamp: Vec<u8>,
     pub message_nonce: Vec<u8>,
@@ -42,7 +42,9 @@ impl HasEncoding for ConnectionMessage {
             Field::new("public_key", Encoding::sized(32, Encoding::Bytes)),
             Field::new("proof_of_work_stamp", Encoding::sized(24, Encoding::Bytes)),
             Field::new("message_nonce", Encoding::sized(24, Encoding::Bytes)),
-            Field::new("versions", Encoding::list(Version::encoding())),
+            //Field::new("versions", Encoding::list(NetworkVersion::encoding())),
+            // WARNING: fix it
+            Field::new("versions", NetworkVersion::encoding()),
         ])
     }
 }

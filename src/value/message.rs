@@ -57,10 +57,10 @@ fn intersect(space: Range<usize>, item: Range<usize>) -> Range<usize> {
     start..end
 }
 
-pub fn show<'a>(
+pub fn show(
     data: &[u8],
     chunks: &mut &[Range<usize>],
-    encoding: &'a Encoding,
+    encoding: &Encoding,
     space: Range<usize>,
     base: &str,
     node: &mut Tree,
@@ -124,7 +124,7 @@ pub fn show<'a>(
         },
         &Encoding::Bytes => {
             let mut item = *offset..*offset;
-            let len = chunks.first().map(|c| usize::max(data.len(), c.end) - *offset).unwrap_or(0);
+            let len = chunks.first().map(|c| usize::min(data.len(), c.end) - *offset).unwrap_or(0);
             let string = cut(data, len, chunks, offset, String::new(), |d| hex::encode(*d));
             item.end = *offset;
             node.add(base, intersect(space, item), TreeLeaf::Display(string));
@@ -132,6 +132,21 @@ pub fn show<'a>(
         // recursive
         &Encoding::Tags(_, _) => unimplemented!(),
         &Encoding::List(_) => unimplemented!(),
+        // ...
+        &Encoding::Obj(ref fields) => {
+            let sub_space = *offset..space.end;
+            let range = intersect(space.clone(), sub_space.clone());
+            let mut sub_node = node
+                .add(base, range, TreeLeaf::nothing())
+                .subtree();
+            for field in fields {
+                show(data, chunks, field.get_encoding(), space.clone(), field.get_name(), &mut sub_node, offset);
+            }
+        },
+        // ...
+        &Encoding::Sized(ref size, ref encoding) => {
+            show(&data[..(*offset + size)], chunks, encoding, space, base, node, offset);
+        }
         t => panic!("{:?}", t),
     }
 }

@@ -77,7 +77,7 @@ impl Tree {
                     self.node,
                     self.common.borrow().fields[&full_path],
                     self.common.borrow().tvb,
-                    (self.base + range.start) as _,
+                    range.start as _,
                     range.len() as _,
                     sys::ENC_NA,
                 )
@@ -89,7 +89,7 @@ impl Tree {
                         self.node,
                         self.common.borrow().fields[&full_path],
                         self.common.borrow().tvb,
-                        (self.base + range.start) as _,
+                        range.start as _,
                         range.len() as _,
                         value.as_ptr() as _,
                     )
@@ -100,7 +100,7 @@ impl Tree {
                     self.node,
                     self.common.borrow().fields[&full_path],
                     self.common.borrow().tvb,
-                    (self.base + range.start) as _,
+                    range.start as _,
                     range.len() as _,
                     value,
                 )
