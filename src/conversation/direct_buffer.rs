@@ -13,8 +13,8 @@ pub struct DirectBuffer {
 impl DirectBuffer {
     pub fn new() -> Self {
         DirectBuffer {
-            data: Vec::new(),
-            chunks: Vec::new(),
+            data: Vec::with_capacity(0x100000),
+            chunks: Vec::with_capacity(0x1000),
             packets: BTreeMap::new(),
         }
     }
@@ -24,26 +24,18 @@ impl DirectBuffer {
         self.data.extend_from_slice(payload);
         let end = self.data.len();
         self.packets.insert(frame_index, start..end);
-        let range = self.chunks.last().unwrap_or(&(0..0));
+        let mut position = self.chunks.last().map(|r| r.end).unwrap_or(0);
 
-        let mut position = range.end;
-        let mut new_chunks = Vec::new();
         loop {
-            if position >= end {
-                break;
+            if position + 2 < end {
+                let length = (&self.data[position..(position + 2)]).get_u16() as usize;
+                let this_end = position + 2 + length;
+                self.chunks.push(position..this_end);
+                position = this_end;
             } else {
-                if position + 2 < end {
-                    let length = (&self.data[position..(position + 2)]).get_u16() as usize;
-                    let this_end = position + 2 + length;
-                    new_chunks.push(position..this_end);
-                    position = this_end;
-                } else {
-                    break;
-                }
+                break;
             }
         }
-
-        self.chunks.extend_from_slice(new_chunks.as_slice());
     }
 
     pub fn data(&self) -> &[u8] {
