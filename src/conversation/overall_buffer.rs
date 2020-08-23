@@ -175,6 +175,8 @@ impl Context {
             .enumerate()
             .find(|&(_, ref range)| range.end > space.start)
             .map(|(i, _)| i);
+        // `first_chunk` is the index of first chunk that overlap current packet,
+        // such as `chunk.start <= space.start && chunk.end > space.start`
         if let Some(first_chunk) = first_chunk {
             let data = ChunkedData::new(buffer.data(packet_info), chunks.as_ref());
             let mut offset = ChunkedDataOffset {

@@ -70,6 +70,12 @@ impl Tree {
         D: fmt::Display,
         P: AsRef<str>,
     {
+        if cfg!(debug_assertions) {
+            let length = unsafe { sys::tvb_captured_length(self.common.borrow().tvb) } as usize;
+            assert!(range.start <= length);
+            assert!(range.end <= length);
+        }
+
         let full_path = if let &Some(ref base) = &self.parent_path {
             format!("{}.{}\0", base.trim_end_matches('\0'), path.as_ref())
         } else {
