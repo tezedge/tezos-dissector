@@ -4,10 +4,8 @@ use crypto::{
     crypto_box::{PrecomputedKey, precompute, decrypt, CryptoError},
     nonce::{NoncePair, Nonce, generate_nonces},
 };
-use tezos_messages::p2p::binary_message::{BinaryChunk, cache::CachedData};
 use std::{path::Path, ops::Add};
 use num_bigint::BigUint;
-use crate::conversation::ConnectionMessage;
 
 #[derive(Deserialize, Clone, Debug, PartialEq)]
 /// Node identity information
@@ -32,7 +30,7 @@ impl Identity {
         Ok(identity)
     }
 
-    pub fn decipher_from_raw(
+    pub fn decipher(
         &self,
         initiator_chunk: &[u8],
         responder_chunk: &[u8],
@@ -52,35 +50,6 @@ impl Identity {
         Some(Decipher {
             key: precompute(&hex::encode(&other_pk), &self.secret_key).ok()?,
             nonce: generate_nonces(initiator_chunk, responder_chunk, false),
-        })
-    }
-
-    pub fn decipher(
-        &self,
-        initiator_message: &ConnectionMessage,
-        responder_message: &ConnectionMessage,
-    ) -> Option<Decipher> {
-        let initiator_pk_string =
-            HashType::CryptoboxPublicKeyHash.bytes_to_string(&initiator_message.public_key);
-        let responder_pk_string =
-            HashType::CryptoboxPublicKeyHash.bytes_to_string(&initiator_message.public_key);
-        let other_pk = if initiator_pk_string == self.public_key {
-            responder_message.public_key.clone()
-        } else if responder_pk_string == self.public_key {
-            initiator_message.public_key.clone()
-        } else {
-            None?
-        };
-
-        let initiator_cache = initiator_message.cache_reader().get().unwrap();
-        let initiator_cache = BinaryChunk::from_content(&initiator_cache).ok()?;
-
-        let responder_cache = responder_message.cache_reader().get().unwrap();
-        let responder_cache = BinaryChunk::from_content(&responder_cache).ok()?;
-
-        Some(Decipher {
-            key: precompute(&hex::encode(&other_pk), &self.secret_key).ok()?,
-            nonce: generate_nonces(initiator_cache.raw(), responder_cache.raw(), false),
         })
     }
 }

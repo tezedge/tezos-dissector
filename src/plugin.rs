@@ -5,7 +5,7 @@ use wireshark_epan_adapter::{
     DissectorDescriptor,
 };
 use tezos_messages::p2p::encoding::{metadata::MetadataMessage, peer::PeerMessageResponse};
-use super::{dissector::TezosDissector, conversation::ConnectionMessage, value::TezosEncoded};
+use super::{dissector::TezosDissector, value::{TezosEncoded, ConnectionMessage}};
 
 #[no_mangle]
 static plugin_version: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");

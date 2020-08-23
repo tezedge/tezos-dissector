@@ -5,11 +5,10 @@ use tezos_messages::p2p::encoding::{metadata::MetadataMessage, peer::PeerMessage
 use super::{
     Addresses, Sender,
     DirectBuffer,
-    ConnectionMessage,
 };
 use crate::{
     identity::{Decipher, Identity},
-    value::{ChunkedData, ChunkedDataOffset, Named},
+    value::{ChunkedData, ChunkedDataOffset, Named, ConnectionMessage},
 };
 
 pub enum Context {
@@ -98,7 +97,7 @@ impl Context {
                             .map(|i| {
                                 let initiator = &buffer.incoming.data()[buffer.incoming.chunks()[0].clone()];
                                 let responder = &buffer.outgoing.data()[buffer.outgoing.chunks()[0].clone()];
-                                *decipher = i.decipher_from_raw(initiator, responder);
+                                *decipher = i.decipher(initiator, responder);
                             });
                     }
                 }

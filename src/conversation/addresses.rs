@@ -32,15 +32,3 @@ pub enum Sender<T> {
     Initiator(T),
     Responder(T),
 }
-
-impl<T> Sender<T> {
-    pub fn map<F, U>(self, op: F) -> Sender<U>
-    where
-        F: FnOnce(T) -> U,
-    {
-        match self {
-            Sender::Initiator(t) => Sender::Initiator(op(t)),
-            Sender::Responder(t) => Sender::Responder(op(t)),
-        }
-    }
-}
