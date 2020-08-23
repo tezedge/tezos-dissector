@@ -3,6 +3,7 @@ use std::{
     collections::BTreeMap,
 };
 use bytes::Buf;
+use super::Sender;
 use crate::identity::{Decipher, NonceAddition};
 
 pub struct DirectBuffer {
@@ -42,12 +43,15 @@ impl DirectBuffer {
         }
     }
 
-    pub fn decrypt(&mut self, decipher: &Decipher) -> Result<(), ()> {
+    pub fn decrypt(&mut self, decipher: &Decipher, sender: Sender<()>) -> Result<(), ()> {
         if self.chunks().len() > self.decrypted {
             let chunks = (&self.chunks()[self.decrypted..]).to_vec();
             for chunk in chunks {
                 if self.data().len() >= chunk.end {
-                    let nonce = NonceAddition::Initiator((self.decrypted - 1) as u64);
+                    let nonce = match sender {
+                        Sender::Initiator(()) => NonceAddition::Initiator((self.decrypted - 1) as u64),
+                        Sender::Responder(()) => NonceAddition::Responder((self.decrypted - 1) as u64),
+                    };
                     let data = &self.data()[(chunk.start + 2)..chunk.end];
                     if let Ok(plain) = decipher.decrypt(data, nonce) {
                         self.decrypted += 1;

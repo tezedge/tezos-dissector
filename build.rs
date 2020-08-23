@@ -1,6 +1,10 @@
 fn main() {
     use std::{os::unix::fs::symlink, process::Command, fs::remove_file};
 
+    if !cfg!(debug_assertions) {
+        return;
+    };
+
     let _ = Command::new("git")
         .args(&["clone", "https://code.wireshark.org/review/wireshark"])
         .output()
@@ -8,7 +12,7 @@ fn main() {
         .or_else(|_| Ok::<_, ()>(()));
     let _ = Command::new("git")
         .current_dir("wireshark")
-        .args(&["reset", "--hard", "ed20ddea8138"])
+        .args(&["reset", "--hard", "4f9257fb8ccc"])
         .status()
         .unwrap();
 

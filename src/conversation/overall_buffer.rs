@@ -9,7 +9,7 @@ use super::{
 };
 use crate::{
     identity::{Decipher, Identity},
-    value::{show, Named},
+    value::{ChunkedData, ChunkedDataOffset, Named},
 };
 
 pub enum Context {
@@ -62,8 +62,8 @@ impl ConversationBuffer {
     }
 
     fn decrypt(&mut self, decipher: &Decipher) -> Result<(), ()> {
-        self.incoming.decrypt(decipher)?;
-        self.outgoing.decrypt(decipher)?;
+        self.incoming.decrypt(decipher, Sender::Initiator(()))?;
+        self.outgoing.decrypt(decipher, Sender::Responder(()))?;
         Ok(())
     }
 
@@ -161,24 +161,18 @@ impl Context {
             .find(|&(_, ref range)| range.end > space.start)
             .map(|(i, _)| i);
         if let Some(first_chunk) = first_chunk {
-            let mut chunks = &chunks[first_chunk..];
-            let mut offset = chunks[0].start;
+            let data = ChunkedData::new(buffer.data(packet_info), chunks.as_ref());
+            let mut offset = ChunkedDataOffset {
+                chunks_offset: first_chunk,
+                data_offset: chunks[first_chunk].start,
+            };
             let (encoding, base) = match first_chunk {
                 0 => (ConnectionMessage::encoding(), ConnectionMessage::NAME),
                 1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
                 _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
             };
-            // already decrypted something
-            if buffer.decrypted(packet_info) > first_chunk {
-                let _ = show(
-                    buffer.data(packet_info),
-                    &mut chunks,
-                    &encoding,
-                    space,
-                    base,
-                    &mut node,
-                    &mut offset,
-                );
+            if buffer.decrypted(packet_info) > first_chunk && first_chunk < 2 {
+                let _ = data.show(&mut offset, None, &encoding, space, base, &mut node);
             }
         }
     }

@@ -6,7 +6,7 @@ mod conversation;
 
 pub mod value;
 
-pub mod message;
+mod message;
 
 mod identity;
 

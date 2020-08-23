@@ -9,6 +9,7 @@
         "bindgen",
         "bitmask",
         "cflags",
+        "chrono",
         "cmake",
         "concat",
         "decrypter",

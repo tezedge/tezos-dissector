@@ -1,4 +1,4 @@
-use tezos_encoding::encoding::{HasEncoding, Encoding};
+use tezos_encoding::encoding::{HasEncoding, Encoding, SchemaType};
 use wireshark_epan_adapter::{FieldDescriptorOwned, FieldDescriptor, dissector::HasFields};
 
 pub struct TezosEncoded<T>(pub T)
@@ -79,9 +79,13 @@ where
                         .collect()
                 ),
                 &Encoding::Tup(ref e) => (
-                    None,
+                    Some(FieldKind::Nothing),
                     e.iter()
-                        .map(|encoding| recursive(base, name, encoding))
+                        .enumerate()
+                        .map(|(i, encoding)| {
+                            let n = format!("{}", i);
+                            recursive(new_base.as_str(), &n, encoding)
+                        })
                         .flatten()
                         .collect(),
                 ),
@@ -89,10 +93,7 @@ where
                 &Encoding::Sized(_, ref encoding) => (None, recursive(base, name, encoding)),
                 &Encoding::Greedy(ref encoding) => (None, recursive(base, name, encoding)),
                 &Encoding::Hash(_) => (Some(FieldKind::String), Vec::new()),
-                &Encoding::Split(_) => {
-                    // unimplemented!()
-                    (Some(FieldKind::Nothing), Vec::new())
-                },
+                &Encoding::Split(ref f) => (None, recursive(base, name, &f(SchemaType::Binary))),
                 &Encoding::Timestamp => (Some(FieldKind::String), Vec::new()),
                 &Encoding::Lazy(_) => (Some(FieldKind::Nothing), Vec::new()),
             };

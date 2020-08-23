@@ -22,11 +22,16 @@ where
     Nothing,
     Display(D),
     Int64Dec(i64),
+    Float64(f64),
 }
 
 impl TreeLeaf<String> {
     pub fn dec(v: i64) -> Self {
         TreeLeaf::Int64Dec(v)
+    }
+
+    pub fn float(v: f64) -> Self {
+        TreeLeaf::Float64(v)
     }
 
     pub fn nothing() -> Self {
@@ -105,6 +110,10 @@ impl Tree {
                     value,
                 )
             },
+            TreeLeaf::Float64(value) => {
+                let _ = value;
+                unimplemented!()
+            }
         };
 
         Tree {
