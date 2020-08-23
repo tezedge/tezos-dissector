@@ -171,8 +171,8 @@ impl Context {
                 1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
                 _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
             };
-            if buffer.decrypted(packet_info) > first_chunk && first_chunk < 2 {
-                let _ = data.show(&mut offset, None, &encoding, space, base, &mut node);
+            if buffer.decrypted(packet_info) > first_chunk {
+                let _ = data.show(&mut offset, &encoding, space, base, &mut node);
             }
         }
     }

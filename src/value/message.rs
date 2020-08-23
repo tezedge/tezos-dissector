@@ -67,7 +67,6 @@ impl<'a> ChunkedData<'a> {
     pub fn show(
         &self,
         offset: &mut ChunkedDataOffset,
-        limit: Option<usize>,
         encoding: &Encoding,
         space: Range<usize>,
         base: &str,
@@ -148,7 +147,7 @@ impl<'a> ChunkedData<'a> {
             },
             &Encoding::Bytes => {
                 let mut item = offset.following(0);
-                let string = self.cut(offset, limit.unwrap(), |d| hex::encode(*d))?;
+                let string = self.cut(offset, self.data.len() - offset.data_offset, |d| hex::encode(*d))?;
                 item.end = offset.data_offset;
                 node.add(base, intersect(space, item), TreeLeaf::Display(string));
             },
@@ -169,7 +168,7 @@ impl<'a> ChunkedData<'a> {
                             .subtree();
                         let encoding = tag.get_encoding();
                         let variant = tag.get_variant();
-                        self.show(offset, limit, encoding, space.clone(), variant, &mut sub_node)?;
+                        self.show(offset, encoding, space.clone(), variant, &mut sub_node)?;
                     }
                 } else {
                     log::warn!("unsupported tag size");
@@ -177,7 +176,7 @@ impl<'a> ChunkedData<'a> {
             },
             &Encoding::List(ref encoding) => {
                 while offset.data_offset < self.data.len() {
-                    self.show(offset, limit, encoding, space.clone(), base, node)?;
+                    self.show(offset, encoding, space.clone(), base, node)?;
                 }
             },
             &Encoding::Enum => unimplemented!(),
@@ -196,7 +195,7 @@ impl<'a> ChunkedData<'a> {
                     .add(base, range, TreeLeaf::nothing())
                     .subtree();
                 for field in fields {
-                    self.show(offset, limit, field.get_encoding(), space.clone(), field.get_name(), &mut sub_node)?;
+                    self.show(offset, field.get_encoding(), space.clone(), field.get_name(), &mut sub_node)?;
                 }
             },
             &Encoding::Tup(ref encodings) => {
@@ -208,11 +207,11 @@ impl<'a> ChunkedData<'a> {
                 let item = offset.following(4);
                 let length = self.cut(offset, item.len(), Buf::get_u32)? as usize;
                 if offset.data_offset + length <= self.data.len() {
-                    self.limit(length).show(offset, limit, encoding, space, base, node)?;
+                    self.limit(offset.data_offset + length).show(offset, encoding, space, base, node)?;
                 }
             },
             &Encoding::Sized(ref size, ref encoding) => {
-                self.show(offset, Some(size.clone()), encoding, space, base, node)?;
+                self.limit(offset.data_offset + size.clone()).show(offset, encoding, space, base, node)?;
             },
             &Encoding::Greedy(ref encoding) => {
                 let _ = encoding;
@@ -224,7 +223,7 @@ impl<'a> ChunkedData<'a> {
                 node.add(base, intersect(space, item), TreeLeaf::Display(string));
             },
             &Encoding::Split(ref f) => {
-                self.show(offset, limit, &f(SchemaType::Binary), space, base, node)?;
+                self.show(offset, &f(SchemaType::Binary), space, base, node)?;
             },
             &Encoding::Timestamp => {
                 let item = offset.following(8);
@@ -233,39 +232,9 @@ impl<'a> ChunkedData<'a> {
                 node.add(base, intersect(space, item), TreeLeaf::Display(time));
             },
             &Encoding::Lazy(ref f) => {
-                self.show(offset, limit, &f(), space, base, node)?;
+                self.show(offset, &f(), space, base, node)?;
             },
         };
         Ok(())
     }
-
-    /*pub fn dry_run(
-        &self,
-        limit: usize,
-        offset: &mut ChunkedDataOffset,
-        encoding: &Encoding,
-    ) -> Result<(), ()> {
-        match encoding {
-            &Encoding::Unit => Ok(()),
-            &Encoding::Int8 | &Encoding::Uint8 => self.cut(offset, 1, |_| ()),
-            &Encoding::Int16 | &Encoding::Uint16 => self.cut(offset, 2, |_| ()),
-            &Encoding::Int31 | &Encoding::Int32 | &Encoding::Uint32 => self.cut(offset, 4, |_| ()),
-            &Encoding::Int64 => self.cut(offset, 8, |_| ()),
-            &Encoding::RangedInt | &Encoding::Z | &Encoding::Mutez => unimplemented!(),
-            &Encoding::Float => self.cut(offset, 8, |_| ()),
-            &Encoding::RangedFloat => unimplemented!(),
-            &Encoding::Bool => self.cut(offset, 1, |_| ()),
-            &Encoding::String => {
-                let length = self.cut(offset, 4, Buf::get_u32)? as usize;
-                let f = |data: &mut &[u8]| String::from_utf8((*data).to_owned()).ok();
-                let _ = self.cut(offset, length, f)?.ok_or(())?;
-                Ok(())
-            },
-            &Encoding::Bytes => {
-                //(0..limit).try_fold((), |_, _| self.cut(offset, limit, |_| ()))
-                self.cut(offset, limit, |_| ())
-            },
-            _ => Err(()),
-        }
-    }*/
 }
