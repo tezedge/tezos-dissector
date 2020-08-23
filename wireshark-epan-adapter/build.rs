@@ -1,6 +1,6 @@
-fn main() {
-    use std::{process::Command, str, env};
+use std::{process::Command, str, env, path::PathBuf};
 
+fn main() {
     println!("cargo:rerun-if-changed=/usr/include/wireshark/epan");
 
     let output = Command::new("pkg-config")
@@ -28,7 +28,9 @@ fn main() {
         .clang_args(glib_includes.split(' '))
         .generate()
         .expect("Unable to generate bindings");
+
+    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     bindings
-        .write_to_file("src/sys.rs")
-        .unwrap_or_else(|e| panic!("Unable to save bindings: {}", e));
+        .write_to_file(out_path.join("bindings.rs.raw"))
+        .expect("Couldn't write bindings!");
 }
