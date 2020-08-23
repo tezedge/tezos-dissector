@@ -1,3 +1,6 @@
+// Copyright (c) SimpleStaking and Tezedge Contributors
+// SPDX-License-Identifier: MIT
+
 use serde::Deserialize;
 use crypto::{
     hash::HashType,
@@ -30,11 +33,7 @@ impl Identity {
         Ok(identity)
     }
 
-    pub fn decipher(
-        &self,
-        initiator_chunk: &[u8],
-        responder_chunk: &[u8],
-    ) -> Option<Decipher> {
+    pub fn decipher(&self, initiator_chunk: &[u8], responder_chunk: &[u8]) -> Option<Decipher> {
         let initiator_pk_string =
             HashType::CryptoboxPublicKeyHash.bytes_to_string(&initiator_chunk[4..36]);
         let responder_pk_string =

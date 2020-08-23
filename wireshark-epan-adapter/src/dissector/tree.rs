@@ -113,7 +113,7 @@ impl Tree {
             TreeLeaf::Float64(value) => {
                 let _ = value;
                 unimplemented!()
-            }
+            },
         };
 
         Tree {

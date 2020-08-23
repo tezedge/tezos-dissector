@@ -1,8 +1,10 @@
+// Copyright (c) SimpleStaking and Tezedge Contributors
+// SPDX-License-Identifier: MIT
+
 mod fields;
-pub use self::fields::{TezosEncoded, Named};
-
 mod message;
-pub use self::message::{ChunkedData, ChunkedDataOffset};
-
 mod named;
+
+pub use self::fields::{TezosEncoded, Named};
+pub use self::message::{ChunkedData, ChunkedDataOffset};
 pub use self::named::ConnectionMessage;

@@ -2,12 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 use tezos_messages::p2p::encoding::{
-    metadata::MetadataMessage,
-    peer::PeerMessageResponse,
-    version::NetworkVersion,
+    metadata::MetadataMessage, peer::PeerMessageResponse, version::NetworkVersion,
 };
 use tezos_encoding::encoding::{Field, HasEncoding, Encoding};
-use super::Named;
+use super::fields::Named;
 
 pub struct ConnectionMessage;
 

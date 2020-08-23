@@ -1,3 +1,6 @@
+// Copyright (c) SimpleStaking and Tezedge Contributors
+// SPDX-License-Identifier: MIT
+
 use tezos_encoding::encoding::{Encoding, SchemaType};
 use wireshark_epan_adapter::dissector::{Tree, TreeLeaf};
 use bytes::Buf;
@@ -22,10 +25,7 @@ impl ChunkedDataOffset {
 
 impl<'a> ChunkedData<'a> {
     pub fn new(data: &'a [u8], chunks: &'a [Range<usize>]) -> Self {
-        ChunkedData {
-            data,
-            chunks,
-        }
+        ChunkedData { data, chunks }
     }
 
     pub fn limit(&self, limit: usize) -> Self {
@@ -50,7 +50,8 @@ impl<'a> ChunkedData<'a> {
                     None
                 } else if remaining.len() == length {
                     offset.chunks_offset += 1;
-                    offset.data_offset = self.chunks
+                    offset.data_offset = self
+                        .chunks
                         .get(offset.chunks_offset)
                         .map(|s| s.start)
                         .unwrap_or(0);
@@ -71,8 +72,7 @@ impl<'a> ChunkedData<'a> {
         space: Range<usize>,
         base: &str,
         node: &mut Tree,
-    ) -> Result<(), ()>
-    {
+    ) -> Result<(), ()> {
         fn intersect(space: Range<usize>, item: Range<usize>) -> Range<usize> {
             if item.end <= space.start {
                 0..0
@@ -146,9 +146,8 @@ impl<'a> ChunkedData<'a> {
                 }
             },
             &Encoding::Bytes => {
-                let mut item = offset.following(0);
-                let string = self.cut(offset, self.data.len() - offset.data_offset, |d| hex::encode(*d))?;
-                item.end = offset.data_offset;
+                let item = offset.following(self.data.len() - offset.data_offset);
+                let string = self.cut(offset, item.len(), |d| hex::encode(*d))?;
                 node.add(base, intersect(space, item), TreeLeaf::Display(string));
             },
             &Encoding::Tags(ref tag_size, ref tag_map) => {
@@ -163,9 +162,7 @@ impl<'a> ChunkedData<'a> {
                     if let Some(tag) = tag_map.find_by_id(id) {
                         let sub_space = usize::min(offset.data_offset, space.end)..space.end;
                         let range = intersect(space.clone(), sub_space.clone());
-                        let mut sub_node = node
-                            .add(base, range, TreeLeaf::nothing())
-                            .subtree();
+                        let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
                         let encoding = tag.get_encoding();
                         let variant = tag.get_variant();
                         self.show(offset, encoding, space.clone(), variant, &mut sub_node)?;
@@ -191,11 +188,15 @@ impl<'a> ChunkedData<'a> {
             &Encoding::Obj(ref fields) => {
                 let sub_space = usize::min(offset.data_offset, space.end)..space.end;
                 let range = intersect(space.clone(), sub_space.clone());
-                let mut sub_node = node
-                    .add(base, range, TreeLeaf::nothing())
-                    .subtree();
+                let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
                 for field in fields {
-                    self.show(offset, field.get_encoding(), space.clone(), field.get_name(), &mut sub_node)?;
+                    self.show(
+                        offset,
+                        field.get_encoding(),
+                        space.clone(),
+                        field.get_name(),
+                        &mut sub_node,
+                    )?;
                 }
             },
             &Encoding::Tup(ref encodings) => {
@@ -207,16 +208,18 @@ impl<'a> ChunkedData<'a> {
                 let item = offset.following(4);
                 let length = self.cut(offset, item.len(), Buf::get_u32)? as usize;
                 if offset.data_offset + length <= self.data.len() {
-                    self.limit(offset.data_offset + length).show(offset, encoding, space, base, node)?;
+                    self.limit(offset.data_offset + length)
+                        .show(offset, encoding, space, base, node)?;
                 }
             },
             &Encoding::Sized(ref size, ref encoding) => {
-                self.limit(offset.data_offset + size.clone()).show(offset, encoding, space, base, node)?;
+                self.limit(offset.data_offset + size.clone())
+                    .show(offset, encoding, space, base, node)?;
             },
             &Encoding::Greedy(ref encoding) => {
                 let _ = encoding;
                 unimplemented!()
-            }
+            },
             &Encoding::Hash(ref hash_type) => {
                 let item = offset.following(hash_type.size());
                 let string = self.cut(offset, item.len(), |d| hex::encode(*d))?;

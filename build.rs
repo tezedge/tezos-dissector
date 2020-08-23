@@ -1,6 +1,9 @@
-fn main() {
-    use std::{os::unix::fs::symlink, process::Command, fs::remove_file};
+// Copyright (c) SimpleStaking and Tezedge Contributors
+// SPDX-License-Identifier: MIT
 
+use std::{os::unix::fs::symlink, process::Command, fs::remove_file};
+
+fn main() {
     if !cfg!(debug_assertions) {
         return;
     };

@@ -1,3 +1,6 @@
+// Copyright (c) SimpleStaking and Tezedge Contributors
+// SPDX-License-Identifier: MIT
+
 use wireshark_epan_adapter::dissector::{SocketAddress, PacketInfo};
 
 #[derive(Debug)]
@@ -14,13 +17,13 @@ impl Addresses {
         }
     }
 
-    pub fn sender(&self, packet_info: &PacketInfo) -> Sender<()> {
+    pub fn sender(&self, packet_info: &PacketInfo) -> Sender {
         if self.initiator == packet_info.source() {
             assert_eq!(self.responder, packet_info.destination());
-            Sender::Initiator(())
+            Sender::Initiator
         } else if self.responder == packet_info.source() {
             assert_eq!(self.initiator, packet_info.destination());
-            Sender::Responder(())
+            Sender::Responder
         } else {
             panic!()
         }
@@ -28,7 +31,7 @@ impl Addresses {
 }
 
 #[derive(Eq, PartialEq)]
-pub enum Sender<T> {
-    Initiator(T),
-    Responder(T),
+pub enum Sender {
+    Initiator,
+    Responder,
 }

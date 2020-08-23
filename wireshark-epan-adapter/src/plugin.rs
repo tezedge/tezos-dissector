@@ -74,14 +74,17 @@ pub enum FieldDescriptor<'a> {
 impl<'a> FieldDescriptor<'a> {
     pub fn to_owned(&self) -> FieldDescriptorOwned {
         match self {
-            &FieldDescriptor::Nothing { name, abbrev } => {
-                FieldDescriptorOwned::Nothing { name: name.to_owned(), abbrev: abbrev.to_owned() }
+            &FieldDescriptor::Nothing { name, abbrev } => FieldDescriptorOwned::Nothing {
+                name: name.to_owned(),
+                abbrev: abbrev.to_owned(),
             },
-            &FieldDescriptor::String { name, abbrev } => {
-                FieldDescriptorOwned::String { name: name.to_owned(), abbrev: abbrev.to_owned() }
+            &FieldDescriptor::String { name, abbrev } => FieldDescriptorOwned::String {
+                name: name.to_owned(),
+                abbrev: abbrev.to_owned(),
             },
-            &FieldDescriptor::Int64Dec { name, abbrev } => {
-                FieldDescriptorOwned::Int64Dec { name: name.to_owned(), abbrev: abbrev.to_owned() }
+            &FieldDescriptor::Int64Dec { name, abbrev } => FieldDescriptorOwned::Int64Dec {
+                name: name.to_owned(),
+                abbrev: abbrev.to_owned(),
             },
         }
     }
@@ -159,18 +162,21 @@ impl<'a> Info for FieldDescriptor<'a> {
 impl Info for FieldDescriptorOwned {
     fn info(&self, handle: &mut c_int) -> sys::hf_register_info {
         match self {
-            &FieldDescriptorOwned::Nothing { ref name, ref abbrev, .. } => {
-                FieldDescriptor::Nothing { name, abbrev }
-                    .info(handle)
-            },
-            &FieldDescriptorOwned::String { ref name, ref abbrev, .. } => {
-                FieldDescriptor::String { name, abbrev }
-                    .info(handle)
-            },
-            &FieldDescriptorOwned::Int64Dec { ref name, ref abbrev, .. } => {
-                FieldDescriptor::Int64Dec { name, abbrev }
-                    .info(handle)
-            },
+            &FieldDescriptorOwned::Nothing {
+                ref name,
+                ref abbrev,
+                ..
+            } => FieldDescriptor::Nothing { name, abbrev }.info(handle),
+            &FieldDescriptorOwned::String {
+                ref name,
+                ref abbrev,
+                ..
+            } => FieldDescriptor::String { name, abbrev }.info(handle),
+            &FieldDescriptorOwned::Int64Dec {
+                ref name,
+                ref abbrev,
+                ..
+            } => FieldDescriptor::Int64Dec { name, abbrev }.info(handle),
         }
     }
 }
@@ -232,8 +238,10 @@ impl<'a> Plugin<'a> {
         T: HasFields,
     {
         let mut s = self;
-        s.field_descriptors_owned.extend_from_slice(T::fields().as_slice());
-        s.field_descriptors_owned.extend(T::FIELDS.iter().map(FieldDescriptor::to_owned));
+        s.field_descriptors_owned
+            .extend_from_slice(T::fields().as_slice());
+        s.field_descriptors_owned
+            .extend(T::FIELDS.iter().map(FieldDescriptor::to_owned));
         s
     }
 

@@ -1,3 +1,6 @@
+// Copyright (c) SimpleStaking and Tezedge Contributors
+// SPDX-License-Identifier: MIT
+
 use wireshark_epan_adapter::{
     Dissector,
     dissector::{DissectorHelper, Tree, PacketInfo},
@@ -41,7 +44,10 @@ impl Dissector for TezosDissector {
     ) -> usize {
         let payload = helper.payload();
         let context_key = helper.context_key(packet_info);
-        let context = self.contexts.entry(context_key).or_insert_with(|| Context::new(packet_info));
+        let context = self
+            .contexts
+            .entry(context_key)
+            .or_insert_with(|| Context::new(packet_info));
         if !packet_info.visited() {
             context.consume(payload.as_ref(), packet_info, self.identity.as_ref());
         }

@@ -1,3 +1,6 @@
+// Copyright (c) SimpleStaking and Tezedge Contributors
+// SPDX-License-Identifier: MIT
+
 use tezos_encoding::encoding::{HasEncoding, Encoding, SchemaType};
 use wireshark_epan_adapter::{FieldDescriptorOwned, FieldDescriptor, dissector::HasFields};
 
@@ -46,10 +49,15 @@ where
             let new_base = format!("{}.{}", base, name);
             let (kind, more) = match encoding {
                 &Encoding::Unit => (None, Vec::new()),
-                &Encoding::Int8 | &Encoding::Uint8
-                | &Encoding::Int16 | &Encoding::Uint16
-                | &Encoding::Int31 | &Encoding::Int32 | &Encoding::Uint32
-                | &Encoding::Int64 | &Encoding::RangedInt => (Some(FieldKind::IntDec), Vec::new()),
+                &Encoding::Int8
+                | &Encoding::Uint8
+                | &Encoding::Int16
+                | &Encoding::Uint16
+                | &Encoding::Int31
+                | &Encoding::Int32
+                | &Encoding::Uint32
+                | &Encoding::Int64
+                | &Encoding::RangedInt => (Some(FieldKind::IntDec), Vec::new()),
                 &Encoding::Z | &Encoding::Mutez => unimplemented!(),
                 &Encoding::Float | &Encoding::RangedFloat => unimplemented!(),
                 &Encoding::Bool => (Some(FieldKind::String), Vec::new()),
@@ -63,20 +71,22 @@ where
                             recursive(new_base.as_str(), tag.get_variant(), tag.get_encoding())
                         })
                         .flatten()
-                        .collect()
+                        .collect(),
                 ),
                 &Encoding::List(ref encoding) => (None, recursive(base, name, encoding)),
                 &Encoding::Enum => (Some(FieldKind::String), Vec::new()),
-                &Encoding::Option(ref encoding)
-                | &Encoding::OptionalField(ref encoding) => (None, recursive(base, name, encoding)),
+                &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
+                    (None, recursive(base, name, encoding))
+                },
                 &Encoding::Obj(ref fields) => (
                     Some(FieldKind::Nothing),
-                    fields.iter()
+                    fields
+                        .iter()
                         .map(|field| {
                             recursive(new_base.as_str(), field.get_name(), field.get_encoding())
                         })
                         .flatten()
-                        .collect()
+                        .collect(),
                 ),
                 &Encoding::Tup(ref e) => (
                     Some(FieldKind::Nothing),
@@ -97,8 +107,7 @@ where
                 &Encoding::Timestamp => (Some(FieldKind::String), Vec::new()),
                 &Encoding::Lazy(_) => (Some(FieldKind::Nothing), Vec::new()),
             };
-            kind
-                .map(|kind| to_descriptor(base, name, kind))
+            kind.map(|kind| to_descriptor(base, name, kind))
                 .into_iter()
                 .chain(more)
                 .collect()
