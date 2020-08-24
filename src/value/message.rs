@@ -12,6 +12,7 @@ pub struct ChunkedData<'a> {
     chunks: &'a [Range<usize>],
 }
 
+#[derive(Clone)]
 pub struct ChunkedDataOffset {
     pub data_offset: usize,
     pub chunks_offset: usize,
@@ -151,24 +152,23 @@ impl<'a> ChunkedData<'a> {
                 node.add(base, intersect(space, item), TreeLeaf::Display(string));
             },
             &Encoding::Tags(ref tag_size, ref tag_map) => {
-                if (1..=2).contains(tag_size) {
-                    // TODO: use item, highlight the tag
-                    let item = offset.following(*tag_size);
-                    let id = if *tag_size == 1 {
-                        self.cut(offset, item.len(), Buf::get_u8)? as u16
-                    } else {
-                        self.cut(offset, item.len(), Buf::get_u16)? as u16
-                    };
-                    if let Some(tag) = tag_map.find_by_id(id) {
-                        let sub_space = usize::min(offset.data_offset, space.end)..space.end;
-                        let range = intersect(space.clone(), sub_space.clone());
-                        let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
-                        let encoding = tag.get_encoding();
-                        let variant = tag.get_variant();
-                        self.show(offset, encoding, space.clone(), variant, &mut sub_node)?;
-                    }
-                } else {
-                    log::warn!("unsupported tag size");
+                let id = match tag_size {
+                    &1 => self.cut(offset, 1, Buf::get_u8)? as u16,
+                    &2 => self.cut(offset, 2, Buf::get_u16)?,
+                    _ => {
+                        log::warn!("unsupported tag size");
+                        Err(())?
+                    },
+                };
+                if let Some(tag) = tag_map.find_by_id(id) {
+                    let encoding = tag.get_encoding();
+                    let mut temp_offset = offset.clone();
+                    let size = self.estimate_size(&mut temp_offset, encoding)?;
+                    let item = offset.following(size);
+                    let range = intersect(space.clone(), item);
+                    let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
+                    let variant = tag.get_variant();
+                    self.show(offset, encoding, space.clone(), variant, &mut sub_node)?;
                 }
             },
             &Encoding::List(ref encoding) => {
@@ -186,8 +186,10 @@ impl<'a> ChunkedData<'a> {
                 unimplemented!()
             },
             &Encoding::Obj(ref fields) => {
-                let sub_space = usize::min(offset.data_offset, space.end)..space.end;
-                let range = intersect(space.clone(), sub_space.clone());
+                let mut temp_offset = offset.clone();
+                let size = self.estimate_size(&mut temp_offset, &Encoding::Obj(fields.clone()))?;
+                let item = offset.following(size);
+                let range = intersect(space.clone(), item);
                 let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
                 for field in fields {
                     self.show(
@@ -239,5 +241,67 @@ impl<'a> ChunkedData<'a> {
             },
         };
         Ok(())
+    }
+
+    pub fn estimate_size(
+        &self,
+        offset: &mut ChunkedDataOffset,
+        encoding: &Encoding,
+    ) -> Result<usize, ()> {
+        match encoding {
+            &Encoding::Unit => Ok(0),
+            &Encoding::Int8 | &Encoding::Uint8 => self.cut(offset, 1, |a| a.len()),
+            &Encoding::Int16 | &Encoding::Uint16 => self.cut(offset, 2, |a| a.len()),
+            &Encoding::Int31 | &Encoding::Int32 | &Encoding::Uint32 => {
+                self.cut(offset, 4, |a| a.len())
+            },
+            &Encoding::Int64 => self.cut(offset, 8, |a| a.len()),
+            &Encoding::RangedInt => unimplemented!(),
+            &Encoding::Z | &Encoding::Mutez => unimplemented!(),
+            &Encoding::Float => self.cut(offset, 8, |a| a.len()),
+            &Encoding::RangedFloat => unimplemented!(),
+            &Encoding::Bool => self.cut(offset, 1, |a| a.len()),
+            &Encoding::String => {
+                let l = self.cut(offset, 4, Buf::get_u32)? as usize;
+                self.cut(offset, l, |a| a.len() + 4)
+            },
+            &Encoding::Bytes => {
+                let l = self.data.len() - offset.data_offset;
+                self.cut(offset, l, |a| a.len())
+            },
+            &Encoding::Tags(ref tag_size, ref tag_map) => {
+                let id = match tag_size {
+                    &1 => self.cut(offset, 1, Buf::get_u8)? as u16,
+                    &2 => self.cut(offset, 2, Buf::get_u16)?,
+                    _ => {
+                        log::warn!("unsupported tag size");
+                        Err(())?
+                    },
+                };
+                if let Some(tag) = tag_map.find_by_id(id) {
+                    self.estimate_size(offset, tag.get_encoding()).map(|s| s + tag_size.clone())
+                } else {
+                    Err(())
+                }
+            },
+            &Encoding::List(_) => {
+                let l = self.data.len() - offset.data_offset;
+                self.cut(offset, l, |a| a.len())
+            },
+            &Encoding::Obj(ref fields) => {
+                fields.into_iter()
+                    .map(|f| self.estimate_size(offset, f.get_encoding()))
+                    .try_fold(0, |sum, size_at_field| size_at_field.map(|s| s + sum))
+            },
+            &Encoding::Dynamic(_) => {
+                let l = self.cut(offset, 4, Buf::get_u32)? as usize;
+                self.cut(offset, l, |a| a.len() + 4)
+            },
+            &Encoding::Sized(ref size, _) => self.cut(offset, size.clone(), |a| a.len()),
+            &Encoding::Hash(ref hash_type) => self.cut(offset, hash_type.size(), |a| a.len()),
+            &Encoding::Timestamp => self.cut(offset, 8, |a| a.len()),
+            &Encoding::Split(ref f) => self.estimate_size(offset, &f(SchemaType::Binary)),
+            t => unimplemented!("{:?}", t),
+        }
     }
 }
