@@ -7,7 +7,9 @@ use wireshark_epan_adapter::{
     PrefFilenameDescriptor,
     DissectorDescriptor,
 };
-use tezos_messages::p2p::encoding::{metadata::MetadataMessage, peer::PeerMessageResponse};
+use tezos_messages::p2p::encoding::{
+    ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
+};
 use super::{
     dissector::TezosDissector,
     value::{TezosEncoded, ConnectionMessage},
@@ -93,6 +95,7 @@ extern "C" fn plugin_register() {
         }],
     )
     .register_type::<TezosEncoded<ConnectionMessage>>()
+    .register_type::<TezosEncoded<AckMessage>>()
     .register_type::<TezosEncoded<MetadataMessage>>()
     .register_type::<TezosEncoded<PeerMessageResponse>>()
     .register(Box::new(TezosDissector::new()))

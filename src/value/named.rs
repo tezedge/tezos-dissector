@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use tezos_messages::p2p::encoding::{
-    metadata::MetadataMessage, peer::PeerMessageResponse, version::NetworkVersion,
+    ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse, version::NetworkVersion,
 };
 use tezos_encoding::encoding::{Field, HasEncoding, Encoding};
 use super::fields::Named;
@@ -25,6 +25,10 @@ impl HasEncoding for ConnectionMessage {
 
 impl Named for ConnectionMessage {
     const NAME: &'static str = "connection_message";
+}
+
+impl Named for AckMessage {
+    const NAME: &'static str = "ack_message";
 }
 
 impl Named for MetadataMessage {

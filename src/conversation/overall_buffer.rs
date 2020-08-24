@@ -4,7 +4,9 @@
 use wireshark_epan_adapter::dissector::{PacketInfo, Tree, TreeLeaf};
 use std::ops::Range;
 use tezos_encoding::encoding::HasEncoding;
-use tezos_messages::p2p::encoding::{metadata::MetadataMessage, peer::PeerMessageResponse};
+use tezos_messages::p2p::encoding::{
+    ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
+};
 use super::{
     addresses::{Addresses, Sender},
     direct_buffer::DirectBuffer,
@@ -186,6 +188,7 @@ impl Context {
             let (encoding, base) = match first_chunk {
                 0 => (ConnectionMessage::encoding(), ConnectionMessage::NAME),
                 1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
+                2 => (AckMessage::encoding(), AckMessage::NAME),
                 _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
             };
             if buffer.decrypted(packet_info) > first_chunk {
