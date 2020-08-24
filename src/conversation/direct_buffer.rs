@@ -1,15 +1,74 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use std::{ops::Range, collections::BTreeMap};
+use std::{ops::Range, collections::BTreeMap, cell::Cell};
 use bytes::Buf;
 use failure::Fail;
 use super::addresses::Sender;
-use crate::identity::{Decipher, NonceAddition};
+use crate::{
+    identity::{Decipher, NonceAddition},
+    value::HasBodyRange,
+};
+
+#[derive(Clone)]
+pub struct ChunkInfo {
+    inner: Cell<Inner>,
+}
+
+#[derive(Copy, Clone)]
+struct Inner {
+    start: usize,
+    end: usize,
+    // false means this chunk start a new message,
+    // true means this chunk is a continuation of some message,
+    continuation: bool,
+}
+
+impl ChunkInfo {
+    pub fn new(start: usize, end: usize) -> Self {
+        ChunkInfo {
+            inner: Cell::new(Inner {
+                start,
+                end,
+                continuation: false,
+            }),
+        }
+    }
+
+    pub fn range(&self) -> Range<usize> {
+        let inner = self.inner.get();
+        inner.start..inner.end
+    }
+
+    pub fn set_continuation(&self) {
+        let inner = self.inner.get();
+        self.inner.set(Inner {
+            start: inner.start,
+            end: inner.end,
+            continuation: true,
+        });
+    }
+
+    pub fn continuation(&self) -> bool {
+        self.inner.get().continuation
+    }
+}
+
+impl HasBodyRange for ChunkInfo {
+    fn body(&self) -> Range<usize> {
+        let range = self.range();
+        if range.start == 0 {
+            // first chunk is plain, has no MAC
+            (range.start + 2)..range.end
+        } else {
+            (range.start + 2)..(range.end - 16)
+        }
+    }
+}
 
 pub struct DirectBuffer {
     data: Vec<u8>,
-    chunks: Vec<Range<usize>>,
+    chunks: Vec<ChunkInfo>,
     packets: BTreeMap<u64, Range<usize>>,
     processed: usize,
 }
@@ -40,13 +99,13 @@ impl DirectBuffer {
         self.data.extend_from_slice(payload);
         let end = self.data.len();
         self.packets.insert(frame_index, start..end);
-        let mut position = self.chunks.last().map(|r| r.end).unwrap_or(0);
+        let mut position = self.chunks.last().map(|r| r.range().end).unwrap_or(0);
 
         loop {
             if position + 2 < end {
                 let length = (&self.data[position..(position + 2)]).get_u16() as usize;
                 let this_end = position + 2 + length;
-                self.chunks.push(position..this_end);
+                self.chunks.push(ChunkInfo::new(position, this_end));
                 position = this_end;
             } else {
                 break;
@@ -58,6 +117,7 @@ impl DirectBuffer {
         if self.chunks().len() > self.processed {
             let chunks = (&self.chunks()[self.processed..]).to_vec();
             for chunk in chunks {
+                let chunk = chunk.range();
                 if self.data().len() >= chunk.end {
                     let nonce = match &sender {
                         &Sender::Initiator => NonceAddition::Initiator((self.processed - 1) as u64),
@@ -94,7 +154,7 @@ impl DirectBuffer {
         self.data.as_mut()
     }
 
-    pub fn chunks(&self) -> &[Range<usize>] {
+    pub fn chunks(&self) -> &[ChunkInfo] {
         self.chunks.as_ref()
     }
 

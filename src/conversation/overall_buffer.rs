@@ -10,11 +10,11 @@ use tezos_messages::p2p::encoding::{
 use failure::Fail;
 use super::{
     addresses::{Addresses, Sender},
-    direct_buffer::{DirectBuffer, DecryptError},
+    direct_buffer::{DirectBuffer, DecryptError, ChunkInfo},
 };
 use crate::{
     identity::{Decipher, Identity},
-    value::{ChunkedData, ChunkedDataOffset, Named, ConnectionMessage},
+    value::{ChunkedData, ChunkedDataOffset, Named, ConnectionMessage, HasBodyRange},
     range_tool::intersect,
 };
 
@@ -63,7 +63,8 @@ impl ConversationBuffer {
             self.outgoing.chunks().first(),
         ) {
             (Some(i), Some(o)) => {
-                self.incoming.data().len() >= i.end && self.outgoing.data().len() >= o.end
+                self.incoming.data().len() >= i.range().end
+                    && self.outgoing.data().len() >= o.range().end
             },
             _ => false,
         }
@@ -76,7 +77,7 @@ impl ConversationBuffer {
         }
     }
 
-    fn chunks(&self, packet_info: &PacketInfo) -> &[Range<usize>] {
+    fn chunks(&self, packet_info: &PacketInfo) -> &[ChunkInfo] {
         match self.addresses.sender(packet_info) {
             Sender::Initiator => self.incoming.chunks(),
             Sender::Responder => self.outgoing.chunks(),
@@ -131,9 +132,9 @@ impl Context {
                     if buffer.can_upgrade() {
                         identity.map(|i| {
                             let initiator =
-                                &buffer.incoming.data()[buffer.incoming.chunks()[0].clone()];
+                                &buffer.incoming.data()[buffer.incoming.chunks()[0].range()];
                             let responder =
-                                &buffer.outgoing.data()[buffer.outgoing.chunks()[0].clone()];
+                                &buffer.outgoing.data()[buffer.outgoing.chunks()[0].range()];
                             let d = i.decipher(initiator, responder);
                             if d.is_none() {
                                 *state = State::HaveNoIdentity;
@@ -203,84 +204,117 @@ impl Context {
 
         let space = &buffer.packet(packet_info);
         let data = buffer.data(packet_info);
-        let chunks = buffer
-            .chunks(packet_info)
-            .iter()
-            .enumerate()
-            .map(|(index, range)| {
-                let body_range = if index == 0 {
-                    (range.start + 2)..range.end
-                } else {
-                    (range.start + 2)..(range.end - 16)
-                };
-                if range.end > space.start && range.start < space.end {
-                    if !state.error(index) {
-                        let item = intersect(space, range.clone());
-                        let mut chunk_node =
-                            node.add("chunk", item, TreeLeaf::dec(index as _)).subtree();
+        let decrypted = buffer.decrypted(packet_info);
+        let chunks = buffer.chunks(packet_info);
+        chunks.iter().enumerate().for_each(|(index, chunk_info)| {
+            let range = chunk_info.range();
+            if range.end > space.start && range.start < space.end {
+                if !state.error(index) {
+                    let item = intersect(space, range.clone());
+                    let mut chunk_node =
+                        node.add("chunk", item, TreeLeaf::dec(index as _)).subtree();
 
-                        let length = range.len() as i64 - 2;
-                        let item = intersect(space, range.start..(range.start + 2));
-                        chunk_node.add("length", item, TreeLeaf::dec(length));
+                    let length = range.len() as i64 - 2;
+                    let item = intersect(space, range.start..(range.start + 2));
+                    chunk_node.add("length", item, TreeLeaf::dec(length));
 
-                        if buffer.decrypted(packet_info) > index {
-                            data[body_range.clone()].chunks(0x10).enumerate().for_each(
-                                |(i, line)| {
-                                    let start = body_range.start + i * 0x10;
-                                    let end = start + line.len();
-                                    let body_hex = line.iter().fold(String::new(), |s, b| {
-                                        s + hex::encode(&[*b]).as_str() + " "
-                                    });
-                                    let item = intersect(space, start..end);
-                                    chunk_node.add("data", item, TreeLeaf::Display(body_hex));
-                                },
-                            )
-                        } else {
-                            let item = intersect(space, body_range.clone());
-                            chunk_node.add("buffering", item, TreeLeaf::Display("..."));
-                        }
+                    let body_range = chunk_info.body();
 
-                        if index > 0 && data.len() >= range.end {
-                            let mac_range = body_range.end..range.end;
-                            let mac = hex::encode(&data[mac_range.clone()]);
-                            let item = intersect(space, mac_range.clone());
-                            chunk_node.add("mac", item, TreeLeaf::Display(mac));
-                        }
+                    if decrypted > index {
+                        data[body_range.clone()]
+                            .chunks(0x10)
+                            .enumerate()
+                            .for_each(|(i, line)| {
+                                let start = body_range.start + i * 0x10;
+                                let end = start + line.len();
+                                let body_hex = line.iter().fold(String::new(), |s, b| {
+                                    s + hex::encode(&[*b]).as_str() + " "
+                                });
+                                let item = intersect(space, start..end);
+                                chunk_node.add("data", item, TreeLeaf::Display(body_hex));
+                            })
+                    } else {
+                        let item = intersect(space, body_range.clone());
+                        chunk_node.add("buffering", item, TreeLeaf::Display("..."));
+                    }
+
+                    if index > 0 && data.len() >= range.end {
+                        let mac_range = body_range.end..range.end;
+                        let mac = hex::encode(&data[mac_range.clone()]);
+                        let item = intersect(space, mac_range.clone());
+                        chunk_node.add("mac", item, TreeLeaf::Display(mac));
                     }
                 }
-
-                body_range
-            })
-            .collect::<Vec<_>>();
+            }
+        });
 
         let data = ChunkedData::new(data, chunks.as_ref());
-        for (index, range) in chunks.iter().enumerate() {
-            let intersect = range.end > space.start && range.start < space.end;
-            if intersect && buffer.decrypted(packet_info) > index {
-                let mut offset = ChunkedDataOffset {
-                    chunks_offset: index,
-                    data_offset: chunks[index].start,
-                };
-                let (encoding, base) = match index {
+
+        // first chunk which intersect with the frame and decrypted
+        // but it might be a continuation of previous message,
+        let find_result = chunks
+            .iter()
+            .enumerate()
+            .find(|&(index, info)| {
+                let intersect = info.body().end > space.start;
+                let plain = decrypted > index;
+                intersect && plain
+            })
+            .map(|(i, info)| (i, info.continuation()));
+
+        // find the chunk that is not a continuation
+        let first_chunk = find_result.map(|(first_chunk, continuation)| {
+            if continuation {
+                // safe to subtract 1 because the first chunk cannot be a continuation
+                chunks[0..(first_chunk - 1)]
+                    .iter()
+                    .enumerate()
+                    .rev()
+                    .find(|&(_, info)| !info.continuation())
+                    .unwrap()
+                    .0
+            } else {
+                first_chunk
+            }
+        });
+
+        if let Some(first_chunk) = first_chunk {
+            let mut offset = ChunkedDataOffset {
+                chunks_offset: first_chunk,
+                data_offset: chunks[first_chunk].body().start,
+            };
+            while offset.data_offset < space.end && offset.chunks_offset < decrypted {
+                let (encoding, base) = match offset.chunks_offset {
                     0 => (ConnectionMessage::encoding(), ConnectionMessage::NAME),
                     1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
                     2 => (AckMessage::encoding(), AckMessage::NAME),
                     _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
                 };
                 if let &State::DecryptError(ref e) = state {
-                    if index >= e.chunk_number {
-                        node.add("decryption_error", space.clone(), TreeLeaf::Display(e));
-                        continue;
+                    if state.error(offset.chunks_offset) {
+                        node.add("decryption_error", 0..0, TreeLeaf::Display(e));
+                        return;
                     }
                 }
-                if buffer.decrypted(packet_info) >= index {
-                    data.show(&mut offset, &encoding, space, base, &mut node)
-                        .unwrap_or_else(|()| {
-                            // TODO:
-                            // node.add("decoding_error", space.clone(), TreeLeaf::Display(e));
-                            ()
-                        })
+                let chunk_before = offset.chunks_offset;
+                match data.show(&mut offset, &encoding, space, base, &mut node) {
+                    Ok(()) => (),
+                    Err(e) => {
+                        let leaf = TreeLeaf::Display(e);
+                        node.add("decoding_error", 0..0, leaf);
+                        break;
+                    },
                 }
+                if offset.chunks_offset == chunk_before {
+                    offset.chunks_offset += 1;
+                    log::warn!(
+                        "ChunkedData::show did not consume full chunk, frame: {}",
+                        packet_info.frame_number()
+                    );
+                }
+                chunks[(chunk_before + 1)..offset.chunks_offset]
+                    .iter()
+                    .for_each(ChunkInfo::set_continuation);
             }
         }
     }

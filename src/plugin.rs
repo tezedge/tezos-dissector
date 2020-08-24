@@ -55,11 +55,11 @@ extern "C" fn plugin_register() {
                     abbrev: "tezos.direction\0",
                 },
                 FieldDescriptor::String {
-                    name: "MAC mismatch\0",
+                    name: "Decryption error\0",
                     abbrev: "tezos.decryption_error\0",
                 },
                 FieldDescriptor::String {
-                    name: "MAC mismatch\0",
+                    name: "Decoding error\0",
                     abbrev: "tezos.decoding_error\0",
                 },
             ],

@@ -1,3 +1,6 @@
+// Copyright (c) SimpleStaking and Tezedge Contributors
+// SPDX-License-Identifier: MIT
+
 use std::ops::Range;
 
 pub fn intersect(space: &Range<usize>, item: Range<usize>) -> Range<usize> {
