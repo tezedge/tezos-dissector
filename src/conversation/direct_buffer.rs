@@ -15,7 +15,10 @@ pub struct DirectBuffer {
 }
 
 #[derive(Debug, Fail, Eq, PartialEq)]
-#[fail(display = "MAC mismatch, sender: {:?}, number of chunk: {}", sender, chunk_number)]
+#[fail(
+    display = "MAC mismatch, sender: {:?}, number of chunk: {}",
+    sender, chunk_number
+)]
 pub struct DecryptError {
     pub sender: Sender,
     pub chunk_number: usize,
@@ -67,7 +70,8 @@ impl DirectBuffer {
                             .clone_from_slice(plain.as_ref());
                     } else {
                         return Err(DecryptError {
-                            sender, chunk_number: self.processed,
+                            sender,
+                            chunk_number: self.processed,
                         });
                     }
                 } else {

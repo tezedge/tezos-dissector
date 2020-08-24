@@ -6,6 +6,7 @@ use wireshark_epan_adapter::dissector::{Tree, TreeLeaf};
 use bytes::Buf;
 use chrono::NaiveDateTime;
 use std::ops::Range;
+use crate::range_tool::intersect;
 
 pub struct ChunkedData<'a> {
     data: &'a [u8],
@@ -74,18 +75,6 @@ impl<'a> ChunkedData<'a> {
         base: &str,
         node: &mut Tree,
     ) -> Result<(), ()> {
-        fn intersect(space: &Range<usize>, item: Range<usize>) -> Range<usize> {
-            if item.end <= space.start {
-                0..0
-            } else if item.start >= space.end {
-                space.len()..space.len()
-            } else {
-                let start = usize::max(space.start, item.start) - space.start;
-                let end = usize::min(space.end, item.end) - space.start;
-                start..end
-            }
-        }
-
         match encoding {
             &Encoding::Unit => (),
             &Encoding::Int8 => {
@@ -279,7 +268,8 @@ impl<'a> ChunkedData<'a> {
                     },
                 };
                 if let Some(tag) = tag_map.find_by_id(id) {
-                    self.estimate_size(offset, tag.get_encoding()).map(|s| s + tag_size.clone())
+                    self.estimate_size(offset, tag.get_encoding())
+                        .map(|s| s + tag_size.clone())
                 } else {
                     Err(())
                 }
@@ -288,11 +278,10 @@ impl<'a> ChunkedData<'a> {
                 let l = self.data.len() - offset.data_offset;
                 self.cut(offset, l, |a| a.len())
             },
-            &Encoding::Obj(ref fields) => {
-                fields.into_iter()
-                    .map(|f| self.estimate_size(offset, f.get_encoding()))
-                    .try_fold(0, |sum, size_at_field| size_at_field.map(|s| s + sum))
-            },
+            &Encoding::Obj(ref fields) => fields
+                .into_iter()
+                .map(|f| self.estimate_size(offset, f.get_encoding()))
+                .try_fold(0, |sum, size_at_field| size_at_field.map(|s| s + sum)),
             &Encoding::Dynamic(_) => {
                 let l = self.cut(offset, 4, Buf::get_u32)? as usize;
                 self.cut(offset, l, |a| a.len() + 4)

@@ -9,6 +9,8 @@ mod conversation;
 
 mod value;
 
+mod range_tool;
+
 mod identity;
 
 mod plugin;

@@ -15,6 +15,7 @@ use super::{
 use crate::{
     identity::{Decipher, Identity},
     value::{ChunkedData, ChunkedDataOffset, Named, ConnectionMessage},
+    range_tool::intersect,
 };
 
 #[derive(Debug, Eq, PartialEq, Fail)]
@@ -25,6 +26,16 @@ pub enum State {
     HaveNoIdentity,
     #[fail(display = "{}", _0)]
     DecryptError(DecryptError),
+}
+
+impl State {
+    fn error(&self, i: usize) -> bool {
+        match self {
+            &State::Correct => false,
+            &State::HaveNoIdentity => true,
+            &State::DecryptError(ref e) => i >= e.chunk_number,
+        }
+    }
 }
 
 pub enum Context {
@@ -190,21 +201,59 @@ impl Context {
         };
         node.add("direction", 0..0, TreeLeaf::Display(direction));
 
-        let space = buffer.packet(packet_info);
+        let space = &buffer.packet(packet_info);
+        let data = buffer.data(packet_info);
         let chunks = buffer
             .chunks(packet_info)
             .iter()
             .enumerate()
             .map(|(index, range)| {
-                if index == 0 {
+                let body_range = if index == 0 {
                     (range.start + 2)..range.end
                 } else {
                     (range.start + 2)..(range.end - 16)
+                };
+                if range.end > space.start && range.start < space.end {
+                    if !state.error(index) {
+                        let item = intersect(space, range.clone());
+                        let mut chunk_node =
+                            node.add("chunk", item, TreeLeaf::dec(index as _)).subtree();
+
+                        let length = range.len() as i64 - 2;
+                        let item = intersect(space, range.start..(range.start + 2));
+                        chunk_node.add("length", item, TreeLeaf::dec(length));
+
+                        if buffer.decrypted(packet_info) > index {
+                            data[body_range.clone()].chunks(0x10).enumerate().for_each(
+                                |(i, line)| {
+                                    let start = body_range.start + i * 0x10;
+                                    let end = start + line.len();
+                                    let body_hex = line.iter().fold(String::new(), |s, b| {
+                                        s + hex::encode(&[*b]).as_str() + " "
+                                    });
+                                    let item = intersect(space, start..end);
+                                    chunk_node.add("data", item, TreeLeaf::Display(body_hex));
+                                },
+                            )
+                        } else {
+                            let item = intersect(space, body_range.clone());
+                            chunk_node.add("buffering", item, TreeLeaf::Display("..."));
+                        }
+
+                        if index > 0 && data.len() >= range.end {
+                            let mac_range = body_range.end..range.end;
+                            let mac = hex::encode(&data[mac_range.clone()]);
+                            let item = intersect(space, mac_range.clone());
+                            chunk_node.add("mac", item, TreeLeaf::Display(mac));
+                        }
+                    }
                 }
+
+                body_range
             })
             .collect::<Vec<_>>();
-        let data = ChunkedData::new(buffer.data(packet_info), chunks.as_ref());
-        let space = &space;
+
+        let data = ChunkedData::new(data, chunks.as_ref());
         for (index, range) in chunks.iter().enumerate() {
             let intersect = range.end > space.start && range.start < space.end;
             if intersect && buffer.decrypted(packet_info) > index {
@@ -221,7 +270,7 @@ impl Context {
                 if let &State::DecryptError(ref e) = state {
                     if index >= e.chunk_number {
                         node.add("decryption_error", space.clone(), TreeLeaf::Display(e));
-                        continue
+                        continue;
                     }
                 }
                 if buffer.decrypted(packet_info) >= index {
