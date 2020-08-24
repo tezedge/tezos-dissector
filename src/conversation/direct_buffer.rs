@@ -3,6 +3,7 @@
 
 use std::{ops::Range, collections::BTreeMap};
 use bytes::Buf;
+use failure::Fail;
 use super::addresses::Sender;
 use crate::identity::{Decipher, NonceAddition};
 
@@ -10,7 +11,14 @@ pub struct DirectBuffer {
     data: Vec<u8>,
     chunks: Vec<Range<usize>>,
     packets: BTreeMap<u64, Range<usize>>,
-    decrypted: usize,
+    processed: usize,
+}
+
+#[derive(Debug, Fail, Eq, PartialEq)]
+#[fail(display = "MAC mismatch, sender: {:?}, number of chunk: {}", sender, chunk_number)]
+pub struct DecryptError {
+    pub sender: Sender,
+    pub chunk_number: usize,
 }
 
 impl DirectBuffer {
@@ -20,7 +28,7 @@ impl DirectBuffer {
             chunks: Vec::with_capacity(0x1000),
             packets: BTreeMap::new(),
             // first message always decrypted
-            decrypted: 1,
+            processed: 1,
         }
     }
 
@@ -43,22 +51,24 @@ impl DirectBuffer {
         }
     }
 
-    pub fn decrypt(&mut self, decipher: &Decipher, sender: Sender) -> Result<(), ()> {
-        if self.chunks().len() > self.decrypted {
-            let chunks = (&self.chunks()[self.decrypted..]).to_vec();
+    pub fn decrypt(&mut self, decipher: &Decipher, sender: Sender) -> Result<(), DecryptError> {
+        if self.chunks().len() > self.processed {
+            let chunks = (&self.chunks()[self.processed..]).to_vec();
             for chunk in chunks {
                 if self.data().len() >= chunk.end {
-                    let nonce = match sender {
-                        Sender::Initiator => NonceAddition::Initiator((self.decrypted - 1) as u64),
-                        Sender::Responder => NonceAddition::Responder((self.decrypted - 1) as u64),
+                    let nonce = match &sender {
+                        &Sender::Initiator => NonceAddition::Initiator((self.processed - 1) as u64),
+                        &Sender::Responder => NonceAddition::Responder((self.processed - 1) as u64),
                     };
                     let data = &self.data()[(chunk.start + 2)..chunk.end];
                     if let Ok(plain) = decipher.decrypt(data, nonce) {
-                        self.decrypted += 1;
+                        self.processed += 1;
                         self.data_mut()[(chunk.start + 2)..(chunk.end - 16)]
                             .clone_from_slice(plain.as_ref());
                     } else {
-                        return Err(());
+                        return Err(DecryptError {
+                            sender, chunk_number: self.processed,
+                        });
                     }
                 } else {
                     break;
@@ -69,7 +79,7 @@ impl DirectBuffer {
     }
 
     pub fn decrypted(&self) -> usize {
-        self.decrypted
+        self.processed
     }
 
     pub fn data(&self) -> &[u8] {

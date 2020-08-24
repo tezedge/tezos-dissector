@@ -54,6 +54,14 @@ extern "C" fn plugin_register() {
                     name: "Direction\0",
                     abbrev: "tezos.direction\0",
                 },
+                FieldDescriptor::String {
+                    name: "MAC mismatch\0",
+                    abbrev: "tezos.decryption_error\0",
+                },
+                FieldDescriptor::String {
+                    name: "MAC mismatch\0",
+                    abbrev: "tezos.decoding_error\0",
+                },
             ],
             // chunk
             &[
@@ -67,15 +75,7 @@ extern "C" fn plugin_register() {
                 },
                 FieldDescriptor::String {
                     name: "Decrypted data\0",
-                    abbrev: "tezos.chunk.decrypted_data\0",
-                },
-                FieldDescriptor::String {
-                    name: "MAC mismatch\0",
-                    abbrev: "tezos.chunk.mac_error\0",
-                },
-                FieldDescriptor::String {
-                    name: "Identity required\0",
-                    abbrev: "tezos.chunk.identity_required\0",
+                    abbrev: "tezos.chunk.data\0",
                 },
                 FieldDescriptor::String {
                     // only for first pass

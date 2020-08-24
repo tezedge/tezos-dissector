@@ -7,17 +7,28 @@ use tezos_encoding::encoding::HasEncoding;
 use tezos_messages::p2p::encoding::{
     ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
 };
+use failure::Fail;
 use super::{
     addresses::{Addresses, Sender},
-    direct_buffer::DirectBuffer,
+    direct_buffer::{DirectBuffer, DecryptError},
 };
 use crate::{
     identity::{Decipher, Identity},
     value::{ChunkedData, ChunkedDataOffset, Named, ConnectionMessage},
 };
 
+#[derive(Debug, Eq, PartialEq, Fail)]
+pub enum State {
+    #[fail(display = "Correct")]
+    Correct,
+    #[fail(display = "Have no identity")]
+    HaveNoIdentity,
+    #[fail(display = "{}", _0)]
+    DecryptError(DecryptError),
+}
+
 pub enum Context {
-    Regular(ConversationBuffer, Option<Decipher>),
+    Regular(ConversationBuffer, Option<Decipher>, State),
     Unrecognized,
 }
 
@@ -68,7 +79,7 @@ impl ConversationBuffer {
         }
     }
 
-    fn decrypt(&mut self, decipher: &Decipher) -> Result<(), ()> {
+    fn decrypt(&mut self, decipher: &Decipher) -> Result<(), DecryptError> {
         self.incoming.decrypt(decipher, Sender::Initiator)?;
         self.outgoing.decrypt(decipher, Sender::Responder)?;
         Ok(())
@@ -91,6 +102,7 @@ impl Context {
                 outgoing: DirectBuffer::new(),
             },
             None,
+            State::Correct,
         )
     }
 
@@ -101,7 +113,7 @@ impl Context {
         identity: Option<&Identity>,
     ) {
         match self {
-            &mut Context::Regular(ref mut buffer, ref mut decipher) => {
+            &mut Context::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
                 buffer.consume(payload, packet_info);
                 if decipher.is_none() {
                     let buffer = &*buffer;
@@ -111,18 +123,30 @@ impl Context {
                                 &buffer.incoming.data()[buffer.incoming.chunks()[0].clone()];
                             let responder =
                                 &buffer.outgoing.data()[buffer.outgoing.chunks()[0].clone()];
-                            *decipher = i.decipher(initiator, responder);
+                            let d = i.decipher(initiator, responder);
+                            if d.is_none() {
+                                *state = State::HaveNoIdentity;
+                            } else {
+                                *state = State::Correct;
+                            }
+                            *decipher = d;
                         });
                     }
                 }
                 if let &mut Some(ref decipher) = decipher {
-                    if let Err(()) = buffer.decrypt(decipher) {
-                        log::warn!("cannot decrypt {}", self.id());
-                        *self = Context::Unrecognized;
+                    if let Err(e) = buffer.decrypt(decipher) {
+                        log::warn!("cannot decrypt {}", e);
+                        match e.chunk_number {
+                            0 => panic!("impossible, the first message is never encrypted"),
+                            // if cannot decrypt the first message,
+                            // most likely it is not our conversation
+                            1 => *self = Context::Unrecognized,
+                            _ => *state = State::DecryptError(e),
+                        }
                     }
                 }
             },
-            Context::Unrecognized => (),
+            &mut Context::Unrecognized => (),
         };
     }
 
@@ -139,18 +163,25 @@ impl Context {
 
     fn buffer(&self) -> &ConversationBuffer {
         match self {
-            &Context::Regular(ref buffer, _) => buffer,
+            &Context::Regular(ref buffer, ..) => buffer,
             &Context::Unrecognized => panic!(),
         }
     }
 
-    pub fn visualize(&mut self, packet_length: usize, packet_info: &PacketInfo, root: &mut Tree) {
+    fn state(&self) -> &State {
+        match self {
+            &Context::Regular(_, _, ref state, ..) => state,
+            &Context::Unrecognized => panic!(),
+        }
+    }
+
+    pub fn visualize(&self, packet_length: usize, packet_info: &PacketInfo, root: &mut Tree) {
         let mut node = root
             .add("tezos", 0..packet_length, TreeLeaf::nothing())
             .subtree();
         node.add("conversation_id", 0..0, TreeLeaf::Display(self.id()));
 
-        let _ = packet_length;
+        let state = self.state();
         let buffer = self.buffer();
 
         let direction = match buffer.addresses.sender(packet_info) {
@@ -175,7 +206,6 @@ impl Context {
         let data = ChunkedData::new(buffer.data(packet_info), chunks.as_ref());
         let space = &space;
         for (index, range) in chunks.iter().enumerate() {
-            // intersect
             let intersect = range.end > space.start && range.start < space.end;
             if intersect && buffer.decrypted(packet_info) > index {
                 let mut offset = ChunkedDataOffset {
@@ -188,8 +218,19 @@ impl Context {
                     2 => (AckMessage::encoding(), AckMessage::NAME),
                     _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
                 };
-                if buffer.decrypted(packet_info) > index {
-                    let _ = data.show(&mut offset, &encoding, space, base, &mut node);
+                if let &State::DecryptError(ref e) = state {
+                    if index >= e.chunk_number {
+                        node.add("decryption_error", space.clone(), TreeLeaf::Display(e));
+                        continue
+                    }
+                }
+                if buffer.decrypted(packet_info) >= index {
+                    data.show(&mut offset, &encoding, space, base, &mut node)
+                        .unwrap_or_else(|()| {
+                            // TODO:
+                            // node.add("decoding_error", space.clone(), TreeLeaf::Display(e));
+                            ()
+                        })
                 }
             }
         }
