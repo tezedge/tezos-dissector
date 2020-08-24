@@ -172,27 +172,25 @@ impl Context {
                 }
             })
             .collect::<Vec<_>>();
-        let first_chunk = chunks
-            .iter()
-            .enumerate()
-            .find(|&(_, ref range)| range.end > space.start)
-            .map(|(i, _)| i);
-        // `first_chunk` is the index of first chunk that overlap current packet,
-        // such as `chunk.start <= space.start && chunk.end > space.start`
-        if let Some(first_chunk) = first_chunk {
-            let data = ChunkedData::new(buffer.data(packet_info), chunks.as_ref());
-            let mut offset = ChunkedDataOffset {
-                chunks_offset: first_chunk,
-                data_offset: chunks[first_chunk].start,
-            };
-            let (encoding, base) = match first_chunk {
-                0 => (ConnectionMessage::encoding(), ConnectionMessage::NAME),
-                1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
-                2 => (AckMessage::encoding(), AckMessage::NAME),
-                _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
-            };
-            if buffer.decrypted(packet_info) > first_chunk {
-                let _ = data.show(&mut offset, &encoding, space, base, &mut node);
+        let data = ChunkedData::new(buffer.data(packet_info), chunks.as_ref());
+        let space = &space;
+        for (index, range) in chunks.iter().enumerate() {
+            // intersect
+            let intersect = range.end > space.start && range.start < space.end;
+            if intersect && buffer.decrypted(packet_info) > index {
+                let mut offset = ChunkedDataOffset {
+                    chunks_offset: index,
+                    data_offset: chunks[index].start,
+                };
+                let (encoding, base) = match index {
+                    0 => (ConnectionMessage::encoding(), ConnectionMessage::NAME),
+                    1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
+                    2 => (AckMessage::encoding(), AckMessage::NAME),
+                    _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
+                };
+                if buffer.decrypted(packet_info) > index {
+                    let _ = data.show(&mut offset, &encoding, space, base, &mut node);
+                }
             }
         }
     }

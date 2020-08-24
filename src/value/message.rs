@@ -70,11 +70,11 @@ impl<'a> ChunkedData<'a> {
         &self,
         offset: &mut ChunkedDataOffset,
         encoding: &Encoding,
-        space: Range<usize>,
+        space: &Range<usize>,
         base: &str,
         node: &mut Tree,
     ) -> Result<(), ()> {
-        fn intersect(space: Range<usize>, item: Range<usize>) -> Range<usize> {
+        fn intersect(space: &Range<usize>, item: Range<usize>) -> Range<usize> {
             if item.end <= space.start {
                 0..0
             } else if item.start >= space.end {
@@ -165,15 +165,15 @@ impl<'a> ChunkedData<'a> {
                     let mut temp_offset = offset.clone();
                     let size = self.estimate_size(&mut temp_offset, encoding)?;
                     let item = offset.following(size);
-                    let range = intersect(space.clone(), item);
+                    let range = intersect(space, item);
                     let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
                     let variant = tag.get_variant();
-                    self.show(offset, encoding, space.clone(), variant, &mut sub_node)?;
+                    self.show(offset, encoding, space, variant, &mut sub_node)?;
                 }
             },
             &Encoding::List(ref encoding) => {
                 while offset.data_offset < self.data.len() {
-                    self.show(offset, encoding, space.clone(), base, node)?;
+                    self.show(offset, encoding, space, base, node)?;
                 }
             },
             &Encoding::Enum => unimplemented!(),
@@ -189,13 +189,13 @@ impl<'a> ChunkedData<'a> {
                 let mut temp_offset = offset.clone();
                 let size = self.estimate_size(&mut temp_offset, &Encoding::Obj(fields.clone()))?;
                 let item = offset.following(size);
-                let range = intersect(space.clone(), item);
+                let range = intersect(space, item);
                 let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
                 for field in fields {
                     self.show(
                         offset,
                         field.get_encoding(),
-                        space.clone(),
+                        space,
                         field.get_name(),
                         &mut sub_node,
                     )?;
