@@ -18,6 +18,8 @@ pub trait Dissector {
         root: &mut Tree,
         packet_info: &PacketInfo,
     ) -> usize;
+
+    fn cleanup(&mut self);
 }
 
 struct PluginPrivates {
@@ -376,7 +378,9 @@ impl Plugin<'static> {
                 sys::_wmem_cb_event_t_WMEM_CB_DESTROY_EVENT => (),
                 _ => with_plugin(|p| {
                     let mut state = p.privates.borrow_mut();
-                    state.dissector = None;
+                    if let &mut Some(ref mut d) = &mut state.dissector {
+                        d.cleanup();
+                    }
                 }),
             }
 

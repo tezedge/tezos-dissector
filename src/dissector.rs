@@ -58,4 +58,8 @@ impl Dissector for TezosDissector {
             0
         }
     }
+
+    fn cleanup(&mut self) {
+        self.contexts.clear();
+    }
 }

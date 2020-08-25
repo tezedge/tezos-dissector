@@ -86,6 +86,9 @@ impl Dissector for SimpleDissector {
 
         length
     }
+
+    fn cleanup(&mut self) {
+    }
 }
 
 impl Drop for SimpleDissector {
