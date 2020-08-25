@@ -73,7 +73,13 @@ where
                         .flatten()
                         .collect(),
                 ),
-                &Encoding::List(ref encoding) => (None, recursive(base, name, encoding)),
+                &Encoding::List(ref encoding) => {
+                    if let &Encoding::Uint8 = encoding.as_ref() {
+                        (Some(FieldKind::String), Vec::new())
+                    } else {
+                        (None, recursive(base, name, encoding))
+                    }
+                },
                 &Encoding::Enum => (Some(FieldKind::String), Vec::new()),
                 &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
                     (None, recursive(base, name, encoding))

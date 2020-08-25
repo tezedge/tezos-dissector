@@ -206,9 +206,16 @@ impl Context {
         let data = buffer.data(packet_info);
         let decrypted = buffer.decrypted(packet_info);
         let chunks = buffer.chunks(packet_info);
+
         chunks.iter().enumerate().for_each(|(index, chunk_info)| {
             let range = chunk_info.range();
             if range.end > space.start && range.start < space.end {
+                if let &State::DecryptError(ref e) = state {
+                    if state.error(index) {
+                        node.add("decryption_error", 0..0, TreeLeaf::Display(e));
+                        return;
+                    }
+                }
                 if !state.error(index) {
                     let item = intersect(space, range.clone());
                     let mut chunk_node =
@@ -248,18 +255,14 @@ impl Context {
             }
         });
 
-        let data = ChunkedData::new(data, chunks.as_ref());
+        let chunks = &chunks[..decrypted];
 
-        // first chunk which intersect with the frame and decrypted
+        // first chunk which intersect with the frame
         // but it might be a continuation of previous message,
         let find_result = chunks
             .iter()
             .enumerate()
-            .find(|&(index, info)| {
-                let intersect = info.body().end > space.start;
-                let plain = decrypted > index;
-                intersect && plain
-            })
+            .find(|&(_, info)| info.body().end > space.start)
             .map(|(i, info)| (i, info.continuation()));
 
         // find the chunk that is not a continuation
@@ -278,25 +281,28 @@ impl Context {
             }
         });
 
+        let data = ChunkedData::new(data, chunks);
         if let Some(first_chunk) = first_chunk {
             let mut offset = ChunkedDataOffset {
                 chunks_offset: first_chunk,
                 data_offset: chunks[first_chunk].body().start,
             };
-            while offset.data_offset < space.end && offset.chunks_offset < decrypted {
+            loop {
+                let on = chunks
+                    .get(offset.chunks_offset)
+                    .map(|c| c.body().start < space.end)
+                    .unwrap_or(false);
+                if !on {
+                    break;
+                }
+                offset.data_offset = chunks[offset.chunks_offset].body().start;
                 let (encoding, base) = match offset.chunks_offset {
                     0 => (ConnectionMessage::encoding(), ConnectionMessage::NAME),
                     1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
                     2 => (AckMessage::encoding(), AckMessage::NAME),
                     _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
                 };
-                if let &State::DecryptError(ref e) = state {
-                    if state.error(offset.chunks_offset) {
-                        node.add("decryption_error", 0..0, TreeLeaf::Display(e));
-                        return;
-                    }
-                }
-                let chunk_before = offset.chunks_offset;
+                let temp = offset.chunks_offset;
                 match data.show(&mut offset, &encoding, space, base, &mut node) {
                     Ok(()) => (),
                     Err(e) => {
@@ -305,14 +311,14 @@ impl Context {
                         break;
                     },
                 }
-                if offset.chunks_offset == chunk_before {
+                if offset.chunks_offset == temp {
                     offset.chunks_offset += 1;
-                    log::warn!(
-                        "ChunkedData::show did not consume full chunk, frame: {}",
-                        packet_info.frame_number()
-                    );
+                    //log::warn!(
+                    //    "ChunkedData::show did not consume full chunk, frame: {}",
+                    //    packet_info.frame_number()
+                    //);
                 }
-                chunks[(chunk_before + 1)..offset.chunks_offset]
+                chunks[(temp + 1)..offset.chunks_offset]
                     .iter()
                     .for_each(ChunkInfo::set_continuation);
             }

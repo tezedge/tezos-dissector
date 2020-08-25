@@ -75,17 +75,9 @@ where
             .and_then(|info| {
                 let range = info.body();
                 assert!(range.contains(&offset.data_offset));
-                let remaining = offset.data_offset..range.end;
+                let remaining = offset.data_offset..usize::min(range.end, self.data.len());
                 if remaining.len() < length {
                     None
-                } else if remaining.len() == length {
-                    offset.chunks_offset += 1;
-                    offset.data_offset = self
-                        .chunks
-                        .get(offset.chunks_offset)
-                        .map(|s| s.body().start)
-                        .unwrap_or(0);
-                    Some(f(&mut &self.data[remaining]))
                 } else {
                     let end = remaining.start + length;
                     offset.data_offset += length;
@@ -93,6 +85,12 @@ where
                 }
             })
             .ok_or(DecodingError::NotEnoughData)
+    }
+
+    fn empty(&self, offset: &ChunkedDataOffset) -> bool {
+        offset.chunks_offset > self.chunks.len() - 1 ||
+            offset.data_offset >= self.chunks[offset.chunks_offset].body().end - 1 ||
+            offset.data_offset >= self.data.len() - 1
     }
 
     pub fn show(
@@ -188,8 +186,12 @@ where
                 }
             },
             &Encoding::List(ref encoding) => {
-                while offset.data_offset < self.data.len() {
-                    self.show(offset, encoding, space, base, node)?;
+                if let &Encoding::Uint8 = encoding.as_ref() {
+                    self.show(offset, &Encoding::Bytes, space, base, node)?;
+                } else {
+                    while !self.empty(offset) {
+                        self.show(offset, encoding, space, base, node)?;
+                    }
                 }
             },
             &Encoding::Enum => unimplemented!(),
