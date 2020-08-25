@@ -88,9 +88,9 @@ where
     }
 
     fn empty(&self, offset: &ChunkedDataOffset) -> bool {
-        offset.chunks_offset > self.chunks.len() - 1 ||
-            offset.data_offset >= self.chunks[offset.chunks_offset].body().end - 1 ||
-            offset.data_offset >= self.data.len() - 1
+        offset.chunks_offset == self.chunks.len() ||
+            offset.data_offset >= self.chunks[offset.chunks_offset].body().end ||
+            offset.data_offset >= self.data.len()
     }
 
     pub fn show(
