@@ -74,7 +74,10 @@ where
             .get(offset.chunks_offset)
             .and_then(|info| {
                 let range = info.body();
-                assert!(range.contains(&offset.data_offset));
+                assert!(
+                    range.contains(&offset.data_offset)
+                        || (offset.data_offset == range.end && length == 0)
+                );
                 let remaining = offset.data_offset..usize::min(range.end, self.data.len());
                 if remaining.len() < length {
                     None
@@ -88,9 +91,9 @@ where
     }
 
     fn empty(&self, offset: &ChunkedDataOffset) -> bool {
-        offset.chunks_offset == self.chunks.len() ||
-            offset.data_offset >= self.chunks[offset.chunks_offset].body().end ||
-            offset.data_offset >= self.data.len()
+        offset.chunks_offset == self.chunks.len()
+            || offset.data_offset >= self.chunks[offset.chunks_offset].body().end
+            || offset.data_offset >= self.data.len()
     }
 
     pub fn show(
@@ -321,6 +324,7 @@ where
             },
             &Encoding::Timestamp => self.cut(offset, 8, |a| a.bytes().len()),
             &Encoding::Split(ref f) => self.estimate_size(offset, &f(SchemaType::Binary)),
+            &Encoding::Lazy(ref f) => self.estimate_size(offset, &f()),
             t => unimplemented!("{:?}", t),
         }
     }

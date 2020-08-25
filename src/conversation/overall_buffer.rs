@@ -63,8 +63,11 @@ impl ConversationBuffer {
             self.outgoing.chunks().first(),
         ) {
             (Some(i), Some(o)) => {
+                // have connection message and at least 2 + 2 + 32 bytes in it
                 self.incoming.data().len() >= i.range().end
+                    && i.range().len() >= 36
                     && self.outgoing.data().len() >= o.range().end
+                    && o.range().len() >= 36
             },
             _ => false,
         }
@@ -225,31 +228,32 @@ impl Context {
                     let item = intersect(space, range.start..(range.start + 2));
                     chunk_node.add("length", item, TreeLeaf::dec(length));
 
-                    let body_range = chunk_info.body();
+                    if data.len() >= range.end {
+                        let body_range = chunk_info.body();
 
-                    if decrypted > index {
-                        data[body_range.clone()]
-                            .chunks(0x10)
-                            .enumerate()
-                            .for_each(|(i, line)| {
-                                let start = body_range.start + i * 0x10;
-                                let end = start + line.len();
-                                let body_hex = line.iter().fold(String::new(), |s, b| {
-                                    s + hex::encode(&[*b]).as_str() + " "
-                                });
-                                let item = intersect(space, start..end);
-                                chunk_node.add("data", item, TreeLeaf::Display(body_hex));
-                            })
-                    } else {
-                        let item = intersect(space, body_range.clone());
-                        chunk_node.add("buffering", item, TreeLeaf::Display("..."));
-                    }
+                        if decrypted > index {
+                            data[body_range.clone()].chunks(0x10).enumerate().for_each(
+                                |(i, line)| {
+                                    let start = body_range.start + i * 0x10;
+                                    let end = start + line.len();
+                                    let body_hex = line.iter().fold(String::new(), |s, b| {
+                                        s + hex::encode(&[*b]).as_str() + " "
+                                    });
+                                    let item = intersect(space, start..end);
+                                    chunk_node.add("data", item, TreeLeaf::Display(body_hex));
+                                },
+                            )
+                        } else {
+                            let item = intersect(space, body_range.clone());
+                            chunk_node.add("buffering", item, TreeLeaf::Display("..."));
+                        }
 
-                    if index > 0 && data.len() >= range.end {
-                        let mac_range = body_range.end..range.end;
-                        let mac = hex::encode(&data[mac_range.clone()]);
-                        let item = intersect(space, mac_range.clone());
-                        chunk_node.add("mac", item, TreeLeaf::Display(mac));
+                        if index > 0 {
+                            let mac_range = body_range.end..range.end;
+                            let mac = hex::encode(&data[mac_range.clone()]);
+                            let item = intersect(space, mac_range.clone());
+                            chunk_node.add("mac", item, TreeLeaf::Display(mac));
+                        }
                     }
                 }
             }
