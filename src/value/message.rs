@@ -51,10 +51,10 @@ where
         ChunkedData { data, chunks }
     }
 
-    fn limit(&self, limit: usize) -> Self {
+    fn limit(&self, offset: &ChunkedDataOffset, limit: usize) -> Self {
         // TODO: account chunks
         ChunkedData {
-            data: &self.data[..limit],
+            data: &self.data[..(offset.data_offset + limit)],
             chunks: self.chunks,
         }
     }
@@ -91,9 +91,28 @@ where
     }
 
     fn empty(&self, offset: &ChunkedDataOffset) -> bool {
-        offset.chunks_offset == self.chunks.len()
-            || offset.data_offset >= self.chunks[offset.chunks_offset].body().end
-            || offset.data_offset >= self.data.len()
+        self.available(offset) == 0
+    }
+
+    fn available(&self, offset: &ChunkedDataOffset) -> usize {
+        let end = usize::min(self.chunks[offset.chunks_offset].body().end, self.data.len());
+        let available = end - offset.data_offset;
+        // if it is the first message it always goes in the single chunk
+        if offset.chunks_offset != 0 && self.chunks.len() - 1 > offset.chunks_offset {
+            self.chunks[(offset.chunks_offset + 1)..]
+                .iter()
+                .fold(available, |a, c| {
+                    if self.data.len() >= c.body().end {
+                        a + c.body().len()
+                    } else if self.data.len() > c.body().start {
+                        a + (self.data.len() - c.body().start)
+                    } else {
+                        a
+                    }
+                })
+        } else {
+            available
+        }
     }
 
     pub fn show(
@@ -165,7 +184,7 @@ where
                 }
             },
             &Encoding::Bytes => {
-                let item = offset.following(self.data.len() - offset.data_offset);
+                let item = offset.following(self.available(offset));
                 let string = self.cut(offset, item.len(), |d| hex::encode(d.bytes()))?;
                 node.add(base, intersect(space, item), TreeLeaf::Display(string));
             },
@@ -230,13 +249,15 @@ where
                 // TODO: use item, highlight the length
                 let item = offset.following(4);
                 let length = self.cut(offset, item.len(), |b| b.get_u32())? as usize;
-                if offset.data_offset + length <= self.data.len() {
-                    self.limit(offset.data_offset + length)
+                if length <= self.available(offset) {
+                    self.limit(offset, length)
                         .show(offset, encoding, space, base, node)?;
+                } else {
+                    // report error
                 }
             },
             &Encoding::Sized(ref size, ref encoding) => {
-                self.limit(offset.data_offset + size.clone())
+                self.limit(offset, size.clone())
                     .show(offset, encoding, space, base, node)?;
             },
             &Encoding::Greedy(ref encoding) => {
@@ -287,7 +308,7 @@ where
                 self.cut(offset, l, |a| a.bytes().len() + 4)
             },
             &Encoding::Bytes => {
-                let l = self.data.len() - offset.data_offset;
+                let l = self.available(offset);
                 self.cut(offset, l, |a| a.bytes().len())
             },
             &Encoding::Tags(ref tag_size, ref tag_map) => {
@@ -307,7 +328,7 @@ where
                 }
             },
             &Encoding::List(_) => {
-                let l = self.data.len() - offset.data_offset;
+                let l = self.available(offset);
                 self.cut(offset, l, |a| a.bytes().len())
             },
             &Encoding::Obj(ref fields) => fields

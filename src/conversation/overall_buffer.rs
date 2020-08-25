@@ -6,6 +6,7 @@ use std::ops::Range;
 use tezos_encoding::encoding::HasEncoding;
 use tezos_messages::p2p::encoding::{
     ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
+    connection::ConnectionMessage,
 };
 use failure::Fail;
 use super::{
@@ -14,7 +15,7 @@ use super::{
 };
 use crate::{
     identity::{Decipher, Identity},
-    value::{ChunkedData, ChunkedDataOffset, Named, ConnectionMessage, HasBodyRange},
+    value::{ChunkedData, ChunkedDataOffset, Named, HasBodyRange},
     range_tool::intersect,
 };
 
@@ -285,8 +286,8 @@ impl Context {
             }
         });
 
-        let data = ChunkedData::new(data, chunks);
         if let Some(first_chunk) = first_chunk {
+            let data = ChunkedData::new(data, chunks);
             let mut offset = ChunkedDataOffset {
                 chunks_offset: first_chunk,
                 data_offset: chunks[first_chunk].body().start,

@@ -17,7 +17,7 @@
             "request": "launch",
             "name": "Debug Wireshark",
             "program": "${workspaceFolder}/target/out/bin/wireshark",
-            "args": ["-o", "tezos.identity_json_file:../tezedge/light_node/etc/tezedge/identity.json"],
+            "args": ["-o", "tezos.identity_json_file:data/identity.json"],
             "cwd": "${workspaceFolder}"
         },
         {

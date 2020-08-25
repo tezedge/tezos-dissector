@@ -7,4 +7,3 @@ mod named;
 
 pub use self::fields::{TezosEncoded, Named};
 pub use self::message::{ChunkedData, ChunkedDataOffset, DecodingError, HasBodyRange};
-pub use self::named::ConnectionMessage;
