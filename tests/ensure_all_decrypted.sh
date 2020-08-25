@@ -12,14 +12,5 @@ function fail {
 echo 'checking if there are no error messages'
 ./target/out/bin/tshark \
     -o tezos.identity_json_file:data/identity.json \
-    -Vr data/cap-09.pcap | grep 'MAC mismatch' \
+    -Vr data/cap-09.pcap | grep 'Decryption error' \
     >/dev/null 2>/dev/null && fail || ok
-
-echo 'counting messages'
-lines=$(\
-./target/out/bin/tshark \
-    -o tezos.identity_json_file:data/identity.json \
-    -Vr data/cap-09.pcap | grep 'Decrypted data' | wc -l\
-)
-
-[ $lines -eq '33754' ] && ok || fail

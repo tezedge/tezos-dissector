@@ -23,6 +23,7 @@ pub enum DecodingError {
     TagNotFound,
 }
 
+#[derive(Debug)]
 pub struct ChunkedData<'a, C>
 where
     C: HasBodyRange,
@@ -31,7 +32,7 @@ where
     chunks: &'a [C],
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ChunkedDataOffset {
     pub data_offset: usize,
     pub chunks_offset: usize,
@@ -51,15 +52,37 @@ where
         ChunkedData { data, chunks }
     }
 
-    fn limit(&self, offset: &ChunkedDataOffset, limit: usize) -> Self {
-        // TODO: account chunks
-        ChunkedData {
-            data: &self.data[..(offset.data_offset + limit)],
+    fn limit(&self, offset: &ChunkedDataOffset, limit: usize) -> Result<Self, DecodingError> {
+        let r = |i| -> Range<usize> {
+            self.chunks.get(offset.chunks_offset + i)
+                .map(|info: &C| {
+                    let range = info.body();
+                    let o = offset.data_offset;
+                    let l = self.data.len();
+                    usize::max(o, range.start)..usize::min(range.end, l)
+                })
+                .unwrap_or(0..0)
+        };
+        let mut limit = limit;
+        let mut i = 0;
+        let end = loop {
+            if limit <= r(i).len() {
+                break r(i).start + limit;
+            } else if r(i).len() == 0 {
+                Err(DecodingError::NotEnoughData)?;
+            } else {
+                limit -= r(i).len();
+                i += 1;
+            }
+        };
+        Ok(ChunkedData {
+            data: &self.data[..end],
             chunks: self.chunks,
-        }
+        })
     }
 
     // try to cut `length` bytes, update offset
+    // TODO: simplify it
     fn cut<F, T>(
         &self,
         offset: &mut ChunkedDataOffset,
@@ -69,25 +92,50 @@ where
     where
         F: FnOnce(&mut dyn Buf) -> T,
     {
-        // TODO:
-        self.chunks
-            .get(offset.chunks_offset)
-            .and_then(|info| {
-                let range = info.body();
-                assert!(
-                    range.contains(&offset.data_offset)
-                        || (offset.data_offset == range.end && length == 0)
-                );
-                let remaining = offset.data_offset..usize::min(range.end, self.data.len());
-                if remaining.len() < length {
-                    None
+        let range = self.chunks[offset.chunks_offset].body();
+        assert!(
+            range.contains(&offset.data_offset)
+                || (offset.data_offset == range.end && length == 0)
+        );
+        let remaining = offset.data_offset..usize::min(range.end, self.data.len());
+        if remaining.len() >= length {
+            let end = remaining.start + length;
+            offset.data_offset += length;
+            Ok(f(&mut &self.data[remaining.start..end]))
+        } else {
+            let mut v = Vec::with_capacity(length);
+            offset.data_offset += remaining.len();
+            let mut length = length - remaining.len();
+            v.extend_from_slice(&self.data[remaining]);
+            loop {
+                offset.chunks_offset += 1;
+                if self.chunks.len() == offset.chunks_offset {
+                    if length == 0 {
+                        break;
+                    } else {
+                        Err(DecodingError::NotEnoughData)?;
+                    }
                 } else {
-                    let end = remaining.start + length;
-                    offset.data_offset += length;
-                    Some(f(&mut &self.data[remaining.start..end]))
+                    let range = self.chunks[offset.chunks_offset].body();
+                    let remaining = range.start..usize::min(range.end, self.data.len());
+                    if remaining.len() >= length {
+                        offset.data_offset = self.chunks[offset.chunks_offset].body().start + length;
+                        if length > 0 {
+                            let end = remaining.start + length;
+                            length = 0;
+                            v.extend_from_slice(&self.data[remaining.start..end]);
+                        }
+                        break;
+                    } else {
+                        offset.data_offset += remaining.len();
+                        length -= remaining.len();
+                        v.extend_from_slice(&self.data[remaining]);
+                    }
                 }
-            })
-            .ok_or(DecodingError::NotEnoughData)
+            }
+            assert_eq!(length, 0);
+            Ok(f(&mut v.as_slice()))
+        }
     }
 
     fn empty(&self, offset: &ChunkedDataOffset) -> bool {
@@ -95,7 +143,10 @@ where
     }
 
     fn available(&self, offset: &ChunkedDataOffset) -> usize {
-        let end = usize::min(self.chunks[offset.chunks_offset].body().end, self.data.len());
+        let end = usize::min(
+            self.chunks[offset.chunks_offset].body().end,
+            self.data.len(),
+        );
         let available = end - offset.data_offset;
         // if it is the first message it always goes in the single chunk
         if offset.chunks_offset != 0 && self.chunks.len() - 1 > offset.chunks_offset {
@@ -176,7 +227,7 @@ where
             &Encoding::String => {
                 let mut item = offset.following(4);
                 let length = self.cut(offset, item.len(), |b| b.get_u32())? as usize;
-                let f = |data: &mut dyn Buf| String::from_utf8((data.bytes()).to_owned()).ok();
+                let f = |b: &mut dyn Buf| String::from_utf8((b.bytes()).to_owned()).ok();
                 let string = self.cut(offset, length, f)?;
                 item.end = offset.data_offset;
                 if let Some(s) = string {
@@ -250,14 +301,14 @@ where
                 let item = offset.following(4);
                 let length = self.cut(offset, item.len(), |b| b.get_u32())? as usize;
                 if length <= self.available(offset) {
-                    self.limit(offset, length)
+                    self.limit(offset, length)?
                         .show(offset, encoding, space, base, node)?;
                 } else {
                     // report error
                 }
             },
             &Encoding::Sized(ref size, ref encoding) => {
-                self.limit(offset, size.clone())
+                self.limit(offset, size.clone())?
                     .show(offset, encoding, space, base, node)?;
             },
             &Encoding::Greedy(ref encoding) => {
@@ -348,5 +399,66 @@ where
             &Encoding::Lazy(ref f) => self.estimate_size(offset, &f()),
             t => unimplemented!("{:?}", t),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::ops::Range;
+    use super::{ChunkedData, ChunkedDataOffset, HasBodyRange};
+
+    impl HasBodyRange for Range<usize> {
+        fn body(&self) -> Range<usize> {
+            self.clone()
+        }
+    }
+
+    fn with_test_data<F>(f: F)
+    where
+        F: FnOnce(ChunkedData<Range<usize>>),
+    {
+        let data = {
+            let mut v = Vec::new();
+            v.resize(128, 'x' as u8);
+            v
+        };
+        let (data, chunks, _) = [
+            ['a' as u8; 12].as_ref(),
+            ['b' as u8; 16].as_ref(),
+            ['c' as u8; 24].as_ref(),
+            ['d' as u8; 8].as_ref(),
+        ]
+            .iter()
+            .fold((data, Vec::new(), 0), |(mut data, mut chunks, mut start), c| {
+                let end = start + c.len();
+                data[start..end].clone_from_slice(*c);
+                chunks.push(start..end);
+                start = end + 4;
+                (data, chunks, start)
+            });
+
+        f(ChunkedData {
+            data: data.as_ref(),
+            chunks: chunks.as_ref(),
+        })
+    }
+
+    #[test]
+    fn simple_cut() {
+        let mut offset = ChunkedDataOffset {
+            chunks_offset: 0,
+            data_offset: 0,
+        };
+
+        with_test_data(|data| {
+            let cut = data
+                .cut(&mut offset, 25, |b| String::from_utf8(b.to_bytes().to_vec()).unwrap())
+                .unwrap();
+            assert_eq!(cut, "aaaaaaaaaaaabbbbbbbbbbbbb");
+            let cut = data
+                .cut(&mut offset, 35, |b| String::from_utf8(b.to_bytes().to_vec()).unwrap())
+                .unwrap();
+            assert_eq!(cut, "bbbccccccccccccccccccccccccdddddddd");
+        });
     }
 }

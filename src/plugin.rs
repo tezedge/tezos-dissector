@@ -11,10 +11,7 @@ use tezos_messages::p2p::encoding::{
     ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
     connection::ConnectionMessage,
 };
-use super::{
-    dissector::TezosDissector,
-    value::TezosEncoded,
-};
+use super::{dissector::TezosDissector, value::TezosEncoded};
 
 #[no_mangle]
 static plugin_version: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");
