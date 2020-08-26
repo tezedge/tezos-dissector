@@ -45,11 +45,7 @@ where
     const FIELDS: &'static [FieldDescriptor<'static>] = &[];
 
     fn fields() -> Vec<FieldDescriptorOwned> {
-        fn recursive(
-            base: &str,
-            name: &str,
-            encoding: &Encoding,
-        ) -> Vec<FieldDescriptorOwned> {
+        fn recursive(base: &str, name: &str, encoding: &Encoding) -> Vec<FieldDescriptorOwned> {
             let new_base = format!("{}.{}", base, name);
             let (kind, more) = match encoding {
                 &Encoding::Unit => (None, Vec::new()),
@@ -72,11 +68,7 @@ where
                     (0..=(((1usize << (size.clone() * 8)) - 1) as u16))
                         .filter_map(|id| map.find_by_id(id))
                         .map(|tag| {
-                            recursive(
-                                new_base.as_str(),
-                                tag.get_variant(),
-                                tag.get_encoding(),
-                            )
+                            recursive(new_base.as_str(), tag.get_variant(), tag.get_encoding())
                         })
                         .flatten()
                         .collect(),
@@ -102,11 +94,7 @@ where
                             } else {
                                 field.get_encoding().clone()
                             };
-                            recursive(
-                                new_base.as_str(),
-                                field.get_name(),
-                                &encoding,
-                            )
+                            recursive(new_base.as_str(), field.get_name(), &encoding)
                         })
                         .flatten()
                         .collect(),
@@ -122,20 +110,11 @@ where
                         .flatten()
                         .collect(),
                 ),
-                &Encoding::Dynamic(ref encoding) => {
-                    (None, recursive(base, name, encoding))
-                },
-                &Encoding::Sized(_, ref encoding) => {
-                    (None, recursive(base, name, encoding))
-                },
-                &Encoding::Greedy(ref encoding) => {
-                    (None, recursive(base, name, encoding))
-                },
+                &Encoding::Dynamic(ref encoding) => (None, recursive(base, name, encoding)),
+                &Encoding::Sized(_, ref encoding) => (None, recursive(base, name, encoding)),
+                &Encoding::Greedy(ref encoding) => (None, recursive(base, name, encoding)),
                 &Encoding::Hash(_) => (Some(FieldKind::String), Vec::new()),
-                &Encoding::Split(ref f) => (
-                    None,
-                    recursive(base, name, &f(SchemaType::Binary)),
-                ),
+                &Encoding::Split(ref f) => (None, recursive(base, name, &f(SchemaType::Binary))),
                 &Encoding::Timestamp => (Some(FieldKind::String), Vec::new()),
                 &Encoding::Lazy(ref _f) => panic!("should workaround somehow infinite tree"),
             };

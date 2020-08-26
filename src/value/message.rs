@@ -250,7 +250,11 @@ where
         Ok(str_num)
     }
 
-    pub fn read_path(&self, offset: &mut ChunkedDataOffset, v: &mut Vec<String>) -> Result<(), DecodingError> {
+    pub fn read_path(
+        &self,
+        offset: &mut ChunkedDataOffset,
+        v: &mut Vec<String>,
+    ) -> Result<(), DecodingError> {
         match self.cut(offset, 1, |b| b.get_u8())? {
             0x00 => Ok(()),
             0xf0 => {
@@ -267,7 +271,7 @@ where
                 v.push(format!("right: {}", hash));
                 Ok(())
             },
-            _ => Err(DecodingError::BadPathTag)
+            _ => Err(DecodingError::BadPathTag),
         }
     }
 
@@ -404,7 +408,8 @@ where
                         self.read_path(offset, &mut path)?;
                         item.end = offset.data_offset;
                         let range = intersect(space, item);
-                        let mut p = sub_node.add(field.get_name(), range, TreeLeaf::nothing())
+                        let mut p = sub_node
+                            .add(field.get_name(), range, TreeLeaf::nothing())
                             .subtree();
                         for component in path.into_iter().rev() {
                             p.add("path_component", 0..0, TreeLeaf::Display(component));

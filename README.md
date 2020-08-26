@@ -25,7 +25,7 @@ To be able to run it, install `cargo-script`
 
 $ cargo install cargo-script
 
-And so: `./install.rs debug` or `./install.rs release`.
+And so: `./install.rs debug` or `sudo ./install.rs release`.
 
 ## Run
 
@@ -37,11 +37,14 @@ In order to see decrypted messages, specify identity file
 
 The debug version of wireshark is in `target/out/` directory,
 its sources are in `wireshark/` directory.
+In order to make debug version capture traffic
+should run `setcap` on executable `target/out/bin/dumpcap`.
+See `setcap.sh` script for details.
 
-Log: `target/log.txt`
+Log is in `target/log.txt`.
 
 ## Test
 
 Directory `tests/` contains some shell scripts that do tests.
-They should run from the root of the workspace,
+They should run from the root directory of the workspace,
 `./tests/basic_connection_message.sh`.

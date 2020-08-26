@@ -10,7 +10,7 @@ path = "examples/tree.rs"
 crate-type = ["cdylib"]
 
 [build-dependencies]
-bindgen = "0.54"
+bindgen = "0.55"
 
 [dependencies]
 log = "0.4"

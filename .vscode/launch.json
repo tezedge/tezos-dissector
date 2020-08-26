@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Debug Tshark",
             "program": "${workspaceFolder}/target/out/bin/tshark",
-            "args": ["-o", "tezos.identity_json_file:target/identity_.json", "-Vr", "target/data_.pcapng"],
+            "args": ["-o", "tezos.identity_json_file:data/identity.json", "-Vr", "data/cap-09.pcap"],
             "cwd": "${workspaceFolder}"
         },
         {
