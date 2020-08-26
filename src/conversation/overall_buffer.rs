@@ -34,7 +34,7 @@ impl State {
         match self {
             &State::Correct => false,
             &State::HaveNoIdentity => true,
-            &State::DecryptError(ref e) => i >= e.chunk_number,
+            &State::DecryptError(ref e) => i == e.chunk_number,
         }
     }
 }
@@ -293,6 +293,10 @@ impl Context {
                 data_offset: chunks[first_chunk].body().start,
             };
             loop {
+                if state.error(offset.chunks_offset) {
+                    offset.chunks_offset += 1;
+                    continue;
+                }
                 let on = chunks
                     .get(offset.chunks_offset)
                     .map(|c| c.body().start < space.end)
@@ -316,12 +320,15 @@ impl Context {
                         break;
                     },
                 }
+                if offset.data_offset == chunks[offset.chunks_offset].body().end {
+                    offset.chunks_offset += 1;
+                }
                 if offset.chunks_offset == temp {
                     offset.chunks_offset += 1;
-                    //log::warn!(
-                    //    "ChunkedData::show did not consume full chunk, frame: {}",
-                    //    packet_info.frame_number()
-                    //);
+                    log::warn!(
+                        "ChunkedData::show did not consume full chunk, frame: {}",
+                        packet_info.frame_number()
+                    );
                 }
                 chunks[(temp + 1)..offset.chunks_offset]
                     .iter()
