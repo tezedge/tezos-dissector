@@ -76,7 +76,7 @@ where
             if limit <= r(i).len() {
                 break r(i).start + limit;
             } else if r(i).len() == 0 {
-                Err(DecodingError::NotEnoughData)?;
+                return Err(DecodingError::NotEnoughData);
             } else {
                 limit -= r(i).len();
                 i += 1;
@@ -119,7 +119,7 @@ where
                     if length == 0 {
                         break;
                     } else {
-                        Err(DecodingError::NotEnoughData)?;
+                        return Err(DecodingError::NotEnoughData);
                     }
                 } else {
                     let range = self.chunks[offset.chunks_offset].body();
@@ -359,7 +359,7 @@ where
                 let id = match tag_size {
                     &1 => self.cut(offset, 1, |b| b.get_u8())? as u16,
                     &2 => self.cut(offset, 2, |b| b.get_u16())?,
-                    _ => Err(DecodingError::TagSizeNotSupported)?,
+                    _ => return Err(DecodingError::TagSizeNotSupported),
                 };
                 if let Some(tag) = tag_map.find_by_id(id) {
                     let encoding = tag.get_encoding();
@@ -371,7 +371,7 @@ where
                     let variant = tag.get_variant();
                     self.show(offset, encoding, space, variant, &mut sub_node)?;
                 } else {
-                    Err(DecodingError::TagNotFound)?
+                    return Err(DecodingError::TagNotFound);
                 }
             },
             &Encoding::List(ref encoding) => {
@@ -388,7 +388,7 @@ where
                 match self.cut(offset, 1, |b| b.get_u8())? {
                     0 => (),
                     1 => self.show(offset, encoding, space, base, node)?,
-                    _ => Err(DecodingError::UnexpectedOptionDiscriminant)?,
+                    _ => return Err(DecodingError::UnexpectedOptionDiscriminant),
                 }
             },
             &Encoding::Obj(ref fields) => {
@@ -427,7 +427,7 @@ where
                 let item = offset.following(size);
                 let range = intersect(space, item);
                 let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
-                for (i, encoding) in encodings.into_iter().enumerate() {
+                for (i, encoding) in encodings.iter().enumerate() {
                     let n = format!("{}", i);
                     self.show(offset, encoding, space, &n, &mut sub_node)?;
                 }
@@ -514,7 +514,7 @@ where
                     &2 => self.cut(offset, 2, |b| b.get_u16())?,
                     _ => {
                         log::warn!("unsupported tag size");
-                        Err(DecodingError::TagSizeNotSupported)?
+                        return Err(DecodingError::TagSizeNotSupported);
                     },
                 };
                 if let Some(tag) = tag_map.find_by_id(id) {
@@ -537,11 +537,11 @@ where
                 }
             },
             &Encoding::Tup(ref encodings) => encodings
-                .into_iter()
+                .iter()
                 .map(|e| self.estimate_size(offset, e))
                 .try_fold(0, |sum, size_at| size_at.map(|s| s + sum)),
             &Encoding::Obj(ref fields) => fields
-                .into_iter()
+                .iter()
                 .map(|f| {
                     if f.get_name() == "operation_hashes_path" {
                         let start = offset.data_offset;

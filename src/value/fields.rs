@@ -21,7 +21,7 @@ enum FieldKind {
 fn to_descriptor(base: &str, this: &str, kind: FieldKind) -> FieldDescriptorOwned {
     let capitalized = {
         let mut v = this.chars().collect::<Vec<_>>();
-        v[0] = v[0].to_uppercase().nth(0).unwrap();
+        v[0] = v[0].to_uppercase().next().unwrap();
         v.into_iter()
             .map(|x| if x == '_' { ' ' } else { x })
             .chain(std::iter::once('\0'))
@@ -69,7 +69,7 @@ where
                 &Encoding::Tags(ref size, ref map) => (
                     Some(FieldKind::Nothing),
                     // have to probe all ids...
-                    (0..=(((1usize << size.clone() * 8) - 1) as u16))
+                    (0..=(((1usize << (size.clone() * 8)) - 1) as u16))
                         .filter_map(|id| map.find_by_id(id))
                         .map(|tag| {
                             recursive(

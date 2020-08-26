@@ -10,6 +10,7 @@
         "bitmask",
         "cflags",
         "chrono",
+        "clippy",
         "cmake",
         "concat",
         "ctypes",

@@ -134,7 +134,7 @@ impl Context {
                 if decipher.is_none() {
                     let buffer = &*buffer;
                     if buffer.can_upgrade() {
-                        identity.map(|i| {
+                        *decipher = identity.and_then(|i| {
                             let initiator =
                                 &buffer.incoming.data()[buffer.incoming.chunks()[0].range()];
                             let responder =
@@ -145,7 +145,7 @@ impl Context {
                             } else {
                                 *state = State::Correct;
                             }
-                            *decipher = d;
+                            d
                         });
                     }
                 }
@@ -252,7 +252,7 @@ impl Context {
                         if index > 0 {
                             let mac_range = body_range.end..range.end;
                             let mac = hex::encode(&data[mac_range.clone()]);
-                            let item = intersect(space, mac_range.clone());
+                            let item = intersect(space, mac_range);
                             chunk_node.add("mac", item, TreeLeaf::Display(mac));
                         }
                     }
