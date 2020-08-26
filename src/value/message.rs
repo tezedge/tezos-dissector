@@ -8,6 +8,7 @@ use chrono::NaiveDateTime;
 use std::ops::Range;
 use failure::Fail;
 use bit_vec::BitVec;
+use crypto::hash::HashType;
 use crate::range_tool::intersect;
 
 pub trait HasBodyRange {
@@ -24,6 +25,8 @@ pub enum DecodingError {
     TagNotFound,
     #[fail(display = "Unexpected option value")]
     UnexpectedOptionDiscriminant,
+    #[fail(display = "Path tag should be 0x00 or 0x0f or 0xf0")]
+    BadPathTag,
 }
 
 #[derive(Debug)]
@@ -247,6 +250,27 @@ where
         Ok(str_num)
     }
 
+    pub fn read_path(&self, offset: &mut ChunkedDataOffset, v: &mut Vec<String>) -> Result<(), DecodingError> {
+        match self.cut(offset, 1, |b| b.get_u8())? {
+            0x00 => Ok(()),
+            0xf0 => {
+                self.read_path(offset, v)?;
+                let l = HashType::OperationListListHash.size();
+                let hash = self.cut(offset, l, |b| hex::encode(b.bytes()))?;
+                v.push(format!("left: {}", hash));
+                Ok(())
+            },
+            0x0f => {
+                let l = HashType::OperationListListHash.size();
+                let hash = self.cut(offset, l, |b| hex::encode(b.bytes()))?;
+                self.read_path(offset, v)?;
+                v.push(format!("right: {}", hash));
+                Ok(())
+            },
+            _ => Err(DecodingError::BadPathTag)
+        }
+    }
+
     pub fn show(
         &self,
         offset: &mut ChunkedDataOffset,
@@ -374,13 +398,26 @@ where
                 let range = intersect(space, item);
                 let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
                 for field in fields {
-                    self.show(
-                        offset,
-                        field.get_encoding(),
-                        space,
-                        field.get_name(),
-                        &mut sub_node,
-                    )?;
+                    if field.get_name() == "operation_hashes_path" {
+                        let mut item = offset.following(0);
+                        let mut path = Vec::new();
+                        self.read_path(offset, &mut path)?;
+                        item.end = offset.data_offset;
+                        let range = intersect(space, item);
+                        let mut p = sub_node.add(field.get_name(), range, TreeLeaf::nothing())
+                            .subtree();
+                        for component in path.into_iter().rev() {
+                            p.add("path_component", 0..0, TreeLeaf::Display(component));
+                        }
+                    } else {
+                        self.show(
+                            offset,
+                            field.get_encoding(),
+                            space,
+                            field.get_name(),
+                            &mut sub_node,
+                        )?;
+                    }
                 }
             },
             &Encoding::Tup(ref encodings) => {
@@ -427,13 +464,15 @@ where
                 let time = NaiveDateTime::from_timestamp(value, 0);
                 node.add(base, intersect(space, item), TreeLeaf::Display(time));
             },
-            &Encoding::Lazy(ref f) => {
-                self.show(offset, &f(), space, base, node)?;
+            &Encoding::Lazy(ref _f) => {
+                panic!("should not happen");
             },
         };
         Ok(())
     }
 
+    // TODO: it is double work, optimize it out
+    // we should store decoded data and show it only when whole node is collected
     pub fn estimate_size(
         &self,
         offset: &mut ChunkedDataOffset,
@@ -503,7 +542,15 @@ where
                 .try_fold(0, |sum, size_at| size_at.map(|s| s + sum)),
             &Encoding::Obj(ref fields) => fields
                 .into_iter()
-                .map(|f| self.estimate_size(offset, f.get_encoding()))
+                .map(|f| {
+                    if f.get_name() == "operation_hashes_path" {
+                        let start = offset.data_offset;
+                        self.read_path(offset, &mut Vec::new())?;
+                        Ok(offset.data_offset - start)
+                    } else {
+                        self.estimate_size(offset, f.get_encoding())
+                    }
+                })
                 .try_fold(0, |sum, size_at_field| size_at_field.map(|s| s + sum)),
             &Encoding::Dynamic(_) => {
                 let l = self.cut(offset, 4, |b| b.get_u32())? as usize;
@@ -519,7 +566,7 @@ where
             },
             &Encoding::Timestamp => self.cut(offset, 8, |a| a.bytes().len()),
             &Encoding::Split(ref f) => self.estimate_size(offset, &f(SchemaType::Binary)),
-            &Encoding::Lazy(ref f) => self.estimate_size(offset, &f()),
+            &Encoding::Lazy(ref _f) => panic!("should not happen"),
         }
     }
 }

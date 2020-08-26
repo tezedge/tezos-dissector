@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use tezos_encoding::encoding::{HasEncoding, Encoding, SchemaType};
+use tezos_encoding::encoding::{HasEncoding, Encoding, SchemaType, Field};
 use wireshark_epan_adapter::{FieldDescriptorOwned, FieldDescriptor, dissector::HasFields};
 
 pub struct TezosEncoded<T>(pub T)
@@ -49,7 +49,6 @@ where
             base: &str,
             name: &str,
             encoding: &Encoding,
-            deepness: u8,
         ) -> Vec<FieldDescriptorOwned> {
             let new_base = format!("{}.{}", base, name);
             let (kind, more) = match encoding {
@@ -77,7 +76,6 @@ where
                                 new_base.as_str(),
                                 tag.get_variant(),
                                 tag.get_encoding(),
-                                deepness,
                             )
                         })
                         .flatten()
@@ -87,23 +85,27 @@ where
                     if let &Encoding::Uint8 = encoding.as_ref() {
                         (Some(FieldKind::String), Vec::new())
                     } else {
-                        (None, recursive(base, name, encoding, deepness))
+                        (None, recursive(base, name, encoding))
                     }
                 },
                 &Encoding::Enum => (Some(FieldKind::String), Vec::new()),
                 &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
-                    (None, recursive(base, name, encoding, deepness))
+                    (None, recursive(base, name, encoding))
                 },
                 &Encoding::Obj(ref fields) => (
                     Some(FieldKind::Nothing),
                     fields
                         .iter()
                         .map(|field| {
+                            let encoding = if field.get_name() == "operation_hashes_path" {
+                                Encoding::Obj(vec![Field::new("path_component", Encoding::String)])
+                            } else {
+                                field.get_encoding().clone()
+                            };
                             recursive(
                                 new_base.as_str(),
                                 field.get_name(),
-                                field.get_encoding(),
-                                deepness,
+                                &encoding,
                             )
                         })
                         .flatten()
@@ -115,40 +117,33 @@ where
                         .enumerate()
                         .map(|(i, encoding)| {
                             let n = format!("{}", i);
-                            recursive(new_base.as_str(), &n, encoding, deepness)
+                            recursive(new_base.as_str(), &n, encoding)
                         })
                         .flatten()
                         .collect(),
                 ),
                 &Encoding::Dynamic(ref encoding) => {
-                    (None, recursive(base, name, encoding, deepness))
+                    (None, recursive(base, name, encoding))
                 },
                 &Encoding::Sized(_, ref encoding) => {
-                    (None, recursive(base, name, encoding, deepness))
+                    (None, recursive(base, name, encoding))
                 },
                 &Encoding::Greedy(ref encoding) => {
-                    (None, recursive(base, name, encoding, deepness))
+                    (None, recursive(base, name, encoding))
                 },
                 &Encoding::Hash(_) => (Some(FieldKind::String), Vec::new()),
                 &Encoding::Split(ref f) => (
                     None,
-                    recursive(base, name, &f(SchemaType::Binary), deepness),
+                    recursive(base, name, &f(SchemaType::Binary)),
                 ),
                 &Encoding::Timestamp => (Some(FieldKind::String), Vec::new()),
-                &Encoding::Lazy(ref f) => {
-                    if deepness > 0 {
-                        (None, recursive(base, name, &f(), deepness - 1))
-                    } else {
-                        // TODO: fix it
-                        (None, Vec::new())
-                    }
-                },
+                &Encoding::Lazy(ref _f) => panic!("should workaround somehow infinite tree"),
             };
             kind.map(|kind| to_descriptor(base, name, kind))
                 .into_iter()
                 .chain(more)
                 .collect()
         }
-        recursive("tezos", T::NAME, &T::encoding(), 4)
+        recursive("tezos", T::NAME, &T::encoding())
     }
 }
