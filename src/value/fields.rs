@@ -63,7 +63,7 @@ where
                 | &Encoding::Uint32
                 | &Encoding::Int64
                 | &Encoding::RangedInt => (Some(FieldKind::IntDec), Vec::new()),
-                &Encoding::Z | &Encoding::Mutez => unimplemented!(),
+                &Encoding::Z | &Encoding::Mutez => (Some(FieldKind::String), Vec::new()),
                 &Encoding::Float | &Encoding::RangedFloat => unimplemented!(),
                 &Encoding::Bool => (Some(FieldKind::String), Vec::new()),
                 &Encoding::String | &Encoding::Bytes => (Some(FieldKind::String), Vec::new()),

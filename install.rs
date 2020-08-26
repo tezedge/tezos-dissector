@@ -24,11 +24,7 @@ fn main() {
     let system = "/usr".to_owned();
     let local = "target/out".to_owned();
 
-    let destination = if debug {
-        local
-    } else {
-        system
-    };
+    let destination = if debug { local } else { system };
 
     let destination = format!("{}/lib/wireshark/plugins/3.2/epan/", destination)
         .parse::<PathBuf>()

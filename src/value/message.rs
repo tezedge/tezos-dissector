@@ -7,6 +7,7 @@ use bytes::Buf;
 use chrono::NaiveDateTime;
 use std::ops::Range;
 use failure::Fail;
+use bit_vec::BitVec;
 use crate::range_tool::intersect;
 
 pub trait HasBodyRange {
@@ -21,6 +22,8 @@ pub enum DecodingError {
     TagSizeNotSupported,
     #[fail(display = "Tag not found")]
     TagNotFound,
+    #[fail(display = "Unexpected option value")]
+    UnexpectedOptionDiscriminant,
 }
 
 #[derive(Debug)]
@@ -54,7 +57,8 @@ where
 
     fn limit(&self, offset: &ChunkedDataOffset, limit: usize) -> Result<Self, DecodingError> {
         let r = |i| -> Range<usize> {
-            self.chunks.get(offset.chunks_offset + i)
+            self.chunks
+                .get(offset.chunks_offset + i)
                 .map(|info: &C| {
                     let range = info.body();
                     let o = offset.data_offset;
@@ -94,8 +98,7 @@ where
     {
         let range = self.chunks[offset.chunks_offset].body();
         assert!(
-            range.contains(&offset.data_offset)
-                || (offset.data_offset == range.end && length == 0)
+            range.contains(&offset.data_offset) || (offset.data_offset == range.end && length == 0)
         );
         let remaining = offset.data_offset..usize::min(range.end, self.data.len());
         if remaining.len() >= length {
@@ -119,7 +122,8 @@ where
                     let range = self.chunks[offset.chunks_offset].body();
                     let remaining = range.start..usize::min(range.end, self.data.len());
                     if remaining.len() >= length {
-                        offset.data_offset = self.chunks[offset.chunks_offset].body().start + length;
+                        offset.data_offset =
+                            self.chunks[offset.chunks_offset].body().start + length;
                         if length > 0 {
                             let end = remaining.start + length;
                             length = 0;
@@ -164,6 +168,83 @@ where
         } else {
             available
         }
+    }
+
+    pub fn read_z(&self, offset: &mut ChunkedDataOffset) -> Result<String, DecodingError> {
+        // read first byte
+        let byte = self.cut(offset, 1, |b| b.get_u8())?;
+        let negative = byte & (1 << 6) != 0;
+        if byte <= 0x3F {
+            let mut num = i32::from(byte);
+            if negative {
+                num *= -1;
+            }
+            Ok(format!("{:x}", num))
+        } else {
+            let mut bits = BitVec::new();
+            for bit_idx in 0..6 {
+                bits.push(byte & (1 << bit_idx) != 0);
+            }
+
+            let mut has_next_byte = true;
+            while has_next_byte {
+                let byte = self.cut(offset, 1, |b| b.get_u8())?;
+                for bit_idx in 0..7 {
+                    bits.push(byte & (1 << bit_idx) != 0)
+                }
+
+                has_next_byte = byte & (1 << 7) != 0;
+            }
+
+            let bytes = to_byte_vec(&trim_left(&reverse(&bits)));
+
+            let mut str_num = bytes
+                .iter()
+                .enumerate()
+                .map(|(idx, b)| match idx {
+                    0 => format!("{:x}", *b),
+                    _ => format!("{:02x}", *b),
+                })
+                .fold(String::new(), |mut str_num, val| {
+                    str_num.push_str(&val);
+                    str_num
+                });
+            if negative {
+                str_num = String::from("-") + str_num.as_str();
+            }
+
+            Ok(str_num)
+        }
+    }
+
+    pub fn read_mutez(&self, offset: &mut ChunkedDataOffset) -> Result<String, DecodingError> {
+        let mut bits = BitVec::new();
+
+        let mut has_next_byte = true;
+        while has_next_byte {
+            let byte = self.cut(offset, 1, |b| b.get_u8())?;
+            for bit_idx in 0..7 {
+                bits.push(byte & (1 << bit_idx) != 0)
+            }
+
+            has_next_byte = byte & (1 << 7) != 0;
+        }
+
+        let bytes = to_byte_vec(&trim_left(&reverse(&bits)));
+
+        let str_num = bytes
+            .iter()
+            .enumerate()
+            .map(|(idx, b)| match idx {
+                0 => format!("{:x}", *b),
+                _ => format!("{:02x}", *b),
+            })
+            .fold(String::new(), |mut str_num, val| {
+                str_num.push_str(&val);
+                str_num
+            });
+
+        Ok(str_num)
     }
 
     pub fn show(
@@ -212,7 +293,18 @@ where
                 node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
             },
             &Encoding::RangedInt => unimplemented!(),
-            &Encoding::Z | &Encoding::Mutez => unimplemented!(),
+            &Encoding::Z => {
+                let mut item = offset.following(0);
+                let value = self.read_z(offset)?;
+                item.end = offset.data_offset;
+                node.add(base, intersect(space, item), TreeLeaf::Display(value));
+            },
+            &Encoding::Mutez => {
+                let mut item = offset.following(0);
+                let value = self.read_mutez(offset)?;
+                item.end = offset.data_offset;
+                node.add(base, intersect(space, item), TreeLeaf::Display(value));
+            },
             &Encoding::Float => {
                 let item = offset.following(8);
                 let value = self.cut(offset, item.len(), |b| b.get_f64())?;
@@ -267,14 +359,13 @@ where
                     }
                 }
             },
-            &Encoding::Enum => unimplemented!(),
-            &Encoding::Option(ref encoding) => {
-                let _ = encoding;
-                unimplemented!()
-            },
-            &Encoding::OptionalField(ref encoding) => {
-                let _ = encoding;
-                unimplemented!()
+            &Encoding::Enum => self.show(offset, &Encoding::Uint32, space, base, node)?,
+            &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
+                match self.cut(offset, 1, |b| b.get_u8())? {
+                    0 => (),
+                    1 => self.show(offset, encoding, space, base, node)?,
+                    _ => Err(DecodingError::UnexpectedOptionDiscriminant)?,
+                }
             },
             &Encoding::Obj(ref fields) => {
                 let mut temp_offset = offset.clone();
@@ -293,8 +384,16 @@ where
                 }
             },
             &Encoding::Tup(ref encodings) => {
-                let _ = encodings;
-                unimplemented!()
+                let mut temp_offset = offset.clone();
+                let size =
+                    self.estimate_size(&mut temp_offset, &Encoding::Tup(encodings.clone()))?;
+                let item = offset.following(size);
+                let range = intersect(space, item);
+                let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
+                for (i, encoding) in encodings.into_iter().enumerate() {
+                    let n = format!("{}", i);
+                    self.show(offset, encoding, space, &n, &mut sub_node)?;
+                }
             },
             &Encoding::Dynamic(ref encoding) => {
                 // TODO: use item, highlight the length
@@ -312,8 +411,7 @@ where
                     .show(offset, encoding, space, base, node)?;
             },
             &Encoding::Greedy(ref encoding) => {
-                let _ = encoding;
-                unimplemented!()
+                self.show(offset, encoding, space, base, node)?;
             },
             &Encoding::Hash(ref hash_type) => {
                 let item = offset.following(hash_type.size());
@@ -350,7 +448,16 @@ where
             },
             &Encoding::Int64 => self.cut(offset, 8, |a| a.bytes().len()),
             &Encoding::RangedInt => unimplemented!(),
-            &Encoding::Z | &Encoding::Mutez => unimplemented!(),
+            &Encoding::Z => {
+                let start = offset.data_offset;
+                let _ = self.read_z(offset)?;
+                Ok(offset.data_offset - start)
+            },
+            &Encoding::Mutez => {
+                let start = offset.data_offset;
+                let _ = self.read_mutez(offset)?;
+                Ok(offset.data_offset - start)
+            },
             &Encoding::Float => self.cut(offset, 8, |a| a.bytes().len()),
             &Encoding::RangedFloat => unimplemented!(),
             &Encoding::Bool => self.cut(offset, 1, |a| a.bytes().len()),
@@ -382,6 +489,18 @@ where
                 let l = self.available(offset);
                 self.cut(offset, l, |a| a.bytes().len())
             },
+            &Encoding::Enum => self.estimate_size(offset, &Encoding::Uint32),
+            &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
+                match self.cut(offset, 1, |b| b.get_u8())? {
+                    0 => Ok(1),
+                    1 => self.estimate_size(offset, encoding).map(|s| s + 1),
+                    _ => Err(DecodingError::UnexpectedOptionDiscriminant),
+                }
+            },
+            &Encoding::Tup(ref encodings) => encodings
+                .into_iter()
+                .map(|e| self.estimate_size(offset, e))
+                .try_fold(0, |sum, size_at| size_at.map(|s| s + sum)),
             &Encoding::Obj(ref fields) => fields
                 .into_iter()
                 .map(|f| self.estimate_size(offset, f.get_encoding()))
@@ -391,15 +510,65 @@ where
                 self.cut(offset, l, |a| a.bytes().len() + 4)
             },
             &Encoding::Sized(ref size, _) => self.cut(offset, size.clone(), |a| a.bytes().len()),
+            &Encoding::Greedy(_) => {
+                let l = self.available(offset);
+                self.cut(offset, l, |a| a.bytes().len())
+            },
             &Encoding::Hash(ref hash_type) => {
                 self.cut(offset, hash_type.size(), |a| a.bytes().len())
             },
             &Encoding::Timestamp => self.cut(offset, 8, |a| a.bytes().len()),
             &Encoding::Split(ref f) => self.estimate_size(offset, &f(SchemaType::Binary)),
             &Encoding::Lazy(ref f) => self.estimate_size(offset, &f()),
-            t => unimplemented!("{:?}", t),
         }
     }
+}
+
+fn reverse(s: &BitVec) -> BitVec {
+    let mut reversed = BitVec::new();
+    for bit in s.iter().rev() {
+        reversed.push(bit)
+    }
+    reversed
+}
+
+fn trim_left(s: &BitVec) -> BitVec {
+    let mut trimmed: BitVec = BitVec::new();
+
+    let mut notrim = false;
+    for bit in s.iter() {
+        if bit {
+            trimmed.push(bit);
+            notrim = true;
+        } else if notrim {
+            trimmed.push(bit);
+        }
+    }
+    trimmed
+}
+
+fn to_byte_vec(s: &BitVec) -> Vec<u8> {
+    let mut bytes = vec![];
+    let mut byte = 0;
+    let mut offset = 0;
+    for (idx_bit, bit) in s.iter().rev().enumerate() {
+        let idx_byte = (idx_bit % 8) as u8;
+        if bit {
+            byte |= 1 << idx_byte;
+        } else {
+            byte &= !(1 << idx_byte);
+        }
+        if idx_byte == 7 {
+            bytes.push(byte);
+            byte = 0;
+        }
+        offset = idx_byte;
+    }
+    if offset != 7 {
+        bytes.push(byte);
+    }
+    bytes.reverse();
+    bytes
 }
 
 #[cfg(test)]
@@ -428,14 +597,17 @@ mod tests {
             ['c' as u8; 24].as_ref(),
             ['d' as u8; 8].as_ref(),
         ]
-            .iter()
-            .fold((data, Vec::new(), 0), |(mut data, mut chunks, mut start), c| {
+        .iter()
+        .fold(
+            (data, Vec::new(), 0),
+            |(mut data, mut chunks, mut start), c| {
                 let end = start + c.len();
                 data[start..end].clone_from_slice(*c);
                 chunks.push(start..end);
                 start = end + 4;
                 (data, chunks, start)
-            });
+            },
+        );
 
         f(ChunkedData {
             data: data.as_ref(),
@@ -452,11 +624,15 @@ mod tests {
 
         with_test_data(|data| {
             let cut = data
-                .cut(&mut offset, 25, |b| String::from_utf8(b.to_bytes().to_vec()).unwrap())
+                .cut(&mut offset, 25, |b| {
+                    String::from_utf8(b.to_bytes().to_vec()).unwrap()
+                })
                 .unwrap();
             assert_eq!(cut, "aaaaaaaaaaaabbbbbbbbbbbbb");
             let cut = data
-                .cut(&mut offset, 35, |b| String::from_utf8(b.to_bytes().to_vec()).unwrap())
+                .cut(&mut offset, 35, |b| {
+                    String::from_utf8(b.to_bytes().to_vec()).unwrap()
+                })
                 .unwrap();
             assert_eq!(cut, "bbbccccccccccccccccccccccccdddddddd");
         });
