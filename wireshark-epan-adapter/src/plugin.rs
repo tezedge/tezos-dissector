@@ -7,11 +7,16 @@ use std::{
 use crate::sys;
 use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Tree, HasFields};
 
+/// Should be implemented for dissector.
 pub trait Dissector {
+    /// The only preference supported is filename. 
+    /// Called when the user choose some file.
     fn prefs_update(&mut self, filenames: Vec<&str>) {
         let _ = filenames;
     }
 
+    /// Called when a new packet just arrive
+    /// or when the user click on some packet in the interface.
     fn consume(
         &mut self,
         helper: &mut DissectorHelper,
@@ -19,6 +24,8 @@ pub trait Dissector {
         packet_info: &PacketInfo,
     ) -> usize;
 
+    /// Called when capturing session and.
+    /// The dissector is not destroyed, it might be used in the next capturing session.
     fn cleanup(&mut self);
 }
 
@@ -273,6 +280,7 @@ impl<'a> Plugin<'a> {
 }
 
 impl Plugin<'static> {
+    /// The most important and dangerous function in the library.
     pub fn register(self, dissector: Box<dyn Dissector>) {
         thread_local! {
             static CONTEXT: RefCell<Option<Plugin<'static>>> = RefCell::new(None);

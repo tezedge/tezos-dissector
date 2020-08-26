@@ -4,7 +4,8 @@ use std::{
 };
 use crate::sys;
 
-/// It might panic or return error, but let's do not care
+/// The most common socket address is ip (v4 or v6 and port),
+/// but also it might be some other kind of address.
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum SocketAddress {
     Ip(SocketAddr),
@@ -28,6 +29,7 @@ impl fmt::Display for SocketAddress {
     }
 }
 
+/// Provides information about the packet.
 pub struct PacketInfo {
     inner: *mut sys::packet_info,
 }
@@ -45,18 +47,23 @@ impl PacketInfo {
         unsafe { &*self.inner().fd }
     }
 
+    /// Destination address.
     pub fn destination(&self) -> SocketAddress {
         read_address(self.inner().dst, self.inner().destport as u16)
     }
 
+    /// Source address.
     pub fn source(&self) -> SocketAddress {
         read_address(self.inner().src, self.inner().srcport as u16)
     }
 
+    /// Just the number by the order. First captures packet has number 1, second 2, and so on.
+    /// Used as a identification of the packet.
     pub fn frame_number(&self) -> u64 {
         self.fd().num as _
     }
 
+    /// Is this packet was already processed by this dissector.
     pub fn visited(&self) -> bool {
         self.fd().visited() != 0
     }

@@ -1,10 +1,12 @@
 use super::PacketInfo;
 use crate::sys;
 
+/// The data of dissector above the current dissector.
 pub enum SuperDissectorData {
     Tcp(*mut sys::tcpinfo),
 }
 
+/// The helper provided to dissector.
 pub struct DissectorHelper {
     _data: SuperDissectorData,
     tvb: *mut sys::tvbuff_t,
@@ -15,6 +17,8 @@ impl DissectorHelper {
         DissectorHelper { _data: data, tvb }
     }
 
+    /// The key is unique per source/destination address.
+    /// Unordered pair of source/destination can also be used as a key.
     pub fn context_key(&mut self, packet_info: &PacketInfo) -> usize {
         let pinfo = packet_info.inner() as *const _ as *mut _;
         let key = unsafe {
@@ -24,6 +28,7 @@ impl DissectorHelper {
         key as _
     }
 
+    /// Payload in the packet. The stuff that dissector will parse and present on UI.
     pub fn payload(&mut self) -> Vec<u8> {
         let length = unsafe { sys::tvb_captured_length(self.tvb) };
         let mut v = Vec::new();
