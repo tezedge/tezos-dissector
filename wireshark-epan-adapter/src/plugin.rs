@@ -24,7 +24,7 @@ pub trait Dissector {
         packet_info: &PacketInfo,
     ) -> usize;
 
-    /// Called when capturing session and.
+    /// Called when capturing session end.
     /// The dissector is not destroyed, it might be used in the next capturing session.
     fn cleanup(&mut self);
 }

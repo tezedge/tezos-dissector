@@ -3,6 +3,7 @@
 
 use std::ops::Range;
 
+/// Express the item range coordinates using space as the origin
 pub fn intersect(space: &Range<usize>, item: Range<usize>) -> Range<usize> {
     if item.end <= space.start {
         0..0

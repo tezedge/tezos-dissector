@@ -115,7 +115,7 @@ impl Dissector for SimpleDissector {
     }
 
     // This method called by the wireshark when the user
-    // closing current capturing session and starts new
+    // closing current capturing session
     fn cleanup(&mut self) {}
 }
 

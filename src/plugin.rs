@@ -42,6 +42,7 @@ extern "C" fn plugin_register() {
             short_name: "tezos\0",
             filter_name: "tezos\0",
         },
+        // all the fields that might appear on the tree UI should be declared here
         &[
             &[
                 FieldDescriptor::String {
@@ -92,9 +93,12 @@ extern "C" fn plugin_register() {
             description: "JSON file with node identity information\0",
         }],
     )
+    // declare fields needed for presenting types
     .register_type::<TezosEncoded<ConnectionMessage>>()
-    .register_type::<TezosEncoded<AckMessage>>()
     .register_type::<TezosEncoded<MetadataMessage>>()
+    .register_type::<TezosEncoded<AckMessage>>()
     .register_type::<TezosEncoded<PeerMessageResponse>>()
+    // before this line we just create static structure that does nothing,
+    // this line registers the plugin in the wireshark, o wireshark can call our dissector
     .register(Box::new(TezosDissector::new()))
 }
