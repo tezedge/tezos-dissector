@@ -9,7 +9,7 @@ use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Tree, Ha
 
 /// Should be implemented for dissector.
 pub trait Dissector {
-    /// The only preference supported is filename. 
+    /// The only preference supported is filename.
     /// Called when the user choose some file.
     fn prefs_update(&mut self, filenames: Vec<&str>) {
         let _ = filenames;

@@ -205,7 +205,11 @@ impl Context {
         let mut node = root
             .add("tezos", 0..packet_length, TreeLeaf::nothing())
             .subtree();
-        node.add("conversation_id", 0..0, TreeLeaf::Display(self.id().expect("valid context")));
+        node.add(
+            "conversation_id",
+            0..0,
+            TreeLeaf::Display(self.id().expect("valid context")),
+        );
 
         let state = self.state();
         let buffer = self.buffer();

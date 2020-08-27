@@ -6,6 +6,6 @@ pub use self::packet_info::{SocketAddress, PacketInfo};
 mod helper;
 pub use self::helper::{SuperDissectorData, DissectorHelper};
 
-/// Provides API for displaying data on tree UI. 
+/// Provides API for displaying data on tree UI.
 mod tree;
 pub use self::tree::{Tree, TreeLeaf, TreeMessage, TreeMessageMapItem, HasFields};

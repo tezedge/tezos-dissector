@@ -30,9 +30,9 @@ impl ContextExt {
         }
     }
 
-    /// The context becomes invalid if the inner is invalid or 
+    /// The context becomes invalid if the inner is invalid or
     /// if the decryption error occurs in some previous frame.
-    /// If the frame number is equal to the frame where error occurs, 
+    /// If the frame number is equal to the frame where error occurs,
     /// the context still valid, but after that it is invalid.
     /// Let's show the error message once.
     fn invalid(&self, frame_number: u64) -> bool {
@@ -104,7 +104,9 @@ impl Dissector for TezosDissector {
             .or_insert_with(|| ContextExt::new(Context::new(packet_info)));
         if !packet_info.visited() {
             // consume each packet only once
-            context.inner.consume(payload.as_ref(), packet_info, self.identity.as_ref());
+            context
+                .inner
+                .consume(payload.as_ref(), packet_info, self.identity.as_ref());
         }
         context.visualize(payload.len(), packet_info, root)
     }

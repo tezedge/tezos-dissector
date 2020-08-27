@@ -1,7 +1,7 @@
 /// Bindings generated automatically.
 mod sys;
 
-/// Covers plugin, protocol and dissector registering. 
+/// Covers plugin, protocol and dissector registering.
 mod plugin;
 pub use self::plugin::{
     Plugin, NameDescriptor, FieldDescriptor, FieldDescriptorOwned, PrefFilenameDescriptor,
