@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::HashMap,
     os::raw::{c_int, c_char, c_void},
     cell::RefCell,
     ptr,
@@ -254,7 +254,7 @@ impl<'a> Plugin<'a> {
         s
     }
 
-    fn fields(&self) -> BTreeMap<String, i32> {
+    fn fields(&self) -> HashMap<String, i32> {
         use std::iter;
 
         let state = self.privates.borrow();

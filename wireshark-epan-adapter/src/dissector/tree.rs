@@ -1,9 +1,9 @@
-use std::{collections::BTreeMap, ops::Range, rc::Rc, cell::RefCell, fmt};
+use std::{collections::HashMap, ops::Range, rc::Rc, cell::RefCell, fmt};
 use crate::plugin::{FieldDescriptor, FieldDescriptorOwned};
 use crate::sys;
 
 struct Common {
-    fields: BTreeMap<String, i32>,
+    fields: HashMap<String, i32>,
     ett: i32,
     tvb: *mut sys::tvbuff_t,
 }
@@ -41,7 +41,7 @@ impl TreeLeaf<String> {
 
 impl Tree {
     pub(crate) fn root(
-        fields: BTreeMap<String, i32>,
+        fields: HashMap<String, i32>,
         ett: i32,
         tvb: *mut sys::tvbuff_t,
         root: *mut sys::proto_tree,
