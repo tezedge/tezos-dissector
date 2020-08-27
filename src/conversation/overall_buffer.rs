@@ -39,6 +39,11 @@ impl State {
     }
 }
 
+pub struct ErrorPosition {
+    sender: Sender,
+    frame_number: u64,
+}
+
 pub enum Context {
     Regular(ConversationBuffer, Option<Decipher>, State),
     Unrecognized,
@@ -177,7 +182,7 @@ impl Context {
         if self.invalid() {
             None
         } else {
-            Some(format!("{:?}", self.buffer().addresses))
+            Some(format!("{}", self.buffer().addresses))
         }
     }
 
@@ -195,13 +200,21 @@ impl Context {
         }
     }
 
-    /// Returns frame number if there is decryption error.
+    pub fn after(&self, packet_info: &PacketInfo, error_position: &ErrorPosition) -> bool {
+        if self.buffer().addresses.sender(packet_info) == error_position.sender {
+            packet_info.frame_number() > error_position.frame_number
+        } else {
+            false
+        }
+    }
+
+    /// Returns if there is decryption error.
     pub fn visualize(
         &self,
         packet_length: usize,
         packet_info: &PacketInfo,
         root: &mut Tree,
-    ) -> Result<(), u64> {
+    ) -> Result<(), ErrorPosition> {
         let mut node = root
             .add("tezos", 0..packet_length, TreeLeaf::nothing())
             .subtree();
@@ -231,7 +244,10 @@ impl Context {
                 if let &State::DecryptError(ref e) = state {
                     if state.error(index) {
                         node.add("decryption_error", 0..0, TreeLeaf::Display(e));
-                        return Err(packet_info.frame_number());
+                        return Err(ErrorPosition {
+                            sender: buffer.addresses.sender(packet_info),
+                            frame_number: packet_info.frame_number(),
+                        });
                     }
                 }
                 if !state.error(index) {

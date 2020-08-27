@@ -5,4 +5,4 @@ mod addresses;
 mod overall_buffer;
 mod direct_buffer;
 
-pub use self::overall_buffer::Context;
+pub use self::overall_buffer::{Context, ErrorPosition};

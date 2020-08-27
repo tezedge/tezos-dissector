@@ -6,7 +6,7 @@ use wireshark_epan_adapter::{
     dissector::{DissectorHelper, Tree, PacketInfo},
 };
 use std::collections::BTreeMap;
-use super::{conversation::Context, identity::Identity};
+use super::{conversation::{Context, ErrorPosition}, identity::Identity};
 
 pub struct TezosDissector {
     identity: Option<Identity>,
@@ -17,9 +17,9 @@ pub struct TezosDissector {
     contexts: BTreeMap<usize, ContextExt>,
 }
 
-pub struct ContextExt {
+struct ContextExt {
     inner: Context,
-    frame_result: Result<(), u64>,
+    frame_result: Result<(), ErrorPosition>,
 }
 
 impl ContextExt {
@@ -35,10 +35,10 @@ impl ContextExt {
     /// If the frame number is equal to the frame where error occurs,
     /// the context still valid, but after that it is invalid.
     /// Let's show the error message once.
-    fn invalid(&self, frame_number: u64) -> bool {
+    fn invalid(&self, packet_info: &PacketInfo) -> bool {
         let error = match &self.frame_result {
             &Ok(()) => false,
-            &Err(f) => frame_number > f,
+            &Err(ref error_position) => self.inner.after(packet_info, error_position),
         };
         error || self.inner.invalid()
     }
@@ -51,7 +51,7 @@ impl ContextExt {
     ) -> usize {
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
-        if !self.invalid(packet_info.frame_number()) {
+        if !self.invalid(packet_info) {
             let r = self.inner.visualize(packet_length, packet_info, root);
             self.frame_result = r;
             packet_length

@@ -2,11 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 use wireshark_epan_adapter::dissector::{SocketAddress, PacketInfo};
+use std::fmt;
 
 #[derive(Debug)]
 pub struct Addresses {
     initiator: SocketAddress,
     responder: SocketAddress,
+}
+
+impl fmt::Display for Addresses {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} -> {}", self.initiator, self.responder)
+    }
 }
 
 impl Addresses {
