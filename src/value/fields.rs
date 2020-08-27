@@ -4,6 +4,8 @@
 use tezos_encoding::encoding::{HasEncoding, Encoding, SchemaType, Field};
 use wireshark_epan_adapter::{FieldDescriptorOwned, FieldDescriptor, dissector::HasFields};
 
+/// The wrapper around the type which has an encoding and a name as a static string.
+/// The wrapper needed because it is impossible to implement foreign trait for foreign type.
 pub struct TezosEncoded<T>(pub T)
 where
     T: HasEncoding + Named;
@@ -18,6 +20,9 @@ enum FieldKind {
     IntDec,
 }
 
+/// Create `FieldDescriptorOwned` the structure of wireshark-epan-adapter
+/// by concatenating base path and last path component.
+/// It just prettify the name.
 fn to_descriptor(base: &str, this: &str, kind: FieldKind) -> FieldDescriptorOwned {
     let capitalized = {
         let mut v = this.chars().collect::<Vec<_>>();
@@ -38,6 +43,8 @@ fn to_descriptor(base: &str, this: &str, kind: FieldKind) -> FieldDescriptorOwne
     }
 }
 
+// Wireshark requires all tree branches are registered before dissector run.
+// We need to resister all types that we expect to decode before start.
 impl<T> HasFields for TezosEncoded<T>
 where
     T: HasEncoding + Named,
@@ -45,6 +52,22 @@ where
     const FIELDS: &'static [FieldDescriptor<'static>] = &[];
 
     fn fields() -> Vec<FieldDescriptorOwned> {
+        // recursive traversal the encoding and generating field descriptor array
+        // for example, for `MetadataMessage` it generates
+        //  [
+        //      Nothing {
+        //          name: "Metadata message\u{0}",
+        //          abbrev: "tezos.metadata_message\u{0}",
+        //      },
+        //      String {
+        //          name: "Disable mempool\u{0}",
+        //          abbrev: "tezos.metadata_message.disable_mempool\u{0}",
+        //      },
+        //      String {
+        //          name: "Private node\u{0}",
+        //          abbrev: "tezos.metadata_message.private_node\u{0}",
+        //      },
+        //  ]
         fn recursive(base: &str, name: &str, encoding: &Encoding) -> Vec<FieldDescriptorOwned> {
             let new_base = format!("{}.{}", base, name);
             let (kind, more) = match encoding {
@@ -74,6 +97,8 @@ where
                         .collect(),
                 ),
                 &Encoding::List(ref encoding) => {
+                    // list of uint8 can be presented as hex, just like `Encoding::Bytes`
+                    // `Encoding::List(Encoding::Uint8)` is the same as `Encoding::Bytes`
                     if let &Encoding::Uint8 = encoding.as_ref() {
                         (Some(FieldKind::String), Vec::new())
                     } else {
@@ -89,6 +114,8 @@ where
                     fields
                         .iter()
                         .map(|field| {
+                            // make exception for this field
+                            // because it is impossible to traversal infinite tree
                             let encoding = if field.get_name() == "operation_hashes_path" {
                                 Encoding::Obj(vec![Field::new("path_component", Encoding::String)])
                             } else {
@@ -116,6 +143,10 @@ where
                 &Encoding::Hash(_) => (Some(FieldKind::String), Vec::new()),
                 &Encoding::Split(ref f) => (None, recursive(base, name, &f(SchemaType::Binary))),
                 &Encoding::Timestamp => (Some(FieldKind::String), Vec::new()),
+                // it is impossible to traversal infinite tree,
+                // so it should be replaced by something else
+                // the only such situation is `operation_hashes_path`,
+                // it treated as special case, see above
                 &Encoding::Lazy(ref _f) => panic!("should workaround somehow infinite tree"),
             };
             kind.map(|kind| to_descriptor(base, name, kind))

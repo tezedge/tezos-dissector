@@ -7,6 +7,8 @@ use tezos_messages::p2p::encoding::{
 };
 use super::fields::Named;
 
+// implement `Named` for all types that we expect to see in the dissector
+
 impl Named for ConnectionMessage {
     const NAME: &'static str = "connection_message";
 }
@@ -26,12 +28,18 @@ impl Named for PeerMessageResponse {
 #[cfg(test)]
 mod tests {
     use wireshark_epan_adapter::dissector::HasFields;
-    use super::{ConnectionMessage, MetadataMessage, PeerMessageResponse};
+    use super::{ConnectionMessage, AckMessage, MetadataMessage, PeerMessageResponse};
     use crate::value::TezosEncoded;
 
     #[test]
     fn connection_message_fields() {
         let fields = TezosEncoded::<ConnectionMessage>::fields();
+        println!("{:#?}", fields);
+    }
+
+    #[test]
+    fn ack_message_fields() {
+        let fields = TezosEncoded::<AckMessage>::fields();
         println!("{:#?}", fields);
     }
 
