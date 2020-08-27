@@ -173,29 +173,39 @@ impl Context {
         }
     }
 
-    pub fn id(&self) -> String {
-        format!("{:?}", self.buffer().addresses)
+    pub fn id(&self) -> Option<String> {
+        if self.invalid() {
+            None
+        } else {
+            Some(format!("{:?}", self.buffer().addresses))
+        }
     }
 
     fn buffer(&self) -> &ConversationBuffer {
         match self {
             &Context::Regular(ref buffer, ..) => buffer,
-            &Context::Unrecognized => panic!(),
+            &Context::Unrecognized => panic!("call `Context::visualize` on invalid context"),
         }
     }
 
     fn state(&self) -> &State {
         match self {
             &Context::Regular(_, _, ref state, ..) => state,
-            &Context::Unrecognized => panic!(),
+            &Context::Unrecognized => panic!("call `Context::visualize` on invalid context"),
         }
     }
 
-    pub fn visualize(&self, packet_length: usize, packet_info: &PacketInfo, root: &mut Tree) {
+    /// Returns frame number if there is decryption error.
+    pub fn visualize(
+        &self,
+        packet_length: usize,
+        packet_info: &PacketInfo,
+        root: &mut Tree,
+    ) -> Result<(), u64> {
         let mut node = root
             .add("tezos", 0..packet_length, TreeLeaf::nothing())
             .subtree();
-        node.add("conversation_id", 0..0, TreeLeaf::Display(self.id()));
+        node.add("conversation_id", 0..0, TreeLeaf::Display(self.id().expect("valid context")));
 
         let state = self.state();
         let buffer = self.buffer();
@@ -211,13 +221,13 @@ impl Context {
         let decrypted = buffer.decrypted(packet_info);
         let chunks = buffer.chunks(packet_info);
 
-        chunks.iter().enumerate().for_each(|(index, chunk_info)| {
+        for (index, chunk_info) in chunks.iter().enumerate() {
             let range = chunk_info.range();
             if range.end > space.start && range.start < space.end {
                 if let &State::DecryptError(ref e) = state {
                     if state.error(index) {
                         node.add("decryption_error", 0..0, TreeLeaf::Display(e));
-                        return;
+                        return Err(packet_info.frame_number());
                     }
                 }
                 if !state.error(index) {
@@ -258,7 +268,7 @@ impl Context {
                     }
                 }
             }
-        });
+        }
 
         let chunks = &chunks[..decrypted];
 
@@ -335,5 +345,7 @@ impl Context {
                     .for_each(ChunkInfo::set_continuation);
             }
         }
+
+        Ok(())
     }
 }
