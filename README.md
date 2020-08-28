@@ -3,34 +3,62 @@
 ## Build on ubuntu
 
 #### Rust nightly
+
 ```
-# apt install curl
+$ sudo apt install curl
 $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-$ rustup install nightly && rustup default nightly
+$ rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
 ```
 
 #### Wireshark
+
+Wireshark version 3.2 required. If you run Ubuntu 19.10 or older, most likely the version is lower, so you need to add wireshark repository manually.
+
 ```
-# apt install wireshark wireshark-dev termshark
+$ sudo apt install software-properties-common
+$ sudo add-apt-repository ppa:wireshark-dev/stable
+$ sudo apt update
 ```
 
-#### Release build dependencies
+And then install the packages:
+
 ```
-# apt install pkg-config clang make
+$ sudo apt install wireshark wireshark-dev termshark
+```
+
+Check the version: `wireshark -v`.
+
+#### Release build dependencies
+
+```
+$ sudo apt install pkg-config clang make
 ```
 
 #### Debug build dependencies
+
 Additionally to previous
+
 ```
-# apt install git cmake flex bison libgcrypt-dev qttools5-dev qtmultimedia5-dev libqt5svg5-dev
+$ sudo apt install git cmake flex bison libgcrypt-dev qttools5-dev qtmultimedia5-dev libqt5svg5-dev
 ```
 
-### Release build
+## Build on macOS
+
+```
+$ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+$ rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
+$ brew install termshark
+$ brew cask install wireshark
+```
+
+TODO:
+
+## Release build
 ```
 $ cargo build --release
 ```
 
-### Debug build
+## Debug build
 ```
 $ cargo build
 ```
@@ -47,12 +75,11 @@ On Linux, Wireshark 3.2 expects its plugins to be in
 https://www.wireshark.org/docs/wsug_html_chunked/ChPluginFolders.html 
 for more details.
 
-The script `install.rs` copies the plugin into the proper directory on Linux.
-To be able to run it, install `cargo-script`
+The script will install release version of plugin of Wireshark 3.2 on linux:
 
-$ cargo install cargo-script
-
-And so: `./install.rs debug` or `sudo ./install.rs release`.
+```
+$ ./install-3.2-linux.sh
+```
 
 ## Run
 

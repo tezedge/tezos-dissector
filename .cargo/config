@@ -1,4 +1,4 @@
-[build]
+[target.x86_64-apple-darwin]
 rustflags = [
     "-Clink-args=-undefined dynamic_lookup"
 ]
