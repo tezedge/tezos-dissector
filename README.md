@@ -1,14 +1,41 @@
 # Tezos dissector
 
-## Build
+## Build on ubuntu
 
-### Debug
+#### Rust nightly
+```
+# apt install curl
+$ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+$ rustup install nightly && rustup default nightly
+```
 
-$ cargo build
+#### Wireshark
+```
+# apt install wireshark wireshark-dev termshark
+```
 
-### Release
+#### Release build dependencies
+```
+# apt install pkg-config clang make
+```
 
+#### Debug build dependencies
+Additionally to previous
+```
+# apt install git cmake flex bison libgcrypt-dev qttools5-dev qtmultimedia5-dev libqt5svg5-dev
+```
+
+### Release build
+```
 $ cargo build --release
+```
+
+### Debug build
+```
+$ cargo build
+```
+
+Note: for debug purposes it builds wireshark in the project directory and install it in `target/out/`.
 
 ## Install
 

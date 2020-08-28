@@ -40,6 +40,7 @@
         "tcpinfo",
         "tezos",
         "tshark",
+        "termshark",
         "tvbuff",
         "wireshark",
         "wmem",
