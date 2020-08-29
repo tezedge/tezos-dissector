@@ -228,16 +228,17 @@ impl Context {
         let buffer = self.buffer();
 
         let direction = match buffer.addresses.sender(packet_info) {
-            Sender::Initiator => "from initiator",
-            Sender::Responder => "from responder",
+            Sender::Initiator => "local",
+            Sender::Responder => "remote",
         };
-        node.add("direction", 0..0, TreeLeaf::Display(direction));
+        node.add("source", 0..0, TreeLeaf::Display(direction));
 
         let space = &buffer.packet(packet_info);
         let data = buffer.data(packet_info);
         let decrypted = buffer.decrypted(packet_info);
         let chunks = buffer.chunks(packet_info);
 
+        // TODO: split it in separated methods
         for (index, chunk_info) in chunks.iter().enumerate() {
             let range = chunk_info.range();
             if range.end > space.start && range.start < space.end {

@@ -50,8 +50,8 @@ extern "C" fn plugin_register() {
                     abbrev: "tezos.conversation_id\0",
                 },
                 FieldDescriptor::String {
-                    name: "Direction\0",
-                    abbrev: "tezos.direction\0",
+                    name: "Source\0",
+                    abbrev: "tezos.source\0",
                 },
                 FieldDescriptor::String {
                     name: "Decryption error\0",
