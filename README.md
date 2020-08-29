@@ -44,14 +44,33 @@ $ sudo apt install git cmake flex bison libgcrypt-dev qttools5-dev qtmultimedia5
 
 ## Build on macOS
 
+#### Release
+
+Install Homebrew if it is not installed:
+
+```
+$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+```
+
+Install nightly Rust and termshark.
+
 ```
 $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 $ rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
 $ brew install termshark
-$ brew cask install wireshark
 ```
 
-TODO:
+Make sure the termshark has version 3.2: `tshark -v`
+
+Also download and install the wireshark 3.2 from its download page https://www.wireshark.org/download/osx/.
+
+#### Debug
+
+Additionally install
+
+```
+$ brew install cmake qt5
+```
 
 ## Release build
 ```
@@ -75,6 +94,12 @@ The script will install release version of plugin of Wireshark 3.2 on linux:
 
 ```
 $ ./install-3.2-linux.sh
+```
+
+On macOS:
+
+```
+$ ./install-3.2-macos.sh
 ```
 
 ## Run
