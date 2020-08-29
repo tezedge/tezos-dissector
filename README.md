@@ -36,7 +36,7 @@ It will produce `target/debug/libtezos_dissector.so`.
 In order to install it, run the script:
 
 ```
-$ ./install-3.2-linux.sh
+$ ./install-3.2.sh
 ```
 
 It not require super user permissions and just create directory `~/.local/lib/wireshark/plugins/3.2/epan/` and copy the `libtezos_dissector.so` in it.
@@ -78,7 +78,7 @@ It will produce `target/debug/libtezos_dissector.dylib`.
 In order to install it, run the script:
 
 ```
-$ ./install-3.2-macos.sh
+$ ./install-3.2.sh
 ```
 
 Or manually copy the file `libtezos_dissector.dylib` in `/Applications/Wireshark.app/Contents/PlugIns/wireshark/3-2/epan/` and rename it to be `.so`.
