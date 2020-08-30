@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "wireshark-epan-adapter",
+    "prebuilt",
     ".",
 ]
 

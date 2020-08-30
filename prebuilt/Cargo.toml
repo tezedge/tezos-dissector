@@ -1,0 +1,8 @@
+[package]
+name = "prebuilt"
+version = "0.1.0"
+authors = ["Vladislav Melnik <vladislav.melnik@simplestaking.com>"]
+edition = "2018"
+
+[dependencies]
+os_type = "2.2"

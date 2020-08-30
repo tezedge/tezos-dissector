@@ -11,7 +11,9 @@ $ rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
 $ source ~/.cargo/env
 ```
 
-Wireshark version 3.2 required. If you run Ubuntu 19.10 or older, most likely the version is lower, so you need to add wireshark repository manually.
+The plugin was tested on Wireshark 3.0 (Ubuntu 19.10) and Wireshark 3.2 (Ubuntu 20.04), it might work on older versions, but it is not tested. Also, it should work on newer versions, but it also not tested.
+
+Optionally add wireshark repository:
 
 ```
 $ sudo apt install software-properties-common
@@ -19,27 +21,20 @@ $ sudo add-apt-repository ppa:wireshark-dev/stable
 $ sudo apt update
 ```
 
-And then install wireshark and other build dependencies:
+Install wireshark and other build dependencies:
 
 ```
 $ sudo apt install pkg-config clang make wireshark wireshark-dev termshark
 ```
 
-Check the version  `wireshark -v`, it should be 3.2, and run the command in tezos-dissector directory:
+Try `pkg-config --cflags wireshark` to check if wireshark headers are accessible. It should print some flags: `-I/.../include/wireshark ...`.
+
+Build the tezos-dissector and install it by running the commands in tezos-dissector directory:
 
 ```
 $ cargo build --release
+$ cargo run -p wireshark-epan-adapter --bin install --release
 ```
-
-It will produce `target/debug/libtezos_dissector.so`. 
-
-In order to install it, run the script:
-
-```
-$ ./install-3.2.sh
-```
-
-It not require super user permissions and just create directory `~/.local/lib/wireshark/plugins/3.2/epan/` and copy the `libtezos_dissector.so` in it.
 
 ## Build and install on macOS
 
@@ -63,25 +58,24 @@ Install termshark:
 $ brew install termshark
 ```
 
-Make sure the termshark has version 3.2: `tshark -v`. Also check if wireshark accessible for pkg-config: `pkg-config --cflags wireshark` it should print some clang flags. If it does not, check `brew link wireshark` maybe you need to force it with `brew link --overwrite wireshark`. In such case, see what is installed via brew `brew leaves` and try to delete unnecessary packages and fix your environment.
+Check if wireshark accessible for pkg-config: `pkg-config --cflags wireshark` it should print some clang flags. If it does not, check `brew link wireshark` maybe you need to force it with `brew link --overwrite wireshark`. In such case, see what is installed via brew `brew leaves` and try to delete unnecessary packages and fix your environment.
 
 The wireshark installed by brew is dependency of termshark, but it just provides headers for building. To be able to run wireshark UI, install .dmg file from its download page https://www.wireshark.org/download/osx/.
 
-Build the tezos-dissector by running the command in tezos-dissector directory:
+Build the tezos-dissector and install it by running the commands in tezos-dissector directory:
 
 ```
 $ cargo build --release
+$ cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
-It will produce `target/debug/libtezos_dissector.dylib`. 
-
-In order to install it, run the script:
+## Install prebuilt plugin
 
 ```
-$ ./install-3.2.sh
+$ cargo run -p prebuilt --release
 ```
 
-Or manually copy the file `libtezos_dissector.dylib` in `/Applications/Wireshark.app/Contents/PlugIns/wireshark/3-2/epan/` and rename it to be `.so`.
+It will determine your OS and Wireshark version, and install prebuilt plugin binary.
 
 ## Running
 
