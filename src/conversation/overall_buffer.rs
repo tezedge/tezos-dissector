@@ -14,7 +14,7 @@ use super::{
     direct_buffer::{DirectBuffer, DecryptError, ChunkInfo},
 };
 use crate::{
-    identity::{Decipher, Identity},
+    identity::{Decipher, Identity, IdentityError},
     value::{ChunkedData, ChunkedDataOffset, Named, HasBodyRange},
     range_tool::intersect,
 };
@@ -25,6 +25,10 @@ pub enum State {
     Correct,
     #[fail(display = "Have no identity")]
     HaveNoIdentity,
+    #[fail(display = "Identity at: {} is invalid", _0)]
+    IdentityInvalid(String),
+    #[fail(display = "Identity at: {} cannot decrypt this conversation", _0)]
+    IdentityCannotDecrypt(String),
     #[fail(display = "{}", _0)]
     DecryptError(DecryptError),
 }
@@ -33,14 +37,16 @@ impl State {
     fn error(&self, i: usize) -> bool {
         match self {
             &State::Correct => false,
-            &State::HaveNoIdentity => true,
+            &State::HaveNoIdentity
+            | &State::IdentityInvalid(_)
+            | &State::IdentityCannotDecrypt(_) => true,
             &State::DecryptError(ref e) => i == e.chunk_number,
         }
     }
 }
 
 pub struct ErrorPosition {
-    sender: Sender,
+    pub sender: Sender,
     frame_number: u64,
 }
 
@@ -131,7 +137,7 @@ impl Context {
         &mut self,
         payload: &[u8],
         packet_info: &PacketInfo,
-        identity: Option<&Identity>,
+        identity: Option<&(Identity, String)>,
     ) {
         match self {
             &mut Context::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
@@ -139,19 +145,28 @@ impl Context {
                 if decipher.is_none() {
                     let buffer = &*buffer;
                     if buffer.can_upgrade() {
-                        *decipher = identity.and_then(|i| {
-                            let initiator =
-                                &buffer.incoming.data()[buffer.incoming.chunks()[0].range()];
-                            let responder =
-                                &buffer.outgoing.data()[buffer.outgoing.chunks()[0].range()];
-                            let d = i.decipher(initiator, responder);
-                            if d.is_none() {
+                        match identity {
+                            Some(&(ref i, ref filename)) => {
+                                let initiator =
+                                    &buffer.incoming.data()[buffer.incoming.chunks()[0].range()];
+                                let responder =
+                                    &buffer.outgoing.data()[buffer.outgoing.chunks()[0].range()];
+                                *decipher = match i.decipher(initiator, responder) {
+                                    Ok(decipher) => Some(decipher),
+                                    Err(IdentityError::Invalid) => {
+                                        *state = State::IdentityInvalid(filename.clone());
+                                        None
+                                    },
+                                    Err(IdentityError::CannotDecrypt) => {
+                                        *state = State::IdentityCannotDecrypt(filename.clone());
+                                        None
+                                    },
+                                }
+                            },
+                            None => {
                                 *state = State::HaveNoIdentity;
-                            } else {
-                                *state = State::Correct;
                             }
-                            d
-                        });
+                        }
                     }
                 }
                 if let &mut Some(ref decipher) = decipher {
@@ -242,16 +257,13 @@ impl Context {
         for (index, chunk_info) in chunks.iter().enumerate() {
             let range = chunk_info.range();
             if range.end > space.start && range.start < space.end {
-                if let &State::DecryptError(ref e) = state {
-                    if state.error(index) {
-                        node.add("decryption_error", 0..0, TreeLeaf::Display(e));
-                        return Err(ErrorPosition {
-                            sender: buffer.addresses.sender(packet_info),
-                            frame_number: packet_info.frame_number(),
-                        });
-                    }
-                }
-                if !state.error(index) {
+                if state.error(index) {
+                    node.add("decryption_error", 0..0, TreeLeaf::Display(state));
+                    return Err(ErrorPosition {
+                        sender: buffer.addresses.sender(packet_info),
+                        frame_number: packet_info.frame_number(),
+                    });
+                } else {
                     let item = intersect(space, range.clone());
                     let mut chunk_node =
                         node.add("chunk", item, TreeLeaf::dec(index as _)).subtree();

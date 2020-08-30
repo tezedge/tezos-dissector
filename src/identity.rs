@@ -19,6 +19,11 @@ pub struct Identity {
     proof_of_work_stamp: String,
 }
 
+pub enum IdentityError {
+    Invalid,
+    CannotDecrypt,
+}
+
 impl Identity {
     /// Read and deserialize the identity from json file using serde.
     pub fn from_path<P>(path: P) -> Result<Self, failure::Error>
@@ -35,7 +40,11 @@ impl Identity {
     }
 
     /// Create a decipher object using connection message pair.
-    pub fn decipher(&self, initiator_chunk: &[u8], responder_chunk: &[u8]) -> Option<Decipher> {
+    pub fn decipher(
+        &self,
+        initiator_chunk: &[u8],
+        responder_chunk: &[u8],
+    ) -> Result<Decipher, IdentityError> {
         let initiator_pk_string =
             HashType::CryptoboxPublicKeyHash.bytes_to_string(&initiator_chunk[4..36]);
         let responder_pk_string =
@@ -46,11 +55,12 @@ impl Identity {
         } else if responder_pk_string == self.public_key {
             initiator_chunk[4..36].to_owned()
         } else {
-            None?
+            Err(IdentityError::CannotDecrypt)?
         };
 
-        Some(Decipher {
-            key: precompute(&hex::encode(&other_pk), &self.secret_key).ok()?,
+        Ok(Decipher {
+            key: precompute(&hex::encode(&other_pk), &self.secret_key)
+                .map_err(|_| IdentityError::Invalid)?,
             // initiator/responder is not the same as local/remote party,
             // but let's only in this module treat initiator as local party, and responder as remote
             nonce: generate_nonces(initiator_chunk, responder_chunk, false),

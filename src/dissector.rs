@@ -6,10 +6,10 @@ use wireshark_epan_adapter::{
     dissector::{DissectorHelper, Tree, PacketInfo},
 };
 use std::collections::BTreeMap;
-use super::{conversation::{Context, ErrorPosition}, identity::Identity};
+use super::{conversation::{Context, ErrorPosition, Sender}, identity::Identity};
 
 pub struct TezosDissector {
-    identity: Option<Identity>,
+    identity: Option<(Identity, String)>,
     // Each pair of endpoints has its own context.
     // The pair is unordered,
     // so A talk to B is the same conversation as B talks to A.
@@ -19,14 +19,16 @@ pub struct TezosDissector {
 
 struct ContextExt {
     inner: Context,
-    frame_result: Result<(), ErrorPosition>,
+    incoming_frame_result: Result<(), ErrorPosition>,
+    outgoing_frame_result: Result<(), ErrorPosition>,
 }
 
 impl ContextExt {
     pub fn new(inner: Context) -> Self {
         ContextExt {
             inner,
-            frame_result: Ok(()),
+            incoming_frame_result: Ok(()),
+            outgoing_frame_result: Ok(()),
         }
     }
 
@@ -36,11 +38,17 @@ impl ContextExt {
     /// the context still valid, but after that it is invalid.
     /// Let's show the error message once.
     fn invalid(&self, packet_info: &PacketInfo) -> bool {
-        let error = match &self.frame_result {
-            &Ok(()) => false,
-            &Err(ref error_position) => self.inner.after(packet_info, error_position),
-        };
-        error || self.inner.invalid()
+        let i_error = self.incoming_frame_result
+            .as_ref()
+            .err()
+            .map(|ref e| self.inner.after(packet_info, e))
+            .unwrap_or(false);
+        let o_error = self.outgoing_frame_result
+            .as_ref()
+            .err()
+            .map(|ref e| self.inner.after(packet_info, e))
+            .unwrap_or(false);
+        i_error || o_error || self.inner.invalid()
     }
 
     pub fn visualize(
@@ -52,8 +60,13 @@ impl ContextExt {
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
         if !self.invalid(packet_info) {
-            let r = self.inner.visualize(packet_length, packet_info, root);
-            self.frame_result = r;
+            match self.inner.visualize(packet_length, packet_info, root) {
+                Ok(()) => (),
+                Err(r) => match r.sender {
+                    Sender::Initiator => self.incoming_frame_result = Err(r),
+                    Sender::Responder => self.outgoing_frame_result = Err(r),
+                },
+            };
             packet_length
         } else {
             0
@@ -81,6 +94,7 @@ impl Dissector for TezosDissector {
                         log::error!("Identity: {}", e);
                         e
                     })
+                    .map(|i| (i, identity_path.to_owned()))
                     .ok();
             }
         }
