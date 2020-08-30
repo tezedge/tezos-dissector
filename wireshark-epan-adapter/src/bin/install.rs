@@ -37,6 +37,7 @@ fn main() {
             );
             let plugin_path = plugin_path.parse::<PathBuf>().unwrap();
             let path = read_target_dir(false, "so");
+            fs::create_dir_all(plugin_path.clone()).unwrap();
             fs::copy(path.clone(), plugin_path.join(path.file_name().unwrap())).unwrap();
         },
         OSType::OSX => {
