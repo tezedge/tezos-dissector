@@ -69,7 +69,8 @@ fn main() {
                     ),
                     _ => panic!(e),
                 });*/
-            build_in_docker(platform.version, &plugin_path);
+            let tag = format!("ubuntu-{}", platform.version);
+            build_in_docker(&tag, &plugin_path);
         },
         OSType::OSX => {
             let path = format!("prebuilt/libtezos_dissector_macos_{}_{}.dylib", major, minor);
