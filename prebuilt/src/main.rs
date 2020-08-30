@@ -1,25 +1,28 @@
 use os_type::{current_platform, OSType};
-use std::{process::Command, str::from_utf8, env, path::{PathBuf, Path}, fs, io};
+use std::{process::{Command, Stdio}, str::from_utf8, env, path::{PathBuf, Path}, fs, io};
 
 fn build_in_docker<T, P>(tag: T, output: &P)
 where
     T: AsRef<str>,
     P: AsRef<Path>,
 {
-    Command::new("docker")
+    let mut build = Command::new("docker")
         .args(&["build", "-t"])
         .arg(format!("wireshark-plugin-builder:{}", tag.as_ref()))
         .arg("-f")
         .arg(format!("prebuilt/wpb.{}.dockerfile", tag.as_ref()))
         .arg(".")
-        .output()
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()
         .unwrap();
-    let c = Command::new("docker")
+    build.wait().unwrap();
+    let create = Command::new("docker")
         .arg("create")
         .arg(format!("wireshark-plugin-builder:{}", tag.as_ref()))
         .output()
         .unwrap();
-    let cid = from_utf8(c.stdout.as_ref()).unwrap();
+    let cid = from_utf8(create.stdout.as_ref()).unwrap();
     Command::new("docker")
         .arg("cp")
         .arg(format!("{}:/usr/local/tezos-dissector/target/release/libtezos-dissector.so", cid))
