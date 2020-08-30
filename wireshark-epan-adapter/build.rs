@@ -24,7 +24,7 @@ fn main() {
     let bindings = bindgen::Builder::default()
         .clang_args(includes.split(' '))
         .clang_arg("-DHAVE_PLUGINS")
-        .header(format!("{}/ws_version.h", base))
+        .header(format!("{}/config.h", base))
         .header(format!("{}/epan/ftypes/ftypes.h", base))
         .header(format!("{}/epan/proto.h", base))
         .header(format!("{}/epan/packet.h", base))
