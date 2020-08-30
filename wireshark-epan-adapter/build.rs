@@ -5,7 +5,7 @@ fn main() {
     let output = Command::new("pkg-config")
         .args(&["--cflags", "wireshark"])
         .output()
-        .unwrap();
+        .expect("wireshark installed and accessible via pkg-config");
     let includes = str::from_utf8(output.stdout.as_slice())
         .unwrap()
         .trim_end_matches('\n');
@@ -24,6 +24,7 @@ fn main() {
     let bindings = bindgen::Builder::default()
         .clang_args(includes.split(' '))
         .clang_arg("-DHAVE_PLUGINS")
+        .header(format!("{}/ws_version.h", base))
         .header(format!("{}/epan/ftypes/ftypes.h", base))
         .header(format!("{}/epan/proto.h", base))
         .header(format!("{}/epan/packet.h", base))

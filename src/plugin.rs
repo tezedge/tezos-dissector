@@ -17,12 +17,6 @@ use super::{dissector::TezosDissector, value::TezosEncoded};
 static plugin_version: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");
 
 #[no_mangle]
-static plugin_want_major: i32 = 3;
-
-#[no_mangle]
-static plugin_want_minor: i32 = 2;
-
-#[no_mangle]
 extern "C" fn plugin_register() {
     if cfg!(debug_assertions) {
         let file = env!("PWD")

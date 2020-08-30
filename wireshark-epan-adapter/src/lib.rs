@@ -10,3 +10,9 @@ pub use self::plugin::{
 
 /// Wrappers around stuff that passed inside the dissector.
 pub mod dissector;
+
+#[no_mangle]
+pub static plugin_want_major: i32 = sys::WIRESHARK_VERSION_MAJOR as i32;
+
+#[no_mangle]
+pub static plugin_want_minor: i32 = sys::WIRESHARK_VERSION_MINOR as i32;
