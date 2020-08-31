@@ -17,7 +17,7 @@ where
         .args(&["build", "-t"])
         .arg(format!("wireshark-plugin-builder:{}", tag.as_ref()))
         .arg("-f")
-        .arg(format!("prebuilt/wpb.{}.dockerfile", tag.as_ref()))
+        .arg(format!("prebuilt/plugin-builder.{}.dockerfile", tag.as_ref()))
         .arg(".")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -98,6 +98,10 @@ fn main() {
             }
         },
         OSType::OSX => {
+            if params.use_docker {
+                panic!("building in docker is unavailable on this platform");
+            }
+
             let path = format!("prebuilt/libtezos_dissector_macos_{}_{}.dylib", major, minor);
             let path = path.parse::<PathBuf>().unwrap();
             let plugin_path = format!(

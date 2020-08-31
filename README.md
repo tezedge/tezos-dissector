@@ -80,13 +80,13 @@ cargo run -p wireshark-epan-adapter --bin install --release
 Install Homebrew (if it is not installed already):
 
 ```
-$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ```
 
 Install Termshark:
 
 ```
-$ brew install termshark
+brew install termshark
 ```
 
 Check if wireshark is accessible for pkg-config: `pkg-config --cflags wireshark` it should print some clang flags. If it does not, check `brew link wireshark`, it is possible that you need to force it with `brew link --overwrite wireshark`. In this case, see what is installed via brew `brew leaves` and try to delete unnecessary packages and fix your environment.
@@ -96,8 +96,8 @@ Check the version: `wireshark -v`, and `tshark -v` the major and minor versions 
 Build the tezos-dissector and install it by running these commands in the tezos-dissector directory:
 
 ```
-$ cargo build --release
-$ cargo run -p wireshark-epan-adapter --bin install --release
+cargo build --release
+cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
 ### Build a plugin in Docker and install
@@ -105,7 +105,7 @@ $ cargo run -p wireshark-epan-adapter --bin install --release
 Run the following:
 
 ```
-$ cargo run -p prebuilt --release -- -d
+cargo run -p prebuilt --release -- -d
 ```
 
 ### Install prebuilt plugin
@@ -113,7 +113,7 @@ $ cargo run -p prebuilt --release -- -d
 This command will determine your OS and Wireshark version, and install a prebuilt plugin binary:
 
 ```
-$ cargo run -p prebuilt --release
+cargo run -p prebuilt --release
 ```
 
 ## Running
