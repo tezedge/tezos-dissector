@@ -36,6 +36,11 @@ where
         .arg(output.as_ref())
         .output()
         .unwrap();
+    Command::new("docker")
+        .arg("rm")
+        .arg(cid)
+        .output()
+        .unwrap();
 }
 
 fn get_wireshark_version() -> (u32, u32) {
