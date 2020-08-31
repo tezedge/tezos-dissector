@@ -1,6 +1,12 @@
 # Tezos dissector
 
-## Build and install on Ubuntu
+## Build and install
+
+There are three alternative methods: build from sources, use prebuilt binary and build from sources in docker. You need only any one.
+
+### Build from sources and install on Ubuntu
+
+#### Step 1
 
 Install Rust nightly:
 
@@ -10,6 +16,10 @@ $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 $ rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
 $ source ~/.cargo/env
 ```
+
+Check it: `cargo --version`.
+
+#### Ster 2
 
 Minimal required version of wireshark is 3.0. If on your ubuntu the version of wireshark is lower add wireshark repository:
 
@@ -27,6 +37,8 @@ $ sudo apt install pkg-config clang make wireshark wireshark-dev termshark
 
 Try `pkg-config --cflags wireshark` to check if wireshark headers are accessible. It should print some flags: `-I/.../include/wireshark ...`.
 
+#### Step 3
+
 Build the tezos-dissector and install it by running the commands in tezos-dissector directory:
 
 ```
@@ -34,7 +46,9 @@ $ cargo build --release
 $ cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
-## Build and install on macOS
+### Build from sources and install on macOS
+
+#### Step 1
 
 Install Rust nightly:
 
@@ -44,11 +58,17 @@ $ rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
 $ source ~/.cargo/env
 ```
 
+Check it: `cargo --version`.
+
+#### Step 2
+
 Install Homebrew if it is not installed:
 
 ```
 $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ```
+
+#### Step 3
 
 Install termshark:
 
@@ -58,7 +78,13 @@ $ brew install termshark
 
 Check if wireshark accessible for pkg-config: `pkg-config --cflags wireshark` it should print some clang flags. If it does not, check `brew link wireshark` maybe you need to force it with `brew link --overwrite wireshark`. In such case, see what is installed via brew `brew leaves` and try to delete unnecessary packages and fix your environment.
 
+#### Step 4
+
 The wireshark installed by brew is dependency of termshark, but it just provides headers for building. To be able to run wireshark UI, install .dmg file from its download page https://www.wireshark.org/download/osx/.
+
+Check the version: `wireshark -v`, and `tshark -v` the major and minor versions should match, the micro version and git commit might not match it is ok.
+
+#### Step 5
 
 Build the tezos-dissector and install it by running the commands in tezos-dissector directory:
 
@@ -67,21 +93,21 @@ $ cargo build --release
 $ cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
-## Install prebuilt plugin
+### Install prebuilt plugin
+
+The script will determine your OS and Wireshark version, and install prebuilt plugin binary.
 
 ```
 $ cargo run -p prebuilt --release
 ```
 
-It will determine your OS and Wireshark version, and install prebuilt plugin binary.
+### Build plugin in docker and install
 
-## Build plugin in docker and install
+This way available only on linux. Requires the docker engine to be running.
 
 ```
 $ cargo run -p prebuilt --release -- -d
 ```
-
-Required the docker engine to be running.
 
 ## Running
 
