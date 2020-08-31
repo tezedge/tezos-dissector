@@ -52,7 +52,7 @@ There are three alternative methods to install the plugin. Only any one of them 
 * Build in docker. It requires docker to be installed and running. This method not available on macOS.
 * Install previously built binary. Simplest method.
 
-#### Build from sources and install on Ubuntu 20.04
+### Build from sources and install on Ubuntu 20.04
 
 Install build dependencies:
 
@@ -69,7 +69,7 @@ cargo build --release
 cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
-#### Build from sources and install on macOS
+### Build from sources and install on macOS
 
 Install Homebrew if it is not installed:
 
@@ -94,7 +94,7 @@ $ cargo build --release
 $ cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
-#### Build plugin in docker and install
+### Build plugin in docker and install
 
 Just run this:
 
@@ -102,7 +102,7 @@ Just run this:
 $ cargo run -p prebuilt --release -- -d
 ```
 
-#### Install prebuilt plugin
+### Install prebuilt plugin
 
 This command will determine your OS and Wireshark version, and install prebuilt plugin binary:
 
