@@ -39,6 +39,7 @@
         "rustfmt",
         "setcap",
         "srcport",
+        "structopt",
         "symlink",
         "tcpinfo",
         "tezos",

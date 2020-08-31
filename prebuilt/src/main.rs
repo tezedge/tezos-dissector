@@ -1,5 +1,12 @@
+use structopt::StructOpt;
 use os_type::{current_platform, OSType};
 use std::{process::{Command, Stdio}, str::from_utf8, env, path::{PathBuf, Path}, fs, io};
+
+#[derive(StructOpt)]
+struct Params {
+    #[structopt(short = "d")]
+    use_docker: bool,
+}
 
 fn build_in_docker<T, P>(tag: T, output: &P)
 where
@@ -25,7 +32,7 @@ where
     let cid = from_utf8(create.stdout.as_ref()).unwrap();
     Command::new("docker")
         .arg("cp")
-        .arg(format!("{}:/usr/local/tezos-dissector/target/release/libtezos-dissector.so", cid))
+        .arg(format!("{}:/usr/local/tezos-dissector/target/release/libtezos_dissector.so", cid))
         .arg(output.as_ref())
         .output()
         .unwrap();
@@ -47,6 +54,8 @@ fn get_wireshark_version() -> (u32, u32) {
 }
 
 fn main() {
+    let params = Params::from_args();
+
     let (major, minor) = get_wireshark_version();
 
     let platform = current_platform();
@@ -61,19 +70,26 @@ fn main() {
             let plugin_path = plugin_path.parse::<PathBuf>().unwrap();
             fs::create_dir_all(plugin_path.clone()).unwrap();
 
-            /*let path = format!("prebuilt/libtezos_dissector_linux_{}_{}.so", major, minor);
-            let path = path.parse::<PathBuf>().unwrap();
-            fs::copy(path, plugin_path.join("libtezos_dissector.so"))
-                .unwrap_or_else(|e| match e.kind() {
-                    io::ErrorKind::NotFound => panic!(
-                        "there is no prebuilt plugin for your platform and Wireshark {}.{}",
-                        major,
-                        minor,
-                    ),
-                    _ => panic!(e),
-                });*/
-            let tag = format!("ubuntu-{}", platform.version);
-            build_in_docker(&tag, &plugin_path);
+            if params.use_docker {
+                let tag = match (major, minor) {
+                    (3, 0) => "ubuntu-19.10",
+                    (3, 2) => "ubuntu-20.04",
+                    _ => panic!("Not yet supported Wireshark"),
+                };
+                build_in_docker(&tag, &plugin_path);
+            } else {
+                let path = format!("prebuilt/libtezos_dissector_linux_{}_{}.so", major, minor);
+                let path = path.parse::<PathBuf>().unwrap();
+                fs::copy(path, plugin_path.join("libtezos_dissector.so"))
+                    .unwrap_or_else(|e| match e.kind() {
+                        io::ErrorKind::NotFound => panic!(
+                            "there is no prebuilt plugin for your platform and Wireshark {}.{}",
+                            major,
+                            minor,
+                        ),
+                        _ => panic!(e),
+                    });
+            }
         },
         OSType::OSX => {
             let path = format!("prebuilt/libtezos_dissector_macos_{}_{}.dylib", major, minor);

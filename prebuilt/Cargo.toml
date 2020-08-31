@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 os_type = "2.2"
+structopt = "0.3"
