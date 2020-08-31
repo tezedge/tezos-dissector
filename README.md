@@ -11,9 +11,7 @@ $ rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
 $ source ~/.cargo/env
 ```
 
-The plugin was tested on Wireshark 3.0 (Ubuntu 19.10) and Wireshark 3.2 (Ubuntu 20.04), it might work on older versions, but it is not tested. Also, it should work on newer versions, but it also not tested.
-
-Optionally add wireshark repository:
+Minimal required version of wireshark is 3.0. If on your ubuntu the version of wireshark is lower add wireshark repository:
 
 ```
 $ sudo apt install software-properties-common

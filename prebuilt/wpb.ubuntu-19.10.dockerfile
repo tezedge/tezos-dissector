@@ -1,7 +1,7 @@
 FROM ubuntu:19.10
 
-RUN apt-get update && DEBIAN_FRONTEND='noninteractive' apt-get install -y \
-    wget git pkg-config clang make wireshark-dev
+RUN apt-get update && \
+    DEBIAN_FRONTEND='noninteractive' apt-get install -y wget pkg-config clang make wireshark-dev
 
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
