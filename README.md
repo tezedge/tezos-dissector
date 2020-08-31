@@ -77,6 +77,14 @@ $ cargo run -p prebuilt --release
 
 It will determine your OS and Wireshark version, and install prebuilt plugin binary.
 
+## Build plugin in docker and install
+
+```
+$ cargo run -p prebuilt --release -- -d
+```
+
+Required the docker engine to be running.
+
 ## Running
 
 #### Checking
