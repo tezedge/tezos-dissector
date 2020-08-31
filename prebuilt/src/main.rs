@@ -30,6 +30,7 @@ where
         .output()
         .unwrap();
     let cid = from_utf8(create.stdout.as_ref()).unwrap();
+    let cid = cid.trim_end_matches('\n');
     Command::new("docker")
         .arg("cp")
         .arg(format!("{}:/usr/local/tezos-dissector/target/release/libtezos_dissector.so", cid))

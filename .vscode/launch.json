@@ -7,6 +7,14 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Install",
+            "program": "${workspaceFolder}/target/debug/prebuilt",
+            "args": ["-d"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug Tshark",
             "program": "${workspaceFolder}/target/out/bin/tshark",
             "args": ["-o", "tezos.identity_json_file:data/identity.json", "-Vr", "data/cap-09.pcap"],
