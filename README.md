@@ -1,6 +1,6 @@
 # Tezos dissector
 
-For a developer who is working directly with a blockchain node, it is very useful to be able to view the traffic of data that moves through the network. However, as a blockchain network is cryptographically secured, we had to develop a method for the interception and analysis of the encrypted communication. For this purpose, we’ve chosen to create a so-calleddissector for Wireshark.
+For a developer who is working directly with a blockchain node, it is very useful to be able to view the traffic of data that moves through the network. However, as a blockchain network is cryptographically secured, we had to develop a method for the interception and analysis of the encrypted communication. For this purpose, we’ve chosen to create a dissector for Wireshark.
 
 Wireshark is a utility that intercepts packets (messages) that arrive via the network card. It uses special plugins known as dissectors to analyze the intercepted packets. 
 
