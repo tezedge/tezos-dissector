@@ -68,7 +68,7 @@ You can choose one of two methods for building and installing the Tezos Wireshar
 * Install from Pre-built Binaries. This is the easiest method.
 * Build from sources. This readme has instructions for Ubuntu 20.04 and MacOS. 
 
-### Install from Pre-built Binaries
+#### Install from Pre-built Binaries
 
 This command will determine your OS and Wireshark version, and install a prebuilt plugin binary:
 
@@ -76,7 +76,7 @@ This command will determine your OS and Wireshark version, and install a prebuil
 cargo run -p prebuilt --release
 ```
 
-### Build from sources and install on Ubuntu 20.04
+#### Build from sources and install on Ubuntu 20.04
 
 Install build dependencies:
 
@@ -93,7 +93,7 @@ cargo build --release
 cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
-### Build from sources and install on MacOS
+#### Build from sources and install on MacOS
 
 Install Homebrew (if it is not installed already):
 
@@ -118,10 +118,15 @@ cargo build --release
 cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
+## Run
 
-## Running
+Specify Tezos node identity file when running Wireshark:
 
-### Important rules
+```
+wireshark -o tezos.identity_json_file:path/to/identity.json
+```
+
+#### Important rules
 
 * Provide the `identity.json` file before you start a capturing session.
 * Start a capturing session before the Tezos node is running. 
@@ -129,32 +134,16 @@ cargo run -p wireshark-epan-adapter --bin install --release
 
 *Warning:* they are very important, the plugin will not be able to decrypt the traffic if any of these rules are violated.
 
-#### Checking
+![s0](doc/filter.gif "Check")
+
+
+![s0](doc/filter_current_head.gif "Check")
+
+
+#### Common issues
+
+Dissector plugin is not loaded
 
 Check if the plugin works, go to the menu, View -> Internals -> Supported Protocols, search for 'tezos', it should be in the list.
 
-![s0](doc/Screenshot_0.png "Check")
-
-#### Identity
-
-The plugin is useless if the identity file is not provided. Specify the file when running Wireshark:
-
-```
-wireshark -o tezos.identity_json_file:path/to/identity.json
-```
-
-Alternatively, you can specify the identity file in the UI when wireshark is running. Go to the menu Edit -> Preferences -> Advanced -> tezos.
-
-![s1](doc/Screenshot_1.png "Identity")
-
-#### Capturing session
-
-In Ubuntu, run the following to get the ability to capture traffic.
-
-```
-sudo dpkg-reconfigure wireshark-common
-sudo usermod -a -G wireshark $USER
-```
-
-
-
+![s0](doc/supported_protocols.gif "Check")
