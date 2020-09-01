@@ -120,14 +120,14 @@ cargo run -p wireshark-epan-adapter --bin install --release
 
 ## Run
 
+Provide the correct path to the `identity.json` file before you start a capturing session.
+
 * The dissector cannot decrypt communication without the appropriate identity.json file. By default, the identity.json can be found in this home directory: `~/.tezos-node/identity.json`
 
 * If Wireshark launched after the node is already running, then it cannot intercept the handshake message, without which it cannot decrypt communication. Therefore it is crucial that you launch Wireshark before you launch the node(s). 
 
 * Do not restart the node during the capturing session. If you restart the node, Wireshark will no longer have the handshake message, which will prevent it from decrypting communication. If you need to restart node, stop the node -> restart the capturing session -> start the node.
 
-
-Provide the correct path to the `identity.json` file before you start a capturing session.
 
 This command launches Wireshark:
 
