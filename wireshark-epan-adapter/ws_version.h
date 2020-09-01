@@ -1,0 +1,10 @@
+/* ws_version.h.in */
+
+#ifndef __WS_VERSION_H__
+#define __WS_VERSION_H__
+
+#define WIRESHARK_VERSION_MAJOR VERSION_MAJOR
+#define WIRESHARK_VERSION_MINOR VERSION_MINOR
+#define WIRESHARK_VERSION_MICRO VERSION_MICRO
+
+#endif /* __WS_VERSION_H__ */
