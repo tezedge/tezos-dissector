@@ -1,7 +1,7 @@
 extern crate wireshark_epan_adapter;
 extern crate os_type;
 
-use wireshark_epan_adapter::{plugin_want_major, plugin_want_minor};
+use wireshark_epan_adapter::{PLUGIN_WANT_MAJOR, PLUGIN_WANT_MINOR};
 use os_type::{current_platform, OSType};
 use std::{fs, env, path::PathBuf, ffi::OsStr};
 
@@ -29,7 +29,7 @@ fn main() {
     let platform = current_platform();
     match platform.os_type {
         OSType::Ubuntu | OSType::Manjaro => {
-            let wireshark_version = format!("{}.{}", plugin_want_major, plugin_want_minor);
+            let wireshark_version = format!("{}.{}", PLUGIN_WANT_MAJOR, PLUGIN_WANT_MINOR);
             let plugin_path = format!(
                 "{}/.local/lib/wireshark/plugins/{}/epan/",
                 env::var("HOME").unwrap(),
@@ -41,7 +41,7 @@ fn main() {
             fs::copy(path.clone(), plugin_path.join(path.file_name().unwrap())).unwrap();
         },
         OSType::OSX => {
-            let wireshark_version = format!("{}-{}", plugin_want_major, plugin_want_minor);
+            let wireshark_version = format!("{}-{}", PLUGIN_WANT_MAJOR, PLUGIN_WANT_MINOR);
             let plugin_path = format!(
                 "/Applications/Wireshark.app/Contents/PlugIns/wireshark/{}/epan",
                 wireshark_version,

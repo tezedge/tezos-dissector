@@ -14,11 +14,11 @@ static plugin_version: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");
 
 // Major version of required wireshark.
 #[no_mangle]
-static plugin_want_major: i32 = 3;
+static plugin_want_major: i32 = wireshark_epan_adapter::PLUGIN_WANT_MAJOR;
 
 // Minor version of required wireshark.
 #[no_mangle]
-static plugin_want_minor: i32 = 2;
+static plugin_want_minor: i32 = wireshark_epan_adapter::PLUGIN_WANT_MINOR;
 
 // Function that register the plugin.
 #[no_mangle]
