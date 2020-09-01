@@ -122,7 +122,7 @@ cargo run -p prebuilt --release
 
 * Provide the `identity.json` file before you start a capturing session.
 * Start a capturing session before the Tezos node is running. 
-* Do not restart the node during the capturing session. If you need to restart node, stop the capturing session -> restart the node -> start a new capturing session.
+* Do not restart the node during the capturing session. If you need to restart node, stop the node -> restart the capturing session -> start the node.
 
 *Warning:* they are very important, the plugin will not be able to decrypt the traffic if any of these rules are violated.
 
