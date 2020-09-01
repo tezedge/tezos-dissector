@@ -11,7 +11,8 @@ use tezos_messages::p2p::encoding::{
 use failure::Fail;
 use super::{
     addresses::{Addresses, Sender},
-    direct_buffer::{DirectBuffer, DecryptError, ChunkInfo},
+    chunk_info::ChunkInfo,
+    direct_buffer::{DirectBuffer, DecryptError},
 };
 use crate::{
     identity::{Decipher, Identity, IdentityError},

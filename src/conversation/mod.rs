@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 mod addresses;
+mod chunk_info;
 mod overall_buffer;
 mod direct_buffer;
 

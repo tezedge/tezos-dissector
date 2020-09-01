@@ -4,6 +4,8 @@
 use wireshark_epan_adapter::dissector::{SocketAddress, PacketInfo};
 use std::fmt;
 
+/// Structure store addresses of first message,
+/// for any next message it might determine if sender is initiator or responder
 #[derive(Debug)]
 pub struct Addresses {
     initiator: SocketAddress,

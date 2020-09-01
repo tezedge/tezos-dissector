@@ -1,70 +1,11 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use std::{ops::Range, collections::BTreeMap, cell::Cell};
+use std::{ops::Range, collections::BTreeMap};
 use bytes::Buf;
 use failure::Fail;
-use super::addresses::Sender;
-use crate::{
-    identity::{Decipher, NonceAddition},
-    value::HasBodyRange,
-};
-
-#[derive(Clone)]
-pub struct ChunkInfo {
-    inner: Cell<Inner>,
-}
-
-#[derive(Copy, Clone)]
-struct Inner {
-    start: usize,
-    end: usize,
-    // false means this chunk start a new message,
-    // true means this chunk is a continuation of some message,
-    continuation: bool,
-}
-
-impl ChunkInfo {
-    pub fn new(start: usize, end: usize) -> Self {
-        ChunkInfo {
-            inner: Cell::new(Inner {
-                start,
-                end,
-                continuation: false,
-            }),
-        }
-    }
-
-    pub fn range(&self) -> Range<usize> {
-        let inner = self.inner.get();
-        inner.start..inner.end
-    }
-
-    pub fn set_continuation(&self) {
-        let inner = self.inner.get();
-        self.inner.set(Inner {
-            start: inner.start,
-            end: inner.end,
-            continuation: true,
-        });
-    }
-
-    pub fn continuation(&self) -> bool {
-        self.inner.get().continuation
-    }
-}
-
-impl HasBodyRange for ChunkInfo {
-    fn body(&self) -> Range<usize> {
-        let range = self.range();
-        if range.start == 0 {
-            // first chunk is plain, has no MAC
-            (range.start + 2)..range.end
-        } else {
-            (range.start + 2)..(range.end - 16)
-        }
-    }
-}
+use super::{addresses::Sender, chunk_info::ChunkInfo};
+use crate::identity::{Decipher, NonceAddition};
 
 pub struct DirectBuffer {
     data: Vec<u8>,
@@ -150,7 +91,7 @@ impl DirectBuffer {
         self.data.as_ref()
     }
 
-    pub fn data_mut(&mut self) -> &mut [u8] {
+    fn data_mut(&mut self) -> &mut [u8] {
         self.data.as_mut()
     }
 
@@ -159,6 +100,6 @@ impl DirectBuffer {
     }
 
     pub fn packet(&self, index: u64) -> Range<usize> {
-        self.packets.get(&index).unwrap().clone()
+        self.packets.get(&index).expect("already seen packet").clone()
     }
 }
