@@ -133,7 +133,6 @@ This command launches Wireshark:
 
 ```
 wireshark -o tezos.identity_json_file:~/.tezos-node/identity.json
-
 ```
 
 You will know that the dissector has loaded correctly if you enter “tezos” into the displayed filter and the autocomplete will show all of the Tezos filter types.
@@ -149,6 +148,4 @@ If the identity has been loaded correctly, then Wireshark will be able to decryp
 Another way you can check whether the dissector has been loaded up correctly is by going into the menu, View -> Internals -> Supported Protocols, and search for 'tezos', it should be in the list.
 
 ![s0](doc/supported_protocols.gif "Supported protocols")
-
-
 
