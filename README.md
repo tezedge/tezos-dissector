@@ -12,7 +12,7 @@ We have created the wireshark-epan-adapter, a small abstraction layer that wraps
 
 As a Tezos network is cryptographically secured, we had to design a mechanism with which the Tezos dissector could analyze the encrypted communication.
 
-Since we’re attempting to read messages sent across an encrypted network, we must find a way to decrypt this communication. This is done by intercepting the initial ‘handshake’ message that nodes sent each other when initiating communication. The handshake message contains a nonce, which is a random incrementing number, and a pair of keys (private and public). You can read more about this process in our past article about the Tezos P2P layer. 
+Since we’re attempting to read messages sent across an encrypted network, we must find a way to decrypt this communication. This is done by intercepting the initial ‘handshake’ message that nodes sent each other when initiating communication. The handshake message contains a nonce, which is a random incrementing number, and a pair of keys (private and public). 
 
 Due to the nature of this mechanism, **it is crucial to run Wireshark before launching the Tezos node.** Otherwise, the handshake message cannot be intercepted, making it impossible to decrypt the communication.
 
@@ -65,8 +65,8 @@ Now that the shell is in the directory where the sources are, you are ready to b
 
 You can choose one of two methods for building and installing the Tezos Wireshark dissector: 
 
-* Install from Pre-built Binaries. This is the easiest method.
-* Build from sources. This readme has instructions for Ubuntu 20.04 and MacOS. 
+* Install from Pre-built Binaries. This is the easier method, but it only works if you have all the necessary prerequisites installed.
+* Build from sources. This method has been tested on Ubuntu 20.04 and MacOS 10.15 
 
 #### Install from Pre-built Binaries
 
@@ -93,7 +93,7 @@ cargo build --release
 cargo run -p wireshark-epan-adapter --bin install --release
 ```
 
-#### Build from sources and install on MacOS
+#### Build from sources and install on MacOS 10.15
 
 Install Homebrew (if it is not installed already):
 
@@ -120,30 +120,35 @@ cargo run -p wireshark-epan-adapter --bin install --release
 
 ## Run
 
-Specify Tezos node identity file when running Wireshark:
+The dissector cannot decrypt communication without the appropriate identity.json file. By default, the identity.json can be found in this home directory: `~/.tezos-node/identity.json`
+
+If Wireshark launched after the node is already running, then it cannot intercept the handshake message, without which it cannot decrypt communication. Therefore it is crucial that you launch Wireshark before you launch the node(s). 
+
+Do not restart the node during the capturing session. If you restart the node, Wireshark will no longer have the handshake message, which will prevent it from decrypting communication. If you need to restart node, stop the node -> restart the capturing session -> start the node.
+
+Provide the correct path to the `identity.json` file before you start a capturing session.
+
+This command launches Wireshark:
+
 
 ```
-wireshark -o tezos.identity_json_file:path/to/identity.json
+wireshark -o tezos.identity_json_file:~/.tezos-node/identity.json
+
 ```
 
-#### Important rules
+You will know that the dissector has loaded correctly if you enter “tezos” into the displayed filter and the autocomplete will show all of the Tezos filter types.
 
-* Provide the `identity.json` file before you start a capturing session.
-* Start a capturing session before the Tezos node is running. 
-* Do not restart the node during the capturing session. If you need to restart node, stop the node -> restart the capturing session -> start the node.
+![s0](doc/filter.gif "Filter")
 
-*Warning:* they are very important, the plugin will not be able to decrypt the traffic if any of these rules are violated.
-
-![s0](doc/filter.gif "Check")
+If the identity has been loaded correctly, then Wireshark will be able to decrypt communication and all of the messages can be now displayed.
 
 
-![s0](doc/filter_current_head.gif "Check")
+![s0](doc/filter_current_head.gif "Decrypt")
 
 
-#### Common issues
+Another way you can check whether the dissector has been loaded up correctly is by going into the menu, View -> Internals -> Supported Protocols, and search for 'tezos', it should be in the list.
 
-Dissector plugin is not loaded
+![s0](doc/supported_protocols.gif "Supported protocols")
 
-Check if the plugin works, go to the menu, View -> Internals -> Supported Protocols, search for 'tezos', it should be in the list.
 
-![s0](doc/supported_protocols.gif "Check")
+
