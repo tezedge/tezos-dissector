@@ -18,6 +18,7 @@ use crate::{
     identity::{Decipher, Identity, IdentityError},
     value::{ChunkedData, ChunkedDataOffset, Named, HasBodyRange},
     range_tool::intersect,
+    proof_of_work::{check_proof_of_work, DEFAULT_TARGET},
 };
 
 #[derive(Debug, Eq, PartialEq, Fail)]
@@ -140,9 +141,25 @@ impl Context {
         packet_info: &PacketInfo,
         identity: Option<&(Identity, String)>,
     ) {
+        // 2 bytes chunk length + 2 bytes port = 4
+        // 32 bytes public key + 24 bytes proof_of_work = 56
+        const CHECK_RANGE: Range<usize> = 4..(4 + 56);
+
         match self {
             &mut Context::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
+                let did_not_check = buffer.data(packet_info).len() < CHECK_RANGE.end;
                 buffer.consume(payload, packet_info);
+                // if after consume have enough bytes, let's check the proof of work
+                if did_not_check && buffer.data(packet_info).len() >= CHECK_RANGE.end {
+                    let to_check = &buffer.data(packet_info)[CHECK_RANGE];
+                    match check_proof_of_work(to_check, DEFAULT_TARGET) {
+                        Ok(()) => (),
+                        Err(()) => {
+                            *self = Context::Unrecognized;
+                            return;
+                        },
+                    }
+                }
                 if decipher.is_none() {
                     let buffer = &*buffer;
                     if buffer.can_upgrade() {

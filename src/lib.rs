@@ -14,4 +14,6 @@ mod range_tool;
 
 mod identity;
 
+pub mod proof_of_work;
+
 mod plugin;

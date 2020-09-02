@@ -19,6 +19,7 @@
         "destport",
         "dumpcap",
         "dylib",
+        "fract",
         "ftenum",
         "ftypes",
         "gboolean",
