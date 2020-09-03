@@ -1,10 +1,28 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
+// the order matters,
+// direct_buffer uses addresses and chunk_info
+// overall_buffer uses addresses and direct_buffer
+// conversation uses them all
+
+/// Store source and destination of first message,
+/// can determine who is initiator, and who responder
 mod addresses;
+
+/// Store chunk range, 'know' which chunks are the same message,
+/// and 'know' that first chunk has no MAC
 mod chunk_info;
-mod overall_buffer;
+
+/// buffer of incoming *or* outgoing packets, assemble chunks, store packet ranges
 mod direct_buffer;
 
+/// both incoming and outgoing buffer and also addresses
+mod overall_buffer;
+
+/// the whole conversation information, so called conversation context
+// TODO: refactor, simplify
+mod conversation;
+
 pub use self::addresses::Sender;
-pub use self::overall_buffer::{Context, ErrorPosition};
+pub use self::conversation::{Context, ErrorPosition};
