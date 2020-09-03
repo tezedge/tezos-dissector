@@ -3,7 +3,7 @@
 
 use wireshark_epan_adapter::{
     Dissector,
-    dissector::{DissectorHelper, Tree, PacketInfo},
+    dissector::{Packet, Tree, PacketInfo},
 };
 use std::collections::BTreeMap;
 use super::{conversation::{Context, ErrorPosition, Sender}, identity::Identity};
@@ -104,14 +104,14 @@ impl Dissector for TezosDissector {
     // or when the user click on the packet.
     fn consume(
         &mut self,
-        helper: &mut DissectorHelper,
         root: &mut Tree,
+        packet: &Packet,
         packet_info: &PacketInfo,
     ) -> usize {
         // get the data
-        let payload = helper.payload();
+        let payload = packet.payload();
         // retrieve or create a new context for the conversation
-        let context_key = helper.context_key(packet_info);
+        let context_key = packet_info.context_key();
         let context = self
             .contexts
             .entry(context_key)

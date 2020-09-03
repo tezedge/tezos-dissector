@@ -5,7 +5,7 @@ use std::{
     ptr,
 };
 use crate::sys;
-use super::dissector::{DissectorHelper, SuperDissectorData, PacketInfo, Tree, HasFields};
+use super::dissector::{Packet, SuperDissectorData, PacketInfo, Tree, HasFields};
 
 /// Should be implemented for dissector.
 pub trait Dissector {
@@ -19,8 +19,8 @@ pub trait Dissector {
     /// or when the user click on some packet in the interface.
     fn consume(
         &mut self,
-        helper: &mut DissectorHelper,
         root: &mut Tree,
+        packet: &Packet,
         packet_info: &PacketInfo,
     ) -> usize;
 
@@ -418,7 +418,7 @@ impl Plugin<'static> {
                     }
 
                     let fields = p.fields();
-                    let mut helper = DissectorHelper::new(
+                    let packet = Packet::new(
                         SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
                         tvb,
                     );
@@ -426,7 +426,7 @@ impl Plugin<'static> {
                     let packet_info = PacketInfo::new(pinfo);
                     let mut state = p.privates.borrow_mut();
                     let dissector = state.dissector.as_mut().unwrap();
-                    let processed_length = dissector.consume(&mut helper, &mut tree, &packet_info);
+                    let processed_length = dissector.consume(&mut tree, &packet, &packet_info);
                     processed_length as _
                 })
             }

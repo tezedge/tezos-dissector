@@ -5,7 +5,7 @@ use wireshark_epan_adapter::{
     Plugin, NameDescriptor, FieldDescriptor,
     DissectorDescriptor,
     Dissector,
-    dissector::{DissectorHelper, Tree, PacketInfo},
+    dissector::{Packet, Tree, PacketInfo},
 };
 
 // Version of this plugin.
@@ -77,16 +77,16 @@ impl Dissector for SimpleDissector {
     fn consume(
         // it is possible to modify the state of the dissector
         &mut self,
-        // provides the conversation id and the payload
-        helper: &mut DissectorHelper,
         // API for constructing the tree interface
         root: &mut Tree,
-        // provides the packet id and source and destination of the packet
+        // provides the the payload
+        packet: &Packet,
+        // provides the packet id, payload, source and destination of the packet
         _packet_info: &PacketInfo,
     ) -> usize {
         use wireshark_epan_adapter::dissector::TreeLeaf;
 
-        let payload = helper.payload();
+        let payload = packet.payload();
         let length = payload.len();
 
         // creates a root node in the tree

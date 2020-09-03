@@ -47,6 +47,16 @@ impl PacketInfo {
         unsafe { &*self.inner().fd }
     }
 
+    /// The key is unique per source/destination address.
+    /// Unordered pair of source/destination can also be used as a key.
+    pub fn context_key(&self) -> usize {
+        let key = unsafe {
+            let conversation = sys::find_or_create_conversation(self.inner);
+            sys::get_tcp_conversation_data(conversation, self.inner)
+        };
+        key as _
+    }
+
     /// Destination address.
     pub fn destination(&self) -> SocketAddress {
         read_address(self.inner().dst, self.inner().destport as u16)
