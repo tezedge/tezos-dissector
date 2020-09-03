@@ -82,11 +82,29 @@ fn make_target(target: f64) -> BigUint {
     }
 }
 
-// TODO: test `BigUint::from_bytes_le` is the same as `Z.of_bits`
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use std::convert::TryFrom;
     use super::{generate_proof_of_work, check_proof_of_work, DEFAULT_TARGET};
+
+    // `BigUint::from_bytes_le` is the same as `Z.of_bits`
+    #[test]
+    fn check_binary_format() {
+        let hex_string = "65813cba342745fb8870cf192efd7abf5a7f7c0bb4852d33bcb8e8a521c88561";
+        let dec_string = "\
+            44110718228612227164362334473137928594922343768065507925100594771156402995557\
+        ";
+        let x = BigUint::from_bytes_le(hex::decode(hex_string).unwrap().as_ref());
+        assert_eq!(x.to_string(), dec_string);
+
+        let hex_string = "6a9b7e0243f052c67124d54abd23991734e7dad8a53ab7d82fd96b4e0b000000";
+        let dec_string = "\
+            304818138341606080779209476504996542811599673553028925663939963820906\
+        ";
+        let x = BigUint::from_bytes_le(hex::decode(hex_string).unwrap().as_ref());
+        assert_eq!(x.to_string(), dec_string);
+    }
 
     #[test]
     fn simple_check() {
