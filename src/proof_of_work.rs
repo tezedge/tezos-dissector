@@ -18,12 +18,11 @@ pub fn generate_proof_of_work(public_key: &[u8; 0x20], target: f64) -> Result<[u
             // the code might look obscure,
             // but it just treat `data[0x20..0x38]` as an 192-bit integer and increment it
 
-            let mut a = u64::from_be_bytes(<[u8; 8]>::try_from(&data[0x20..0x28]).unwrap());
-            let mut b = u64::from_be_bytes(<[u8; 8]>::try_from(&data[0x28..0x30]).unwrap());
             let mut c = u64::from_be_bytes(<[u8; 8]>::try_from(&data[0x30..0x38]).unwrap());
-
             if c == u64::MAX {
+                let mut b = u64::from_be_bytes(<[u8; 8]>::try_from(&data[0x28..0x30]).unwrap());
                 if b == u64::MAX {
+                    let mut a = u64::from_be_bytes(<[u8; 8]>::try_from(&data[0x20..0x28]).unwrap());
                     if a == u64::MAX {
                         return Err(());
                     } else {
@@ -31,16 +30,15 @@ pub fn generate_proof_of_work(public_key: &[u8; 0x20], target: f64) -> Result<[u
                         b = 0;
                         c = 0;
                     }
+                    data[0x20..0x28].clone_from_slice(a.to_be_bytes().as_ref());
                 } else {
                     b += 1;
                     c = 0;
                 }
+                data[0x28..0x30].clone_from_slice(b.to_be_bytes().as_ref());
             } else {
                 c += 1;
             }
-
-            data[0x20..0x28].clone_from_slice(a.to_be_bytes().as_ref());
-            data[0x28..0x30].clone_from_slice(b.to_be_bytes().as_ref());
             data[0x30..0x38].clone_from_slice(c.to_be_bytes().as_ref());
         }
     }
