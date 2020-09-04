@@ -5,7 +5,7 @@ use wireshark_epan_adapter::{
     Plugin, NameDescriptor, FieldDescriptor,
     DissectorDescriptor,
     Dissector,
-    dissector::{Packet, Tree, PacketInfo},
+    dissector::{Packet, Tree, TreePresenter, PacketInfo},
 };
 
 // Version of this plugin.

@@ -2,17 +2,12 @@ use std::{collections::HashMap, ops::Range, rc::Rc, cell::RefCell, fmt};
 use crate::plugin::{FieldDescriptor, FieldDescriptorOwned};
 use crate::sys;
 
-struct Common {
-    fields: HashMap<String, i32>,
-    ett: i32,
-    tvb: *mut sys::tvbuff_t,
-}
-
-pub struct Tree {
-    common: Rc<RefCell<Common>>,
-    parent_path: Option<String>,
-    base: usize,
-    node: *mut sys::proto_tree,
+pub trait TreePresenter {
+    fn subtree(&mut self) -> Self;
+    fn add<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
+    where
+        D: fmt::Display,
+        P: AsRef<str>;
 }
 
 pub enum TreeLeaf<D>
@@ -39,6 +34,19 @@ impl TreeLeaf<String> {
     }
 }
 
+struct Common {
+    fields: HashMap<String, i32>,
+    ett: i32,
+    tvb: *mut sys::tvbuff_t,
+}
+
+pub struct Tree {
+    common: Rc<RefCell<Common>>,
+    parent_path: Option<String>,
+    base: usize,
+    node: *mut sys::proto_tree,
+}
+
 impl Tree {
     pub(crate) fn root(
         fields: HashMap<String, i32>,
@@ -55,8 +63,10 @@ impl Tree {
             node: root,
         }
     }
+}
 
-    pub fn subtree(&mut self) -> Self {
+impl TreePresenter for Tree {
+    fn subtree(&mut self) -> Self {
         Tree {
             common: self.common.clone(),
             parent_path: self.parent_path.clone(),
@@ -65,7 +75,7 @@ impl Tree {
         }
     }
 
-    pub fn add<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
+    fn add<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
     where
         D: fmt::Display,
         P: AsRef<str>,
@@ -129,35 +139,6 @@ impl Tree {
             node,
         }
     }
-
-    pub fn show<M>(&mut self, message: &M, map: &[TreeMessageMapItem])
-    where
-        M: TreeMessage,
-    {
-        message.show_on_tree(self, map)
-    }
-}
-
-/// The packet might contain some information not related to the message directly
-/// for example
-///
-/// let the message contains of two chunks, but both of them only partially containing in the packet:
-/// |size||            body            ||               MAC              ||size||        body        ||              MAC               |
-/// <000e><1212121212121212121212121212><56565656565656565656565656565656><000a><ac6bc9e6fe0ca3ad3310><755463a7e211ef4bbf5146aa8254d881>
-///         packet starts here -|121212  56565656565656565656565656565656  000a  ac6bc9e6fe0ca3ad|- packet ends here
-///
-/// so the packet contain part of previous chunk, and part of some chunk
-/// the map will contain two entries:
-/// `TreeMessageMapItem { offset_in_message: 11, offset_in_packet: 0, size: 3 }`
-/// `TreeMessageMapItem { offset_in_message: 14, offset_in_packet: 21, size: 8 }`
-pub struct TreeMessageMapItem {
-    pub offset_in_message: usize,
-    pub offset_in_packet: usize,
-    pub size: usize,
-}
-
-pub trait TreeMessage {
-    fn show_on_tree(&self, node: &mut Tree, map: &[TreeMessageMapItem]);
 }
 
 pub trait HasFields {

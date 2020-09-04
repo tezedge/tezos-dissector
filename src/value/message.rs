@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use tezos_encoding::encoding::{Encoding, SchemaType};
-use wireshark_epan_adapter::dissector::{Tree, TreeLeaf};
+use wireshark_epan_adapter::dissector::{TreePresenter, TreeLeaf};
 use bytes::Buf;
 use chrono::NaiveDateTime;
 use std::ops::Range;
@@ -275,14 +275,17 @@ where
         }
     }
 
-    pub fn show(
+    pub fn show<T>(
         &self,
         offset: &mut ChunkedDataOffset,
         encoding: &Encoding,
         space: &Range<usize>,
         base: &str,
-        node: &mut Tree,
-    ) -> Result<(), DecodingError> {
+        node: &mut T,
+    ) -> Result<(), DecodingError>
+    where
+        T: TreePresenter,
+    {
         match encoding {
             &Encoding::Unit => (),
             &Encoding::Int8 => {

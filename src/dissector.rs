@@ -3,7 +3,7 @@
 
 use wireshark_epan_adapter::{
     Dissector,
-    dissector::{Packet, Tree, PacketInfo},
+    dissector::{Packet, Tree, TreePresenter, PacketInfo},
 };
 use std::collections::BTreeMap;
 use super::{conversation::{Context, ErrorPosition, Sender}, identity::Identity};
@@ -51,12 +51,15 @@ impl ContextExt {
         i_error || o_error || self.inner.invalid()
     }
 
-    pub fn visualize(
+    pub fn visualize<T>(
         &mut self,
         packet_length: usize,
         packet_info: &PacketInfo,
-        root: &mut Tree,
-    ) -> usize {
+        root: &mut T,
+    ) -> usize
+    where
+        T: TreePresenter,
+    {
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
         if !self.invalid(packet_info) {
@@ -108,6 +111,27 @@ impl Dissector for TezosDissector {
         packet: &Packet,
         packet_info: &PacketInfo,
     ) -> usize {
+        self.consume_polymorphic::<Tree>(root, packet, packet_info)
+    }
+
+    // This method called by the wireshark when the user
+    // closing current capturing session
+    fn cleanup(&mut self) {
+        self.contexts.clear();
+    }
+}
+
+impl TezosDissector {
+    /// needed for tests, to use moc instead of `Tree`
+    fn consume_polymorphic<T>(
+        &mut self,
+        root: &mut Tree,
+        packet: &Packet,
+        packet_info: &PacketInfo,
+    ) -> usize
+    where
+        T: TreePresenter,
+    {
         // get the data
         let payload = packet.payload();
         // retrieve or create a new context for the conversation
@@ -123,11 +147,5 @@ impl Dissector for TezosDissector {
                 .consume(payload.as_ref(), packet_info, self.identity.as_ref());
         }
         context.visualize(payload.len(), packet_info, root)
-    }
-
-    // This method called by the wireshark when the user
-    // closing current capturing session
-    fn cleanup(&mut self) {
-        self.contexts.clear();
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_epan_adapter::dissector::{PacketInfo, Tree, TreeLeaf};
+use wireshark_epan_adapter::dissector::{PacketInfo, TreePresenter, TreeLeaf};
 use tezos_encoding::encoding::HasEncoding;
 use tezos_messages::p2p::encoding::{
     ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
@@ -154,12 +154,15 @@ impl Context {
     }
 
     /// Returns if there is decryption error.
-    pub fn visualize(
+    pub fn visualize<T>(
         &self,
         packet_length: usize,
         packet_info: &PacketInfo,
-        root: &mut Tree,
-    ) -> Result<(), ErrorPosition> {
+        root: &mut T,
+    ) -> Result<(), ErrorPosition>
+    where
+        T: TreePresenter,
+    {
         let mut node = root
             .add("tezos", 0..packet_length, TreeLeaf::nothing())
             .subtree();
