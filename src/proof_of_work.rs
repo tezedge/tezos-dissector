@@ -49,7 +49,11 @@ pub fn check_proof_of_work(data: &[u8], target: f64) -> Result<(), ()> {
     check_proof_of_work_inner(data, &target_number)
 }
 
-pub fn check_proof_of_work_detached(pk: &[u8; 0x20], pow: &[u8; 0x18], target: f64) -> Result<(), ()> {
+pub fn check_proof_of_work_detached(
+    pk: &[u8; 0x20],
+    pow: &[u8; 0x18],
+    target: f64,
+) -> Result<(), ()> {
     let mut data = [0; 0x20 + 0x18];
     data[..0x20].clone_from_slice(pk.as_ref());
     data[0x20..].clone_from_slice(pow.as_ref());
@@ -67,7 +71,7 @@ fn check_proof_of_work_inner(data: &[u8], target_number: &BigUint) -> Result<(),
 }
 
 fn make_target(target: f64) -> BigUint {
-    assert!((0.0 .. 256.0).contains(&target));
+    assert!((0.0..256.0).contains(&target));
     let (frac, shift) = (target.fract(), target.floor() as u64);
     let m = if frac.abs() < std::f64::EPSILON {
         (1 << 54) - 1
@@ -108,18 +112,18 @@ mod tests {
 
     #[test]
     fn simple_check() {
-        let data = hex::decode("\
-            d8246d13d0270cbfff4046b6d94b05ab19920bc5ad9fb77f3e945c40b340e874\
-            d1d0ebd55784bc92852d913dbf0fb5152d505b567d930fb2\
-        ").unwrap();
+        let data = hex::decode(
+            "d8246d13d0270cbfff4046b6d94b05ab19920bc5ad9fb77f3e945c40b340e874\
+            d1d0ebd55784bc92852d913dbf0fb5152d505b567d930fb2",
+        )
+        .unwrap();
         check_proof_of_work(data.as_ref(), DEFAULT_TARGET).unwrap();
     }
 
     #[test]
     fn simple_generate() {
-        let pk = hex::decode("\
-            d8246d13d0270cbfff4046b6d94b05ab19920bc5ad9fb77f3e945c40b340e874\
-        ").unwrap();
+        let pk = hex::decode("d8246d13d0270cbfff4046b6d94b05ab19920bc5ad9fb77f3e945c40b340e874")
+            .unwrap();
         let pk_slice = <&[u8; 0x20]>::try_from(pk.as_slice()).unwrap();
         let _ = generate_proof_of_work(pk_slice, 20.0).unwrap();
     }

@@ -64,10 +64,8 @@ impl ConversationBuffer {
                     && self.outgoing.data().len() >= o.range().end
                     && o.range().len() >= Self::CHECK_RANGE.end;
                 if can {
-                    let initiator =
-                        &self.incoming.data()[self.incoming.chunks()[0].range()];
-                    let responder =
-                        &self.outgoing.data()[self.outgoing.chunks()[0].range()];
+                    let initiator = &self.incoming.data()[self.incoming.chunks()[0].range()];
+                    let responder = &self.outgoing.data()[self.outgoing.chunks()[0].range()];
                     Some((initiator, responder))
                 } else {
                     None

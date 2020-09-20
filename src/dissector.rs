@@ -6,7 +6,10 @@ use wireshark_epan_adapter::{
     dissector::{Packet, Tree, TreePresenter, PacketInfo},
 };
 use std::collections::BTreeMap;
-use super::{conversation::{Context, ErrorPosition, Sender}, identity::Identity};
+use super::{
+    conversation::{Context, ErrorPosition, Sender},
+    identity::Identity,
+};
 
 pub struct TezosDissector {
     identity: Option<(Identity, String)>,
@@ -38,12 +41,14 @@ impl ContextExt {
     /// the context still valid, but after that it is invalid.
     /// Let's show the error message once.
     fn invalid(&self, packet_info: &PacketInfo) -> bool {
-        let i_error = self.incoming_frame_result
+        let i_error = self
+            .incoming_frame_result
             .as_ref()
             .err()
             .map(|ref e| self.inner.after(packet_info, e))
             .unwrap_or(false);
-        let o_error = self.outgoing_frame_result
+        let o_error = self
+            .outgoing_frame_result
             .as_ref()
             .err()
             .map(|ref e| self.inner.after(packet_info, e))
@@ -105,12 +110,7 @@ impl Dissector for TezosDissector {
 
     // This method called by the wireshark when a new packet just arrive,
     // or when the user click on the packet.
-    fn consume(
-        &mut self,
-        root: &mut Tree,
-        packet: &Packet,
-        packet_info: &PacketInfo,
-    ) -> usize {
+    fn consume(&mut self, root: &mut Tree, packet: &Packet, packet_info: &PacketInfo) -> usize {
         self.consume_polymorphic::<Tree>(root, packet, packet_info)
     }
 

@@ -17,12 +17,7 @@ pub trait Dissector {
 
     /// Called when a new packet just arrive
     /// or when the user click on some packet in the interface.
-    fn consume(
-        &mut self,
-        root: &mut Tree,
-        packet: &Packet,
-        packet_info: &PacketInfo,
-    ) -> usize;
+    fn consume(&mut self, root: &mut Tree, packet: &Packet, packet_info: &PacketInfo) -> usize;
 
     /// Called when capturing session end.
     /// The dissector is not destroyed, it might be used in the next capturing session.
@@ -418,10 +413,8 @@ impl Plugin<'static> {
                     }
 
                     let fields = p.fields();
-                    let packet = Packet::new(
-                        SuperDissectorData::Tcp(data as *mut sys::tcpinfo),
-                        tvb,
-                    );
+                    let packet =
+                        Packet::new(SuperDissectorData::Tcp(data as *mut sys::tcpinfo), tvb);
                     let mut tree = Tree::root(fields, p.privates.borrow().ett_handle, tvb, tree);
                     let packet_info = PacketInfo::new(pinfo);
                     let mut state = p.privates.borrow_mut();

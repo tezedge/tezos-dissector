@@ -10,7 +10,8 @@ fn main() {
         .unwrap()
         .trim_end_matches('\n');
 
-    let base = includes.split(' ')
+    let base = includes
+        .split(' ')
         .find(|s| s.starts_with("-I") && s.ends_with("include/wireshark"))
         .expect("wireshark installed and accessible via pkg-config")
         .trim_start_matches("-I");
@@ -47,9 +48,7 @@ fn main() {
             .header("ws_version.h")
     };
 
-    let bindings = builder
-        .generate()
-        .expect("Unable to generate bindings");
+    let bindings = builder.generate().expect("Unable to generate bindings");
 
     // create the binding in `OUT_DIR`
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());

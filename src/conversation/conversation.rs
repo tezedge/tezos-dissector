@@ -9,9 +9,7 @@ use tezos_messages::p2p::encoding::{
 };
 use failure::Fail;
 use super::{
-    addresses::Sender,
-    chunk_info::ChunkInfo,
-    direct_buffer::DecryptError,
+    addresses::Sender, chunk_info::ChunkInfo, direct_buffer::DecryptError,
     overall_buffer::ConversationBuffer,
 };
 use crate::{
@@ -95,7 +93,7 @@ impl Context {
                             },
                             None => {
                                 *state = State::HaveNoIdentity;
-                            }
+                            },
                         }
                     }
                 }

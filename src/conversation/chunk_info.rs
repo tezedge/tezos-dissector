@@ -4,7 +4,7 @@
 use std::{ops::Range, cell::Cell};
 use crate::value::HasBodyRange;
 
-/// Store range of the chunk and information 
+/// Store range of the chunk and information
 /// either this is a start of a new message, or continuation of message
 #[derive(Clone)]
 pub struct ChunkInfo {
