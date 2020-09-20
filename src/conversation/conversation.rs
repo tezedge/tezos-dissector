@@ -8,13 +8,10 @@ use tezos_messages::p2p::encoding::{
     connection::ConnectionMessage,
 };
 use failure::Fail;
-use super::{
-    addresses::Sender, chunk_info::ChunkInfo, direct_buffer::DecryptError,
-    overall_buffer::ConversationBuffer,
-};
+use super::{addresses::Sender, direct_buffer::DecryptError, overall_buffer::ConversationBuffer};
 use crate::{
     identity::{Decipher, Identity, IdentityError},
-    value::{ChunkedData, ChunkedDataOffset, Named, HasBodyRange},
+    value::{ChunkedDataBuffer, Named, HasBodyRange, show},
     range_tool::intersect,
 };
 
@@ -239,75 +236,60 @@ impl Context {
 
         // first chunk which intersect with the frame
         // but it might be a continuation of previous message,
-        let find_result = chunks
+        // seek back to find the chunk that is not a continuation
+        let first_chunk = chunks
             .iter()
             .enumerate()
             .find(|&(_, info)| info.body().end > space.start)
-            .map(|(i, info)| (i, info.continuation()));
-
-        // find the chunk that is not a continuation
-        let first_chunk = find_result.map(|(first_chunk, continuation)| {
-            if continuation {
-                // safe to subtract 1 because the first chunk cannot be a continuation
-                chunks[0..(first_chunk - 1)]
-                    .iter()
-                    .enumerate()
-                    .rev()
-                    .find(|&(_, info)| !info.continuation())
-                    .unwrap()
-                    .0
-            } else {
-                first_chunk
-            }
-        });
+            .map(|(i, info)| (i, info.continuation()))
+            .map(|(first_chunk, continuation)| {
+                if continuation {
+                    // safe to subtract 1 because the first chunk cannot be a continuation
+                    chunks[0..(first_chunk - 1)]
+                        .iter()
+                        .enumerate()
+                        .rev()
+                        .find(|&(_, info)| !info.continuation())
+                        .unwrap()
+                        .0
+                } else {
+                    first_chunk
+                }
+            });
 
         if let Some(first_chunk) = first_chunk {
-            let data = ChunkedData::new(data, chunks);
-            let mut offset = ChunkedDataOffset {
-                chunks_offset: first_chunk,
-                data_offset: chunks[first_chunk].body().start,
-            };
-            loop {
-                if state.error(offset.chunks_offset) {
-                    offset.chunks_offset += 1;
-                    continue;
-                }
-                let on = chunks
-                    .get(offset.chunks_offset)
-                    .map(|c| c.body().start < space.end)
-                    .unwrap_or(false);
-                if !on {
-                    break;
-                }
-                offset.data_offset = chunks[offset.chunks_offset].body().start;
-                let (encoding, base) = match offset.chunks_offset {
-                    0 => (ConnectionMessage::encoding(), ConnectionMessage::NAME),
-                    1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
-                    2 => (AckMessage::encoding(), AckMessage::NAME),
-                    _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
-                };
-                let temp = offset.chunks_offset;
-                match data.show(&mut offset, &encoding, space, base, &mut node) {
-                    Ok(()) => (),
-                    Err(e) => {
-                        let leaf = TreeLeaf::Display(e);
-                        node.add("decoding_error", 0..0, leaf);
+            if data.len() >= chunks.last().unwrap().body().end {
+                let mut chunked_buffer = ChunkedDataBuffer::new(data, chunks);
+                chunked_buffer.set_chunk(first_chunk);
+                loop {
+                    if state.error(chunked_buffer.chunk()) {
+                        chunked_buffer.skip();
+                        continue;
+                    }
+                    if !chunked_buffer.on(space) {
                         break;
-                    },
+                    }
+                    let (encoding, base) = match chunked_buffer.chunk() {
+                        0 => (ConnectionMessage::encoding(), ConnectionMessage::NAME),
+                        1 => (MetadataMessage::encoding(), MetadataMessage::NAME),
+                        2 => (AckMessage::encoding(), AckMessage::NAME),
+                        _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
+                    };
+                    match show(&mut chunked_buffer, space, &encoding, base, &mut node) {
+                        Ok(_) => (),
+                        Err(e) => {
+                            let leaf = TreeLeaf::Display(e);
+                            node.add("decoding_error", 0..0, leaf);
+                            break;
+                        },
+                    };
+                    chunked_buffer.complete_group(first_chunk, || {
+                        log::warn!(
+                            "ChunkedData::show did not consume full chunk, frame: {}",
+                            packet_info.frame_number()
+                        )
+                    });
                 }
-                if offset.data_offset == chunks[offset.chunks_offset].body().end {
-                    offset.chunks_offset += 1;
-                }
-                if offset.chunks_offset == temp {
-                    offset.chunks_offset += 1;
-                    log::warn!(
-                        "ChunkedData::show did not consume full chunk, frame: {}",
-                        packet_info.frame_number()
-                    );
-                }
-                chunks[(temp + 1)..offset.chunks_offset]
-                    .iter()
-                    .for_each(ChunkInfo::set_continuation);
             }
         }
 

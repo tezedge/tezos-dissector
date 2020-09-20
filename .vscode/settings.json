@@ -36,6 +36,7 @@
         "prefs",
         "proto",
         "protoinfo",
+        "repr",
         "rustc",
         "rustfmt",
         "setcap",

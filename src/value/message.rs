@@ -10,10 +10,10 @@ use failure::Fail;
 use bit_vec::BitVec;
 use crypto::hash::HashType;
 use crate::range_tool::intersect;
-
-pub trait HasBodyRange {
-    fn body(&self) -> Range<usize>;
-}
+use super::{
+    buffer::{StoreOffset, ChunkedDataBuffer},
+    HasBodyRange,
+};
 
 #[derive(Debug, Fail)]
 pub enum DecodingError {
@@ -29,153 +29,50 @@ pub enum DecodingError {
     BadPathTag,
 }
 
-#[derive(Debug)]
-pub struct ChunkedData<'a, C>
-where
-    C: HasBodyRange,
-{
-    data: &'a [u8],
-    chunks: &'a [C],
-}
-
-#[derive(Clone, Debug)]
-pub struct ChunkedDataOffset {
-    pub data_offset: usize,
-    pub chunks_offset: usize,
-}
-
-impl ChunkedDataOffset {
-    pub fn following(&self, length: usize) -> Range<usize> {
-        self.data_offset..(self.data_offset + length)
-    }
-}
-
-impl<'a, C> ChunkedData<'a, C>
-where
-    C: HasBodyRange,
-{
-    pub fn new(data: &'a [u8], chunks: &'a [C]) -> Self {
-        ChunkedData { data, chunks }
-    }
-
-    fn limit(&self, offset: &ChunkedDataOffset, limit: usize) -> Result<Self, DecodingError> {
-        let r = |i| -> Range<usize> {
-            self.chunks
-                .get(offset.chunks_offset + i)
-                .map(|info: &C| {
-                    let range = info.body();
-                    let o = offset.data_offset;
-                    let l = self.data.len();
-                    usize::max(o, range.start)..usize::min(range.end, l)
-                })
-                .unwrap_or(0..0)
-        };
-        let mut limit = limit;
-        let mut i = 0;
-        let end = loop {
-            if limit <= r(i).len() {
-                break r(i).start + limit;
-            } else if r(i).len() == 0 {
-                return Err(DecodingError::NotEnoughData);
-            } else {
-                limit -= r(i).len();
-                i += 1;
-            }
-        };
-        Ok(ChunkedData {
-            data: &self.data[..end],
-            chunks: self.chunks,
-        })
-    }
-
-    // try to cut `length` bytes, update offset
-    // TODO: simplify it
-    fn cut<F, T>(
-        &self,
-        offset: &mut ChunkedDataOffset,
-        length: usize,
-        f: F,
-    ) -> Result<T, DecodingError>
-    where
-        F: FnOnce(&mut dyn Buf) -> T,
-    {
-        let range = self.chunks[offset.chunks_offset].body();
-        assert!(
-            range.contains(&offset.data_offset) || (offset.data_offset == range.end && length == 0)
-        );
-        let remaining = offset.data_offset..usize::min(range.end, self.data.len());
-        if remaining.len() >= length {
-            let end = remaining.start + length;
-            offset.data_offset += length;
-            Ok(f(&mut &self.data[remaining.start..end]))
+macro_rules! safe {
+    ($buf:ident, $foo:ident, $sz:ident) => {{
+        use std::mem::size_of;
+        if $buf.has(size_of::<$sz>()) {
+            $buf.$foo()
         } else {
-            let mut v = Vec::with_capacity(length);
-            offset.data_offset += remaining.len();
-            let mut length = length - remaining.len();
-            v.extend_from_slice(&self.data[remaining]);
-            loop {
-                offset.chunks_offset += 1;
-                if self.chunks.len() == offset.chunks_offset {
-                    if length == 0 {
-                        break;
-                    } else {
-                        return Err(DecodingError::NotEnoughData);
-                    }
-                } else {
-                    let range = self.chunks[offset.chunks_offset].body();
-                    let remaining = range.start..usize::min(range.end, self.data.len());
-                    if remaining.len() >= length {
-                        offset.data_offset =
-                            self.chunks[offset.chunks_offset].body().start + length;
-                        if length > 0 {
-                            let end = remaining.start + length;
-                            length = 0;
-                            v.extend_from_slice(&self.data[remaining.start..end]);
-                        }
-                        break;
-                    } else {
-                        offset.data_offset += remaining.len();
-                        length -= remaining.len();
-                        v.extend_from_slice(&self.data[remaining]);
-                    }
-                }
-            }
-            assert_eq!(length, 0);
-            Ok(f(&mut v.as_slice()))
+            return Result::Err(DecodingError::NotEnoughData);
+        }
+    }};
+    ($buf:ident, $sz:expr, $exp:expr) => {{
+        if $buf.has($sz) {
+            $exp
+        } else {
+            return Result::Err(DecodingError::NotEnoughData);
+        }
+    }};
+}
+
+pub trait TezosReader {
+    fn copy_to_vec(&mut self, length: usize) -> Result<Vec<u8>, DecodingError>;
+    fn read_z(&mut self) -> Result<String, DecodingError>;
+    fn read_mutez(&mut self) -> Result<String, DecodingError>;
+    fn read_path(&mut self, v: &mut Vec<String>) -> Result<(), DecodingError>;
+}
+
+impl<'a, C> TezosReader for ChunkedDataBuffer<'a, C>
+where
+    ChunkedDataBuffer<'a, C>: Clone,
+    C: HasBodyRange,
+{
+    fn copy_to_vec(&mut self, length: usize) -> Result<Vec<u8>, DecodingError> {
+        if self.has(length) {
+            let mut buffer = Vec::with_capacity(length);
+            buffer.resize(length, 0);
+            self.copy_to_slice(buffer.as_mut_slice());
+            Ok(buffer)
+        } else {
+            Err(DecodingError::NotEnoughData)
         }
     }
 
-    fn empty(&self, offset: &ChunkedDataOffset) -> bool {
-        self.available(offset) == 0
-    }
-
-    fn available(&self, offset: &ChunkedDataOffset) -> usize {
-        let end = usize::min(
-            self.chunks[offset.chunks_offset].body().end,
-            self.data.len(),
-        );
-        let available = end - offset.data_offset;
-        // if it is the first message it always goes in the single chunk
-        if offset.chunks_offset != 0 && self.chunks.len() - 1 > offset.chunks_offset {
-            self.chunks[(offset.chunks_offset + 1)..]
-                .iter()
-                .fold(available, |a, c| {
-                    if self.data.len() >= c.body().end {
-                        a + c.body().len()
-                    } else if self.data.len() > c.body().start {
-                        a + (self.data.len() - c.body().start)
-                    } else {
-                        a
-                    }
-                })
-        } else {
-            available
-        }
-    }
-
-    pub fn read_z(&self, offset: &mut ChunkedDataOffset) -> Result<String, DecodingError> {
+    fn read_z(&mut self) -> Result<String, DecodingError> {
         // read first byte
-        let byte = self.cut(offset, 1, |b| b.get_u8())?;
+        let byte = safe!(self, get_u8, u8);
         let negative = byte & (1 << 6) != 0;
         if byte <= 0x3F {
             let mut num = i32::from(byte);
@@ -191,7 +88,7 @@ where
 
             let mut has_next_byte = true;
             while has_next_byte {
-                let byte = self.cut(offset, 1, |b| b.get_u8())?;
+                let byte = safe!(self, get_u8, u8);
                 for bit_idx in 0..7 {
                     bits.push(byte & (1 << bit_idx) != 0)
                 }
@@ -220,12 +117,12 @@ where
         }
     }
 
-    pub fn read_mutez(&self, offset: &mut ChunkedDataOffset) -> Result<String, DecodingError> {
+    fn read_mutez(&mut self) -> Result<String, DecodingError> {
         let mut bits = BitVec::new();
 
         let mut has_next_byte = true;
         while has_next_byte {
-            let byte = self.cut(offset, 1, |b| b.get_u8())?;
+            let byte = safe!(self, get_u8, u8);
             for bit_idx in 0..7 {
                 bits.push(byte & (1 << bit_idx) != 0)
             }
@@ -250,332 +147,359 @@ where
         Ok(str_num)
     }
 
-    pub fn read_path(
-        &self,
-        offset: &mut ChunkedDataOffset,
-        v: &mut Vec<String>,
-    ) -> Result<(), DecodingError> {
-        match self.cut(offset, 1, |b| b.get_u8())? {
+    fn read_path(&mut self, v: &mut Vec<String>) -> Result<(), DecodingError> {
+        match safe!(self, get_u8, u8) {
             0x00 => Ok(()),
             0xf0 => {
-                self.read_path(offset, v)?;
+                self.read_path(v)?;
                 let l = HashType::OperationListListHash.size();
-                let hash = self.cut(offset, l, |b| hex::encode(b.bytes()))?;
+                let hash = hex::encode(self.copy_to_vec(l)?);
                 v.push(format!("left: {}", hash));
                 Ok(())
             },
             0x0f => {
                 let l = HashType::OperationListListHash.size();
-                let hash = self.cut(offset, l, |b| hex::encode(b.bytes()))?;
-                self.read_path(offset, v)?;
+                let hash = hex::encode(self.copy_to_vec(l)?);
+                self.read_path(v)?;
                 v.push(format!("right: {}", hash));
                 Ok(())
             },
             _ => Err(DecodingError::BadPathTag),
         }
     }
+}
 
-    pub fn show<T>(
-        &self,
-        offset: &mut ChunkedDataOffset,
-        encoding: &Encoding,
-        space: &Range<usize>,
-        base: &str,
-        node: &mut T,
-    ) -> Result<(), DecodingError>
-    where
-        T: TreePresenter,
-    {
-        match encoding {
-            &Encoding::Unit => (),
-            &Encoding::Int8 => {
-                let item = offset.following(1);
-                let value = self.cut(offset, item.len(), |b| b.get_i8())?;
-                node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
-            },
-            &Encoding::Uint8 => {
-                let item = offset.following(1);
-                let value = self.cut(offset, item.len(), |b| b.get_u8())?;
-                node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
-            },
-            &Encoding::Int16 => {
-                let item = offset.following(2);
-                let value = self.cut(offset, item.len(), |b| b.get_i16())?;
-                node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
-            },
-            &Encoding::Uint16 => {
-                let item = offset.following(2);
-                let value = self.cut(offset, item.len(), |b| b.get_u16())?;
-                node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
-            },
-            &Encoding::Int31 | &Encoding::Int32 => {
-                let item = offset.following(4);
-                let value = self.cut(offset, item.len(), |b| b.get_i32())?;
-                node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
-            },
-            &Encoding::Uint32 => {
-                let item = offset.following(4);
-                let value = self.cut(offset, item.len(), |b| b.get_u32())?;
-                node.add(base, intersect(space, item), TreeLeaf::dec(value.into()));
-            },
-            &Encoding::Int64 => {
-                let item = offset.following(8);
-                let value = self.cut(offset, item.len(), |b| b.get_i64())?;
-                node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
-            },
-            &Encoding::RangedInt => unimplemented!(),
-            &Encoding::Z => {
-                let mut item = offset.following(0);
-                let value = self.read_z(offset)?;
-                item.end = offset.data_offset;
-                node.add(base, intersect(space, item), TreeLeaf::Display(value));
-            },
-            &Encoding::Mutez => {
-                let mut item = offset.following(0);
-                let value = self.read_mutez(offset)?;
-                item.end = offset.data_offset;
-                node.add(base, intersect(space, item), TreeLeaf::Display(value));
-            },
-            &Encoding::Float => {
-                let item = offset.following(8);
-                let value = self.cut(offset, item.len(), |b| b.get_f64())?;
-                node.add(base, intersect(space, item), TreeLeaf::float(value as _));
-            },
-            &Encoding::RangedFloat => unimplemented!(),
-            &Encoding::Bool => {
-                let item = offset.following(1);
-                let value = self.cut(offset, item.len(), |d| d.get_u8() == 0xff)?;
-                node.add(base, intersect(space, item), TreeLeaf::Display(value));
-            },
-            &Encoding::String => {
-                let mut item = offset.following(4);
-                let length = self.cut(offset, item.len(), |b| b.get_u32())? as usize;
-                let f = |b: &mut dyn Buf| String::from_utf8((b.bytes()).to_owned()).ok();
-                let string = self.cut(offset, length, f)?;
-                item.end = offset.data_offset;
-                if let Some(s) = string {
-                    node.add(base, intersect(space, item), TreeLeaf::Display(s));
+pub fn show<'a, C, P>(
+    data: &mut ChunkedDataBuffer<'a, C>,
+    space: &Range<usize>,
+    encoding: &Encoding,
+    base: &str,
+    node: &mut P,
+) -> Result<(), DecodingError>
+where
+    ChunkedDataBuffer<'a, C>: TezosReader + Clone,
+    C: HasBodyRange,
+    P: TreePresenter,
+{
+    match encoding {
+        &Encoding::Unit => (),
+        &Encoding::Int8 => {
+            let item = data.following(1);
+            let value = safe!(data, get_i8, i8);
+            node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
+        },
+        &Encoding::Uint8 => {
+            let item = data.following(1);
+            let value = safe!(data, get_u8, u8);
+            node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
+        },
+        &Encoding::Int16 => {
+            let item = data.following(2);
+            let value = safe!(data, get_i16, i16);
+            node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
+        },
+        &Encoding::Uint16 => {
+            let item = data.following(2);
+            let value = safe!(data, get_u16, u16);
+            node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
+        },
+        &Encoding::Int31 | &Encoding::Int32 => {
+            let item = data.following(4);
+            let value = safe!(data, get_i32, i32);
+            node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
+        },
+        &Encoding::Uint32 => {
+            let item = data.following(4);
+            let value = safe!(data, get_u32, u32);
+            node.add(base, intersect(space, item), TreeLeaf::dec(value.into()));
+        },
+        &Encoding::Int64 => {
+            let item = data.following(8);
+            let value = safe!(data, get_i64, i64);
+            node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
+        },
+        &Encoding::RangedInt => unimplemented!(),
+        &Encoding::Z => {
+            let mut item = data.following(0);
+            let value = data.read_z()?;
+            item.end = data.offset();
+            node.add(base, intersect(space, item), TreeLeaf::Display(value));
+        },
+        &Encoding::Mutez => {
+            let mut item = data.following(0);
+            let value = data.read_mutez()?;
+            item.end = data.offset();
+            node.add(base, intersect(space, item), TreeLeaf::Display(value));
+        },
+        &Encoding::Float => {
+            let item = data.following(8);
+            let value = safe!(data, get_f64, f64);
+            node.add(base, intersect(space, item), TreeLeaf::float(value as _));
+        },
+        &Encoding::RangedFloat => unimplemented!(),
+        &Encoding::Bool => {
+            let item = data.following(1);
+            let value = safe!(data, get_u8, u8) == 0xff;
+            node.add(base, intersect(space, item), TreeLeaf::Display(value));
+        },
+        &Encoding::String => {
+            let mut item = data.following(4);
+            let length = safe!(data, get_u32, u32) as usize;
+            let string = String::from_utf8(data.copy_to_vec(length)?).ok();
+            item.end = data.offset();
+            if let Some(s) = string {
+                node.add(base, intersect(space, item), TreeLeaf::Display(s));
+            }
+        },
+        &Encoding::Bytes => {
+            let item = data.following(data.remaining());
+            let string = hex::encode(data.copy_to_vec(item.len())?);
+            node.add(base, intersect(space, item), TreeLeaf::Display(string));
+        },
+        &Encoding::Tags(ref tag_size, ref tag_map) => {
+            let id = match tag_size {
+                &1 => safe!(data, get_u8, u8) as u16,
+                &2 => safe!(data, get_u16, u16),
+                _ => return Err(DecodingError::TagSizeNotSupported),
+            };
+            if let Some(tag) = tag_map.find_by_id(id) {
+                let encoding = tag.get_encoding();
+                let size = estimate_size(data, encoding)?;
+                let item = data.following(size);
+                let range = intersect(space, item);
+                let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
+                let variant = tag.get_variant();
+                show(data, space, encoding, variant, &mut sub_node)?;
+            } else {
+                return Err(DecodingError::TagNotFound);
+            }
+        },
+        &Encoding::List(ref encoding) => {
+            if let &Encoding::Uint8 = encoding.as_ref() {
+                show(data, space, &Encoding::Bytes, base, node)?;
+            } else {
+                while data.has_remaining() {
+                    show(data, space, encoding, base, node)?;
                 }
-            },
-            &Encoding::Bytes => {
-                let item = offset.following(self.available(offset));
-                let string = self.cut(offset, item.len(), |d| hex::encode(d.bytes()))?;
-                node.add(base, intersect(space, item), TreeLeaf::Display(string));
-            },
-            &Encoding::Tags(ref tag_size, ref tag_map) => {
-                let id = match tag_size {
-                    &1 => self.cut(offset, 1, |b| b.get_u8())? as u16,
-                    &2 => self.cut(offset, 2, |b| b.get_u16())?,
-                    _ => return Err(DecodingError::TagSizeNotSupported),
-                };
-                if let Some(tag) = tag_map.find_by_id(id) {
-                    let encoding = tag.get_encoding();
-                    let mut temp_offset = offset.clone();
-                    let size = self.estimate_size(&mut temp_offset, encoding)?;
-                    let item = offset.following(size);
+            }
+        },
+        &Encoding::Enum => show(data, space, &Encoding::Uint32, base, node)?,
+        &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
+            match safe!(data, get_u8, u8) {
+                0 => (),
+                1 => show(data, space, encoding, base, node)?,
+                _ => return Err(DecodingError::UnexpectedOptionDiscriminant),
+            }
+        },
+        &Encoding::Obj(ref fields) => {
+            let size = estimate_size(data, &Encoding::Obj(fields.clone()))?;
+            let item = data.following(size);
+            let range = intersect(space, item);
+            let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
+            for field in fields {
+                if field.get_name() == "operation_hashes_path" {
+                    let mut item = data.following(0);
+                    let mut path = Vec::new();
+                    data.read_path(&mut path)?;
+                    item.end = data.offset();
                     let range = intersect(space, item);
-                    let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
-                    let variant = tag.get_variant();
-                    self.show(offset, encoding, space, variant, &mut sub_node)?;
-                } else {
-                    return Err(DecodingError::TagNotFound);
-                }
-            },
-            &Encoding::List(ref encoding) => {
-                if let &Encoding::Uint8 = encoding.as_ref() {
-                    self.show(offset, &Encoding::Bytes, space, base, node)?;
-                } else {
-                    while !self.empty(offset) {
-                        self.show(offset, encoding, space, base, node)?;
+                    let mut p = sub_node
+                        .add(field.get_name(), range, TreeLeaf::nothing())
+                        .subtree();
+                    for component in path.into_iter().rev() {
+                        p.add("path_component", 0..0, TreeLeaf::Display(component));
                     }
-                }
-            },
-            &Encoding::Enum => self.show(offset, &Encoding::Uint32, space, base, node)?,
-            &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
-                match self.cut(offset, 1, |b| b.get_u8())? {
-                    0 => (),
-                    1 => self.show(offset, encoding, space, base, node)?,
-                    _ => return Err(DecodingError::UnexpectedOptionDiscriminant),
-                }
-            },
-            &Encoding::Obj(ref fields) => {
-                let mut temp_offset = offset.clone();
-                let size = self.estimate_size(&mut temp_offset, &Encoding::Obj(fields.clone()))?;
-                let item = offset.following(size);
-                let range = intersect(space, item);
-                let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
-                for field in fields {
-                    if field.get_name() == "operation_hashes_path" {
-                        let mut item = offset.following(0);
-                        let mut path = Vec::new();
-                        self.read_path(offset, &mut path)?;
-                        item.end = offset.data_offset;
-                        let range = intersect(space, item);
-                        let mut p = sub_node
-                            .add(field.get_name(), range, TreeLeaf::nothing())
-                            .subtree();
-                        for component in path.into_iter().rev() {
-                            p.add("path_component", 0..0, TreeLeaf::Display(component));
-                        }
-                    } else {
-                        self.show(
-                            offset,
-                            field.get_encoding(),
-                            space,
-                            field.get_name(),
-                            &mut sub_node,
-                        )?;
-                    }
-                }
-            },
-            &Encoding::Tup(ref encodings) => {
-                let mut temp_offset = offset.clone();
-                let size =
-                    self.estimate_size(&mut temp_offset, &Encoding::Tup(encodings.clone()))?;
-                let item = offset.following(size);
-                let range = intersect(space, item);
-                let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
-                for (i, encoding) in encodings.iter().enumerate() {
-                    let n = format!("{}", i);
-                    self.show(offset, encoding, space, &n, &mut sub_node)?;
-                }
-            },
-            &Encoding::Dynamic(ref encoding) => {
-                // TODO: use item, highlight the length
-                let item = offset.following(4);
-                let length = self.cut(offset, item.len(), |b| b.get_u32())? as usize;
-                if length <= self.available(offset) {
-                    self.limit(offset, length)?
-                        .show(offset, encoding, space, base, node)?;
                 } else {
-                    // report error
+                    show(
+                        data,
+                        space,
+                        field.get_encoding(),
+                        field.get_name(),
+                        &mut sub_node,
+                    )?;
                 }
-            },
-            &Encoding::Sized(ref size, ref encoding) => {
-                self.limit(offset, size.clone())?
-                    .show(offset, encoding, space, base, node)?;
-            },
-            &Encoding::Greedy(ref encoding) => {
-                self.show(offset, encoding, space, base, node)?;
-            },
-            &Encoding::Hash(ref hash_type) => {
-                let item = offset.following(hash_type.size());
-                let string = self.cut(offset, item.len(), |d| hex::encode(d.bytes()))?;
-                node.add(base, intersect(space, item), TreeLeaf::Display(string));
-            },
-            &Encoding::Split(ref f) => {
-                self.show(offset, &f(SchemaType::Binary), space, base, node)?;
-            },
-            &Encoding::Timestamp => {
-                let item = offset.following(8);
-                let value = self.cut(offset, item.len(), |b| b.get_i64())?;
-                let time = NaiveDateTime::from_timestamp(value, 0);
-                node.add(base, intersect(space, item), TreeLeaf::Display(time));
-            },
-            &Encoding::Lazy(ref _f) => {
-                panic!("should not happen");
-            },
-        };
-        Ok(())
-    }
+            }
+        },
+        &Encoding::Tup(ref encodings) => {
+            let size = estimate_size(data, &Encoding::Tup(encodings.clone()))?;
+            let item = data.following(size);
+            let range = intersect(space, item);
+            let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
+            for (i, encoding) in encodings.iter().enumerate() {
+                let n = format!("{}", i);
+                show(data, space, encoding, &n, &mut sub_node)?;
+            }
+        },
+        &Encoding::Dynamic(ref encoding) => {
+            // TODO: use item, highlight the length
+            let _item = data.following(4);
+            let length = safe!(data, get_u32, u32) as usize;
+            if data.has(length) {
+                data.push_limit(length);
+                show(data, space, encoding, base, node)?;
+                data.pop_limit();
+            } else {
+                // report error
+            }
+        },
+        &Encoding::Sized(ref size, ref encoding) => {
+            data.push_limit(size.clone());
+            show(data, space, encoding, base, node)?;
+            data.pop_limit();
+        },
+        &Encoding::Greedy(ref encoding) => {
+            show(data, space, encoding, base, node)?;
+        },
+        &Encoding::Hash(ref hash_type) => {
+            let item = data.following(hash_type.size());
+            let string = hex::encode(data.copy_to_vec(item.len())?);
+            node.add(base, intersect(space, item), TreeLeaf::Display(string));
+        },
+        &Encoding::Split(ref f) => {
+            show(data, space, &f(SchemaType::Binary), base, node)?;
+        },
+        &Encoding::Timestamp => {
+            let item = data.following(8);
+            let value = safe!(data, get_i64, i64);
+            let time = NaiveDateTime::from_timestamp(value, 0);
+            node.add(base, intersect(space, item), TreeLeaf::Display(time));
+        },
+        &Encoding::Lazy(ref _f) => {
+            panic!("should not happen");
+        },
+    };
+    Ok(())
+}
 
-    // TODO: it is double work, optimize it out
-    // we should store decoded data and show it only when whole node is collected
-    pub fn estimate_size(
-        &self,
-        offset: &mut ChunkedDataOffset,
-        encoding: &Encoding,
-    ) -> Result<usize, DecodingError> {
-        match encoding {
-            &Encoding::Unit => Ok(0),
-            &Encoding::Int8 | &Encoding::Uint8 => self.cut(offset, 1, |a| a.bytes().len()),
-            &Encoding::Int16 | &Encoding::Uint16 => self.cut(offset, 2, |a| a.bytes().len()),
-            &Encoding::Int31 | &Encoding::Int32 | &Encoding::Uint32 => {
-                self.cut(offset, 4, |a| a.bytes().len())
-            },
-            &Encoding::Int64 => self.cut(offset, 8, |a| a.bytes().len()),
-            &Encoding::RangedInt => unimplemented!(),
-            &Encoding::Z => {
-                let start = offset.data_offset;
-                let _ = self.read_z(offset)?;
-                Ok(offset.data_offset - start)
-            },
-            &Encoding::Mutez => {
-                let start = offset.data_offset;
-                let _ = self.read_mutez(offset)?;
-                Ok(offset.data_offset - start)
-            },
-            &Encoding::Float => self.cut(offset, 8, |a| a.bytes().len()),
-            &Encoding::RangedFloat => unimplemented!(),
-            &Encoding::Bool => self.cut(offset, 1, |a| a.bytes().len()),
-            &Encoding::String => {
-                let l = self.cut(offset, 4, |b| b.get_u32())? as usize;
-                self.cut(offset, l, |a| a.bytes().len() + 4)
-            },
-            &Encoding::Bytes => {
-                let l = self.available(offset);
-                self.cut(offset, l, |a| a.bytes().len())
-            },
-            &Encoding::Tags(ref tag_size, ref tag_map) => {
-                let id = match tag_size {
-                    &1 => self.cut(offset, 1, |b| b.get_u8())? as u16,
-                    &2 => self.cut(offset, 2, |b| b.get_u16())?,
-                    _ => {
-                        log::warn!("unsupported tag size");
-                        return Err(DecodingError::TagSizeNotSupported);
-                    },
-                };
-                if let Some(tag) = tag_map.find_by_id(id) {
-                    self.estimate_size(offset, tag.get_encoding())
-                        .map(|s| s + tag_size.clone())
+fn estimate_size<'a, C>(
+    s: &ChunkedDataBuffer<'a, C>,
+    encoding: &Encoding,
+) -> Result<usize, DecodingError>
+where
+    ChunkedDataBuffer<'a, C>: TezosReader + Clone,
+    C: HasBodyRange,
+{
+    estimate_size_inner(&mut s.clone(), encoding)
+}
+
+// TODO: it is double work, optimize it out
+// we should store decoded data and show it only when whole node is collected
+fn estimate_size_inner<'a, C>(
+    data: &mut ChunkedDataBuffer<'a, C>,
+    encoding: &Encoding,
+) -> Result<usize, DecodingError>
+where
+    ChunkedDataBuffer<'a, C>: TezosReader + Clone,
+    C: HasBodyRange,
+{
+    match encoding {
+        &Encoding::Unit => Ok(0),
+        &Encoding::Int8 | &Encoding::Uint8 => data
+            .advance_safe(1)
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Int16 | &Encoding::Uint16 => data
+            .advance_safe(2)
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Int31 | &Encoding::Int32 | &Encoding::Uint32 => data
+            .advance_safe(4)
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Int64 => data
+            .advance_safe(8)
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::RangedInt => unimplemented!(),
+        &Encoding::Z => {
+            let start = data.offset();
+            let _ = data.read_z()?;
+            Ok(data.offset() - start)
+        },
+        &Encoding::Mutez => {
+            let start = data.offset();
+            let _ = data.read_mutez()?;
+            Ok(data.offset() - start)
+        },
+        &Encoding::Float => data
+            .advance_safe(8)
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::RangedFloat => unimplemented!(),
+        &Encoding::Bool => data
+            .advance_safe(1)
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::String => {
+            let l = safe!(data, get_u32, u32) as usize;
+            data.advance_safe(l)
+                .map_err(|()| DecodingError::NotEnoughData)
+        },
+        &Encoding::Bytes => {
+            let l = data.remaining();
+            data.advance_safe(l)
+                .map_err(|()| DecodingError::NotEnoughData)
+        },
+        &Encoding::Tags(ref tag_size, ref tag_map) => {
+            let id = match tag_size {
+                &1 => safe!(data, get_u8, u8) as u16,
+                &2 => safe!(data, get_u16, u16),
+                _ => {
+                    log::warn!("unsupported tag size");
+                    return Err(DecodingError::TagSizeNotSupported);
+                },
+            };
+            if let Some(tag) = tag_map.find_by_id(id) {
+                estimate_size_inner(data, tag.get_encoding()).map(|s| s + tag_size.clone())
+            } else {
+                Err(DecodingError::TagNotFound)
+            }
+        },
+        &Encoding::List(_) => {
+            let l = data.remaining();
+            data.advance_safe(l)
+                .map_err(|()| DecodingError::NotEnoughData)
+        },
+        &Encoding::Enum => estimate_size_inner(data, &Encoding::Uint32),
+        &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
+            match safe!(data, get_u8, u8) {
+                0 => Ok(1),
+                1 => estimate_size_inner(data, encoding).map(|s| s + 1),
+                _ => Err(DecodingError::UnexpectedOptionDiscriminant),
+            }
+        },
+        &Encoding::Tup(ref encodings) => encodings
+            .iter()
+            .map(|e| estimate_size_inner(data, e))
+            .try_fold(0, |sum, size_at| size_at.map(|s| s + sum)),
+        &Encoding::Obj(ref fields) => fields
+            .iter()
+            .map(|f| {
+                if f.get_name() == "operation_hashes_path" {
+                    let start = data.offset();
+                    data.read_path(&mut Vec::new())?;
+                    Ok(data.offset() - start)
                 } else {
-                    Err(DecodingError::TagNotFound)
+                    estimate_size_inner(data, f.get_encoding())
                 }
-            },
-            &Encoding::List(_) => {
-                let l = self.available(offset);
-                self.cut(offset, l, |a| a.bytes().len())
-            },
-            &Encoding::Enum => self.estimate_size(offset, &Encoding::Uint32),
-            &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
-                match self.cut(offset, 1, |b| b.get_u8())? {
-                    0 => Ok(1),
-                    1 => self.estimate_size(offset, encoding).map(|s| s + 1),
-                    _ => Err(DecodingError::UnexpectedOptionDiscriminant),
-                }
-            },
-            &Encoding::Tup(ref encodings) => encodings
-                .iter()
-                .map(|e| self.estimate_size(offset, e))
-                .try_fold(0, |sum, size_at| size_at.map(|s| s + sum)),
-            &Encoding::Obj(ref fields) => fields
-                .iter()
-                .map(|f| {
-                    if f.get_name() == "operation_hashes_path" {
-                        let start = offset.data_offset;
-                        self.read_path(offset, &mut Vec::new())?;
-                        Ok(offset.data_offset - start)
-                    } else {
-                        self.estimate_size(offset, f.get_encoding())
-                    }
-                })
-                .try_fold(0, |sum, size_at_field| size_at_field.map(|s| s + sum)),
-            &Encoding::Dynamic(_) => {
-                let l = self.cut(offset, 4, |b| b.get_u32())? as usize;
-                self.cut(offset, l, |a| a.bytes().len() + 4)
-            },
-            &Encoding::Sized(ref size, _) => self.cut(offset, size.clone(), |a| a.bytes().len()),
-            &Encoding::Greedy(_) => {
-                let l = self.available(offset);
-                self.cut(offset, l, |a| a.bytes().len())
-            },
-            &Encoding::Hash(ref hash_type) => {
-                self.cut(offset, hash_type.size(), |a| a.bytes().len())
-            },
-            &Encoding::Timestamp => self.cut(offset, 8, |a| a.bytes().len()),
-            &Encoding::Split(ref f) => self.estimate_size(offset, &f(SchemaType::Binary)),
-            &Encoding::Lazy(ref _f) => panic!("should not happen"),
-        }
+            })
+            .try_fold(0, |sum, size_at_field| size_at_field.map(|s| s + sum)),
+        &Encoding::Dynamic(_) => {
+            let l = safe!(data, get_u32, u32) as usize;
+            data.advance_safe(l)
+                .map(|l| l + 4)
+                .map_err(|()| DecodingError::NotEnoughData)
+        },
+        &Encoding::Sized(ref size, _) => data
+            .advance_safe(size.clone())
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Greedy(_) => {
+            let l = data.remaining();
+            data.advance_safe(l)
+                .map_err(|()| DecodingError::NotEnoughData)
+        },
+        &Encoding::Hash(ref hash_type) => data
+            .advance_safe(hash_type.size())
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Timestamp => data
+            .advance_safe(8)
+            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Split(ref f) => estimate_size_inner(data, &f(SchemaType::Binary)),
+        &Encoding::Lazy(ref _f) => panic!("should not happen"),
     }
 }
 
@@ -624,72 +548,4 @@ fn to_byte_vec(s: &BitVec) -> Vec<u8> {
     }
     bytes.reverse();
     bytes
-}
-
-#[cfg(test)]
-mod tests {
-    use std::ops::Range;
-    use super::{ChunkedData, ChunkedDataOffset, HasBodyRange};
-
-    impl HasBodyRange for Range<usize> {
-        fn body(&self) -> Range<usize> {
-            self.clone()
-        }
-    }
-
-    fn with_test_data<F>(f: F)
-    where
-        F: FnOnce(ChunkedData<Range<usize>>),
-    {
-        let data = {
-            let mut v = Vec::new();
-            v.resize(128, 'x' as u8);
-            v
-        };
-        let (data, chunks, _) = [
-            ['a' as u8; 12].as_ref(),
-            ['b' as u8; 16].as_ref(),
-            ['c' as u8; 24].as_ref(),
-            ['d' as u8; 8].as_ref(),
-        ]
-        .iter()
-        .fold(
-            (data, Vec::new(), 0),
-            |(mut data, mut chunks, mut start), c| {
-                let end = start + c.len();
-                data[start..end].clone_from_slice(*c);
-                chunks.push(start..end);
-                start = end + 4;
-                (data, chunks, start)
-            },
-        );
-
-        f(ChunkedData {
-            data: data.as_ref(),
-            chunks: chunks.as_ref(),
-        })
-    }
-
-    #[test]
-    fn simple_cut() {
-        let mut offset = ChunkedDataOffset {
-            chunks_offset: 0,
-            data_offset: 0,
-        };
-
-        with_test_data(|data| {
-            let cut = data
-                .cut(&mut offset, 25, |b| {
-                    String::from_utf8(b.to_bytes().to_vec()).unwrap()
-                })
-                .unwrap();
-            assert_eq!(cut, "aaaaaaaaaaaabbbbbbbbbbbbb");
-            let cut = data
-                .cut(&mut offset, 35, |b| {
-                    String::from_utf8(b.to_bytes().to_vec()).unwrap()
-                })
-                .unwrap();
-            assert_eq!(cut, "bbbccccccccccccccccccccccccdddddddd");
-        });
-    }
 }

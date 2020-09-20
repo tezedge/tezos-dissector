@@ -36,15 +36,6 @@ impl ChunkInfo {
         inner.start..inner.end
     }
 
-    pub fn set_continuation(&self) {
-        let inner = self.inner.get();
-        self.inner.set(Inner {
-            start: inner.start,
-            end: inner.end,
-            continuation: true,
-        });
-    }
-
     pub fn continuation(&self) -> bool {
         self.inner.get().continuation
     }
@@ -59,5 +50,14 @@ impl HasBodyRange for ChunkInfo {
         } else {
             (range.start + 2)..(range.end - 16)
         }
+    }
+
+    fn set_continuation(&self) {
+        let inner = self.inner.get();
+        self.inner.set(Inner {
+            start: inner.start,
+            end: inner.end,
+            continuation: true,
+        });
     }
 }
