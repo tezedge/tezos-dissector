@@ -29,6 +29,13 @@ impl fmt::Display for SocketAddress {
     }
 }
 
+pub trait PacketMetadata {
+    fn destination(&self) -> SocketAddress;
+    fn source(&self) -> SocketAddress;
+    fn frame_number(&self) -> u64;
+    fn visited(&self) -> bool;
+}
+
 /// Provides information about the packet.
 pub struct PacketInfo {
     inner: *mut sys::packet_info,
@@ -56,25 +63,27 @@ impl PacketInfo {
         };
         key as _
     }
+}
 
+impl PacketMetadata for PacketInfo {
     /// Destination address.
-    pub fn destination(&self) -> SocketAddress {
+    fn destination(&self) -> SocketAddress {
         read_address(self.inner().dst, self.inner().destport as u16)
     }
 
     /// Source address.
-    pub fn source(&self) -> SocketAddress {
+    fn source(&self) -> SocketAddress {
         read_address(self.inner().src, self.inner().srcport as u16)
     }
 
     /// Just the number by the order. First captures packet has number 1, second 2, and so on.
     /// Used as a identification of the packet.
-    pub fn frame_number(&self) -> u64 {
+    fn frame_number(&self) -> u64 {
         self.fd().num as _
     }
 
     /// Is this packet was already processed by this dissector.
-    pub fn visited(&self) -> bool {
+    fn visited(&self) -> bool {
         self.fd().visited() != 0
     }
 }

@@ -3,7 +3,7 @@
 
 use wireshark_epan_adapter::{
     Dissector,
-    dissector::{Packet, Tree, TreePresenter, PacketInfo},
+    dissector::{Packet, Tree, TreePresenter, PacketInfo, PacketMetadata},
 };
 use std::collections::BTreeMap;
 use super::{
@@ -68,7 +68,7 @@ impl ContextExt {
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
         if !self.invalid(packet_info) {
-            match self.inner.visualize(packet_length, packet_info, root) {
+            match self.inner.visualize(packet_info, root) {
                 Ok(()) => (),
                 Err(r) => match r.sender {
                     Sender::Initiator => self.incoming_frame_result = Err(r),

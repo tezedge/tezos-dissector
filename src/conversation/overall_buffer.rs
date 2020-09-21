@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_epan_adapter::dissector::PacketInfo;
+use wireshark_epan_adapter::dissector::PacketMetadata;
 use std::ops::Range;
 use super::{
     addresses::{Addresses, Sender},
@@ -23,7 +23,10 @@ impl ConversationBuffer {
     // 32 bytes public key + 24 bytes proof_of_work = 56
     const CHECK_RANGE: Range<usize> = 4..(4 + 56);
 
-    pub fn new(packet_info: &PacketInfo) -> Self {
+    pub fn new<P>(packet_info: &P) -> Self
+    where
+        P: PacketMetadata,
+    {
         ConversationBuffer {
             addresses: Addresses::new(packet_info),
             incoming: DirectBuffer::new(),
@@ -31,7 +34,10 @@ impl ConversationBuffer {
         }
     }
 
-    pub fn consume(&mut self, payload: &[u8], packet_info: &PacketInfo) -> Result<(), ()> {
+    pub fn consume<P>(&mut self, payload: &[u8], packet_info: &P) -> Result<(), ()>
+    where
+        P: PacketMetadata,
+    {
         let sender = self.sender(packet_info);
         let direct_buffer = self.direct_buffer_mut(packet_info);
         let already_checked = direct_buffer.data().len() >= Self::CHECK_RANGE.end;
@@ -75,18 +81,27 @@ impl ConversationBuffer {
         }
     }
 
-    pub fn direct_buffer(&self, packet_info: &PacketInfo) -> &DirectBuffer {
+    pub fn direct_buffer<P>(&self, packet_info: &P) -> &DirectBuffer
+    where
+        P: PacketMetadata,
+    {
         match self.sender(packet_info) {
             Sender::Initiator => &self.incoming,
             Sender::Responder => &self.outgoing,
         }
     }
 
-    pub fn sender(&self, packet_info: &PacketInfo) -> Sender {
+    pub fn sender<P>(&self, packet_info: &P) -> Sender
+    where
+        P: PacketMetadata,
+    {
         self.addresses.sender(packet_info)
     }
 
-    fn direct_buffer_mut(&mut self, packet_info: &PacketInfo) -> &mut DirectBuffer {
+    fn direct_buffer_mut<P>(&mut self, packet_info: &P) -> &mut DirectBuffer
+    where
+        P: PacketMetadata,
+    {
         match self.sender(packet_info) {
             Sender::Initiator => &mut self.incoming,
             Sender::Responder => &mut self.outgoing,

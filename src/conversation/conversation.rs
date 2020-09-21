@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_epan_adapter::dissector::{PacketInfo, TreePresenter, TreeLeaf};
+use wireshark_epan_adapter::dissector::{PacketMetadata, TreePresenter, TreeLeaf};
 use tezos_encoding::encoding::HasEncoding;
 use tezos_messages::p2p::encoding::{
     ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
@@ -52,16 +52,22 @@ pub enum Context {
 }
 
 impl Context {
-    pub fn new(packet_info: &PacketInfo) -> Self {
+    pub fn new<P>(packet_info: &P) -> Self
+    where
+        P: PacketMetadata,
+    {
         Context::Regular(ConversationBuffer::new(packet_info), None, State::Correct)
     }
 
-    pub fn consume(
+    pub fn consume<P>(
         &mut self,
         payload: &[u8],
-        packet_info: &PacketInfo,
+        packet_info: &P,
         identity: Option<&(Identity, String)>,
-    ) {
+    )
+    where
+        P: PacketMetadata,
+    {
         match self {
             &mut Context::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
                 match buffer.consume(payload, packet_info) {
@@ -140,7 +146,10 @@ impl Context {
         }
     }
 
-    pub fn after(&self, packet_info: &PacketInfo, error_position: &ErrorPosition) -> bool {
+    pub fn after<P>(&self, packet_info: &P, error_position: &ErrorPosition) -> bool
+    where
+        P: PacketMetadata,
+    {
         if self.buffer().sender(packet_info) == error_position.sender {
             packet_info.frame_number() > error_position.frame_number
         } else {
@@ -149,17 +158,25 @@ impl Context {
     }
 
     /// Returns if there is decryption error.
-    pub fn visualize<T>(
+    pub fn visualize<P, T>(
         &self,
-        packet_length: usize,
-        packet_info: &PacketInfo,
+        packet_info: &P,
         root: &mut T,
     ) -> Result<(), ErrorPosition>
     where
+        P: PacketMetadata,
         T: TreePresenter,
     {
+        let buffer = self.buffer().direct_buffer(packet_info);
+        let space = &buffer.packet(packet_info.frame_number());
+        let data = buffer.data();
+        let decrypted = buffer.decrypted();
+        let chunks = buffer.chunks();
+        let state = self.state();
+        let sender = self.buffer().sender(packet_info);
+
         let mut node = root
-            .add("tezos", 0..packet_length, TreeLeaf::nothing())
+            .add("tezos", 0..space.len(), TreeLeaf::nothing())
             .subtree();
         node.add(
             "conversation_id",
@@ -167,20 +184,11 @@ impl Context {
             TreeLeaf::Display(self.id().expect("valid context")),
         );
 
-        let state = self.state();
-        let buffer = self.buffer().direct_buffer(packet_info);
-        let sender = self.buffer().sender(packet_info);
-
         let direction = match &sender {
             &Sender::Initiator => "local",
             &Sender::Responder => "remote",
         };
         node.add("source", 0..0, TreeLeaf::Display(direction));
-
-        let space = &buffer.packet(packet_info.frame_number());
-        let data = buffer.data();
-        let decrypted = buffer.decrypted();
-        let chunks = buffer.chunks();
 
         // TODO: split it in separated methods
         for (index, chunk_info) in chunks.iter().enumerate() {

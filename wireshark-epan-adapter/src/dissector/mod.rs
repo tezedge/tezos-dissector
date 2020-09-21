@@ -1,7 +1,7 @@
 /// Provides information about the packet: source/destination,
 /// if it already visited, number and key of the conversation.
 mod info;
-pub use self::info::{SocketAddress, PacketInfo};
+pub use self::info::{SocketAddress, PacketInfo, PacketMetadata};
 
 /// Provides packet payload.
 mod packet;
