@@ -133,29 +133,52 @@ where
 
     #[inline(always)]
     pub fn remaining(&self) -> usize {
-        let available = self.bytes().len();
-        let remaining = if self.chunks.len() - 1 > self.chunks_offset {
-            self.chunks[(self.chunks_offset + 1)..]
-                .iter()
-                .fold(available, |a, c| {
-                    if self.data.len() >= c.body().end {
-                        a + c.body().len()
-                    } else if self.data.len() > c.body().start {
-                        a + (self.data.len() - c.body().start)
-                    } else {
-                        a
-                    }
-                })
-        } else {
-            available
-        };
-        usize::min(remaining, self.limit.unwrap_or(usize::MAX))
+        let limit = self.limit.unwrap_or(usize::MAX);
+        let mut available = self.bytes().len();
+        if limit < available {
+            return limit;
+        }
+        if self.chunks.len() - 1 > self.chunks_offset {
+            for c in &self.chunks[(self.chunks_offset + 1)..] {
+                let a = if self.data.len() >= c.body().end {
+                    c.body().len()
+                } else if self.data.len() > c.body().start {
+                    self.data.len() - c.body().start
+                } else {
+                    0
+                };
+                available += a;
+                if limit < available {
+                    return limit;
+                }
+            }
+        }
+        available
     }
 
     #[inline(always)]
     pub fn has(&self, length: usize) -> bool {
-        // TODO: optimize it
-        self.remaining() >= length
+        let limit = self.limit.unwrap_or(usize::MAX);
+        let mut available = self.bytes().len();
+        if length > usize::min(available, limit) {
+            return false;
+        }
+        if self.chunks.len() - 1 > self.chunks_offset {
+            for c in &self.chunks[(self.chunks_offset + 1)..] {
+                let a = if self.data.len() >= c.body().end {
+                    c.body().len()
+                } else if self.data.len() > c.body().start {
+                    self.data.len() - c.body().start
+                } else {
+                    0
+                };
+                available += a;
+                if length > usize::min(available, limit) {
+                    return false;
+                }
+            }
+        }
+        true
     }
 
     pub fn advance(&mut self, cnt: usize) -> Result<usize, DecodingError> {
@@ -224,6 +247,10 @@ where
 
         while offset < slice.len() {
             let source = self.bytes();
+            if source.is_empty() {
+                return Err(DecodingError::NotEnoughData);
+            }
+
             let cnt = usize::min(source.len(), slice.len() - offset);
 
             slice[offset..(offset + cnt)].clone_from_slice(&source[..cnt]);

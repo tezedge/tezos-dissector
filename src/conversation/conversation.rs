@@ -286,8 +286,15 @@ impl Context {
                         _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
                     };
                     let temp = chunked_buffer.chunk();
+                    // if it is first chunk limit the buffer by just this one chunk,
+                    // because connection message goes in single chunk
+                    if temp == 0 {
+                        chunked_buffer.inner_mut().push_limit(chunks[0].body().len());
+                    }
                     match show(&mut chunked_buffer, space, &encoding, base, &mut node) {
-                        Ok(_) => (),
+                        Ok(_) => if temp == 0 {
+                            chunked_buffer.inner_mut().pop_limit();
+                        },
                         Err(e) => {
                             let leaf = TreeLeaf::Display(e);
                             node.add("decoding_error", 0..0, leaf);
