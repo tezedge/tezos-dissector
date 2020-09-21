@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-mod buffer;
+mod chunked_data;
 mod fields;
 mod message;
 mod named;
@@ -14,5 +14,5 @@ pub trait HasBodyRange {
 }
 
 pub use self::fields::{TezosEncoded, Named};
-pub use self::buffer::ChunkedDataBuffer;
-pub use self::message::{DecodingError, show};
+pub use self::chunked_data::{DecodingError, ChunkedData};
+pub use self::message::show;

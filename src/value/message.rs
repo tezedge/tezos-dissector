@@ -3,76 +3,30 @@
 
 use tezos_encoding::encoding::{Encoding, SchemaType};
 use wireshark_epan_adapter::dissector::{TreePresenter, TreeLeaf};
-use bytes::Buf;
 use chrono::NaiveDateTime;
 use std::ops::Range;
-use failure::Fail;
 use bit_vec::BitVec;
 use crypto::hash::HashType;
 use crate::range_tool::intersect;
 use super::{
-    buffer::{StoreOffset, ChunkedDataBuffer},
+    chunked_data::{ChunkedData, ChunkedDataInner, DecodingError},
     HasBodyRange,
 };
 
-#[derive(Debug, Fail)]
-pub enum DecodingError {
-    #[fail(display = "Not enough bytes")]
-    NotEnoughData,
-    #[fail(display = "Tag size not supported")]
-    TagSizeNotSupported,
-    #[fail(display = "Tag not found")]
-    TagNotFound,
-    #[fail(display = "Unexpected option value")]
-    UnexpectedOptionDiscriminant,
-    #[fail(display = "Path tag should be 0x00 or 0x0f or 0xf0")]
-    BadPathTag,
-}
-
-macro_rules! safe {
-    ($buf:ident, $foo:ident, $sz:ident) => {{
-        use std::mem::size_of;
-        if $buf.has(size_of::<$sz>()) {
-            $buf.$foo()
-        } else {
-            return Result::Err(DecodingError::NotEnoughData);
-        }
-    }};
-    ($buf:ident, $sz:expr, $exp:expr) => {{
-        if $buf.has($sz) {
-            $exp
-        } else {
-            return Result::Err(DecodingError::NotEnoughData);
-        }
-    }};
-}
-
 pub trait TezosReader {
-    fn copy_to_vec(&mut self, length: usize) -> Result<Vec<u8>, DecodingError>;
     fn read_z(&mut self) -> Result<String, DecodingError>;
     fn read_mutez(&mut self) -> Result<String, DecodingError>;
     fn read_path(&mut self, v: &mut Vec<String>) -> Result<(), DecodingError>;
 }
 
-impl<'a, C> TezosReader for ChunkedDataBuffer<'a, C>
+impl<'a, C> TezosReader for ChunkedDataInner<'a, C>
 where
-    ChunkedDataBuffer<'a, C>: Clone,
+    ChunkedData<'a, C>: Clone,
     C: HasBodyRange,
 {
-    fn copy_to_vec(&mut self, length: usize) -> Result<Vec<u8>, DecodingError> {
-        if self.has(length) {
-            let mut buffer = Vec::with_capacity(length);
-            buffer.resize(length, 0);
-            self.copy_to_slice(buffer.as_mut_slice());
-            Ok(buffer)
-        } else {
-            Err(DecodingError::NotEnoughData)
-        }
-    }
-
     fn read_z(&mut self) -> Result<String, DecodingError> {
         // read first byte
-        let byte = safe!(self, get_u8, u8);
+        let byte = self.get_u8()?;
         let negative = byte & (1 << 6) != 0;
         if byte <= 0x3F {
             let mut num = i32::from(byte);
@@ -88,7 +42,7 @@ where
 
             let mut has_next_byte = true;
             while has_next_byte {
-                let byte = safe!(self, get_u8, u8);
+                let byte = self.get_u8()?;
                 for bit_idx in 0..7 {
                     bits.push(byte & (1 << bit_idx) != 0)
                 }
@@ -122,7 +76,7 @@ where
 
         let mut has_next_byte = true;
         while has_next_byte {
-            let byte = safe!(self, get_u8, u8);
+            let byte = self.get_u8()?;
             for bit_idx in 0..7 {
                 bits.push(byte & (1 << bit_idx) != 0)
             }
@@ -148,7 +102,7 @@ where
     }
 
     fn read_path(&mut self, v: &mut Vec<String>) -> Result<(), DecodingError> {
-        match safe!(self, get_u8, u8) {
+        match self.get_u8()? {
             0x00 => Ok(()),
             0xf0 => {
                 self.read_path(v)?;
@@ -170,52 +124,65 @@ where
 }
 
 pub fn show<'a, C, P>(
-    data: &mut ChunkedDataBuffer<'a, C>,
+    data: &mut ChunkedData<'a, C>,
     space: &Range<usize>,
     encoding: &Encoding,
     base: &str,
     node: &mut P,
 ) -> Result<(), DecodingError>
 where
-    ChunkedDataBuffer<'a, C>: TezosReader + Clone,
-    C: HasBodyRange,
+    C: HasBodyRange + Clone,
+    P: TreePresenter,
+{
+    show_inner(data.inner_mut(), space, encoding, base, node)
+}
+
+pub fn show_inner<'a, C, P>(
+    data: &mut ChunkedDataInner<'a, C>,
+    space: &Range<usize>,
+    encoding: &Encoding,
+    base: &str,
+    node: &mut P,
+) -> Result<(), DecodingError>
+where
+    C: HasBodyRange + Clone,
     P: TreePresenter,
 {
     match encoding {
         &Encoding::Unit => (),
         &Encoding::Int8 => {
             let item = data.following(1);
-            let value = safe!(data, get_i8, i8);
+            let value = data.get_i8()?;
             node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
         },
         &Encoding::Uint8 => {
             let item = data.following(1);
-            let value = safe!(data, get_u8, u8);
+            let value = data.get_u8()?;
             node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
         },
         &Encoding::Int16 => {
             let item = data.following(2);
-            let value = safe!(data, get_i16, i16);
+            let value = data.get_i16()?;
             node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
         },
         &Encoding::Uint16 => {
             let item = data.following(2);
-            let value = safe!(data, get_u16, u16);
+            let value = data.get_u16()?;
             node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
         },
         &Encoding::Int31 | &Encoding::Int32 => {
             let item = data.following(4);
-            let value = safe!(data, get_i32, i32);
+            let value = data.get_i32()?;
             node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
         },
         &Encoding::Uint32 => {
             let item = data.following(4);
-            let value = safe!(data, get_u32, u32);
+            let value = data.get_u32()?;
             node.add(base, intersect(space, item), TreeLeaf::dec(value.into()));
         },
         &Encoding::Int64 => {
             let item = data.following(8);
-            let value = safe!(data, get_i64, i64);
+            let value = data.get_i64()?;
             node.add(base, intersect(space, item), TreeLeaf::dec(value as _));
         },
         &Encoding::RangedInt => unimplemented!(),
@@ -233,18 +200,18 @@ where
         },
         &Encoding::Float => {
             let item = data.following(8);
-            let value = safe!(data, get_f64, f64);
+            let value = data.get_f64()?;
             node.add(base, intersect(space, item), TreeLeaf::float(value as _));
         },
         &Encoding::RangedFloat => unimplemented!(),
         &Encoding::Bool => {
             let item = data.following(1);
-            let value = safe!(data, get_u8, u8) == 0xff;
+            let value = data.get_u8()? == 0xff;
             node.add(base, intersect(space, item), TreeLeaf::Display(value));
         },
         &Encoding::String => {
             let mut item = data.following(4);
-            let length = safe!(data, get_u32, u32) as usize;
+            let length = data.get_u32()? as usize;
             let string = String::from_utf8(data.copy_to_vec(length)?).ok();
             item.end = data.offset();
             if let Some(s) = string {
@@ -258,8 +225,8 @@ where
         },
         &Encoding::Tags(ref tag_size, ref tag_map) => {
             let id = match tag_size {
-                &1 => safe!(data, get_u8, u8) as u16,
-                &2 => safe!(data, get_u16, u16),
+                &1 => data.get_u8()? as u16,
+                &2 => data.get_u16()?,
                 _ => return Err(DecodingError::TagSizeNotSupported),
             };
             if let Some(tag) = tag_map.find_by_id(id) {
@@ -269,25 +236,25 @@ where
                 let range = intersect(space, item);
                 let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
                 let variant = tag.get_variant();
-                show(data, space, encoding, variant, &mut sub_node)?;
+                show_inner(data, space, encoding, variant, &mut sub_node)?;
             } else {
                 return Err(DecodingError::TagNotFound);
             }
         },
         &Encoding::List(ref encoding) => {
             if let &Encoding::Uint8 = encoding.as_ref() {
-                show(data, space, &Encoding::Bytes, base, node)?;
+                show_inner(data, space, &Encoding::Bytes, base, node)?;
             } else {
-                while data.has_remaining() {
-                    show(data, space, encoding, base, node)?;
+                while data.remaining() != 0 {
+                    show_inner(data, space, encoding, base, node)?;
                 }
             }
         },
-        &Encoding::Enum => show(data, space, &Encoding::Uint32, base, node)?,
+        &Encoding::Enum => show_inner(data, space, &Encoding::Uint32, base, node)?,
         &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
-            match safe!(data, get_u8, u8) {
+            match data.get_u8()? {
                 0 => (),
-                1 => show(data, space, encoding, base, node)?,
+                1 => show_inner(data, space, encoding, base, node)?,
                 _ => return Err(DecodingError::UnexpectedOptionDiscriminant),
             }
         },
@@ -310,7 +277,7 @@ where
                         p.add("path_component", 0..0, TreeLeaf::Display(component));
                     }
                 } else {
-                    show(
+                    show_inner(
                         data,
                         space,
                         field.get_encoding(),
@@ -327,16 +294,16 @@ where
             let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
             for (i, encoding) in encodings.iter().enumerate() {
                 let n = format!("{}", i);
-                show(data, space, encoding, &n, &mut sub_node)?;
+                show_inner(data, space, encoding, &n, &mut sub_node)?;
             }
         },
         &Encoding::Dynamic(ref encoding) => {
             // TODO: use item, highlight the length
             let _item = data.following(4);
-            let length = safe!(data, get_u32, u32) as usize;
+            let length = data.get_u32()? as usize;
             if data.has(length) {
                 data.push_limit(length);
-                show(data, space, encoding, base, node)?;
+                show_inner(data, space, encoding, base, node)?;
                 data.pop_limit();
             } else {
                 // report error
@@ -344,11 +311,11 @@ where
         },
         &Encoding::Sized(ref size, ref encoding) => {
             data.push_limit(size.clone());
-            show(data, space, encoding, base, node)?;
+            show_inner(data, space, encoding, base, node)?;
             data.pop_limit();
         },
         &Encoding::Greedy(ref encoding) => {
-            show(data, space, encoding, base, node)?;
+            show_inner(data, space, encoding, base, node)?;
         },
         &Encoding::Hash(ref hash_type) => {
             let item = data.following(hash_type.size());
@@ -356,11 +323,11 @@ where
             node.add(base, intersect(space, item), TreeLeaf::Display(string));
         },
         &Encoding::Split(ref f) => {
-            show(data, space, &f(SchemaType::Binary), base, node)?;
+            show_inner(data, space, &f(SchemaType::Binary), base, node)?;
         },
         &Encoding::Timestamp => {
             let item = data.following(8);
-            let value = safe!(data, get_i64, i64);
+            let value = data.get_i64()?;
             let time = NaiveDateTime::from_timestamp(value, 0);
             node.add(base, intersect(space, item), TreeLeaf::Display(time));
         },
@@ -372,12 +339,11 @@ where
 }
 
 fn estimate_size<'a, C>(
-    s: &ChunkedDataBuffer<'a, C>,
+    s: &ChunkedDataInner<'a, C>,
     encoding: &Encoding,
 ) -> Result<usize, DecodingError>
 where
-    ChunkedDataBuffer<'a, C>: TezosReader + Clone,
-    C: HasBodyRange,
+    C: HasBodyRange + Clone,
 {
     estimate_size_inner(&mut s.clone(), encoding)
 }
@@ -385,27 +351,18 @@ where
 // TODO: it is double work, optimize it out
 // we should store decoded data and show it only when whole node is collected
 fn estimate_size_inner<'a, C>(
-    data: &mut ChunkedDataBuffer<'a, C>,
+    data: &mut ChunkedDataInner<'a, C>,
     encoding: &Encoding,
 ) -> Result<usize, DecodingError>
 where
-    ChunkedDataBuffer<'a, C>: TezosReader + Clone,
-    C: HasBodyRange,
+    C: HasBodyRange + Clone,
 {
     match encoding {
         &Encoding::Unit => Ok(0),
-        &Encoding::Int8 | &Encoding::Uint8 => data
-            .advance_safe(1)
-            .map_err(|()| DecodingError::NotEnoughData),
-        &Encoding::Int16 | &Encoding::Uint16 => data
-            .advance_safe(2)
-            .map_err(|()| DecodingError::NotEnoughData),
-        &Encoding::Int31 | &Encoding::Int32 | &Encoding::Uint32 => data
-            .advance_safe(4)
-            .map_err(|()| DecodingError::NotEnoughData),
-        &Encoding::Int64 => data
-            .advance_safe(8)
-            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Int8 | &Encoding::Uint8 => data.advance(1),
+        &Encoding::Int16 | &Encoding::Uint16 => data.advance(2),
+        &Encoding::Int31 | &Encoding::Int32 | &Encoding::Uint32 => data.advance(4),
+        &Encoding::Int64 => data.advance(8),
         &Encoding::RangedInt => unimplemented!(),
         &Encoding::Z => {
             let start = data.offset();
@@ -417,27 +374,21 @@ where
             let _ = data.read_mutez()?;
             Ok(data.offset() - start)
         },
-        &Encoding::Float => data
-            .advance_safe(8)
-            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Float => data.advance(8),
         &Encoding::RangedFloat => unimplemented!(),
-        &Encoding::Bool => data
-            .advance_safe(1)
-            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Bool => data.advance(1),
         &Encoding::String => {
-            let l = safe!(data, get_u32, u32) as usize;
-            data.advance_safe(l)
-                .map_err(|()| DecodingError::NotEnoughData)
+            let l = data.get_u32()? as usize;
+            data.advance(l)
         },
         &Encoding::Bytes => {
             let l = data.remaining();
-            data.advance_safe(l)
-                .map_err(|()| DecodingError::NotEnoughData)
+            data.advance(l)
         },
         &Encoding::Tags(ref tag_size, ref tag_map) => {
             let id = match tag_size {
-                &1 => safe!(data, get_u8, u8) as u16,
-                &2 => safe!(data, get_u16, u16),
+                &1 => data.get_u8()? as u16,
+                &2 => data.get_u16()?,
                 _ => {
                     log::warn!("unsupported tag size");
                     return Err(DecodingError::TagSizeNotSupported);
@@ -451,12 +402,11 @@ where
         },
         &Encoding::List(_) => {
             let l = data.remaining();
-            data.advance_safe(l)
-                .map_err(|()| DecodingError::NotEnoughData)
+            data.advance(l)
         },
         &Encoding::Enum => estimate_size_inner(data, &Encoding::Uint32),
         &Encoding::Option(ref encoding) | &Encoding::OptionalField(ref encoding) => {
-            match safe!(data, get_u8, u8) {
+            match data.get_u8()? {
                 0 => Ok(1),
                 1 => estimate_size_inner(data, encoding).map(|s| s + 1),
                 _ => Err(DecodingError::UnexpectedOptionDiscriminant),
@@ -479,25 +429,16 @@ where
             })
             .try_fold(0, |sum, size_at_field| size_at_field.map(|s| s + sum)),
         &Encoding::Dynamic(_) => {
-            let l = safe!(data, get_u32, u32) as usize;
-            data.advance_safe(l)
-                .map(|l| l + 4)
-                .map_err(|()| DecodingError::NotEnoughData)
+            let l = data.get_u32()? as usize;
+            data.advance(l).map(|l| l + 4)
         },
-        &Encoding::Sized(ref size, _) => data
-            .advance_safe(size.clone())
-            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Sized(ref size, _) => data.advance(size.clone()),
         &Encoding::Greedy(_) => {
             let l = data.remaining();
-            data.advance_safe(l)
-                .map_err(|()| DecodingError::NotEnoughData)
+            data.advance(l)
         },
-        &Encoding::Hash(ref hash_type) => data
-            .advance_safe(hash_type.size())
-            .map_err(|()| DecodingError::NotEnoughData),
-        &Encoding::Timestamp => data
-            .advance_safe(8)
-            .map_err(|()| DecodingError::NotEnoughData),
+        &Encoding::Hash(ref hash_type) => data.advance(hash_type.size()),
+        &Encoding::Timestamp => data.advance(8),
         &Encoding::Split(ref f) => estimate_size_inner(data, &f(SchemaType::Binary)),
         &Encoding::Lazy(ref _f) => panic!("should not happen"),
     }

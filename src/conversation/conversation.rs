@@ -11,7 +11,7 @@ use failure::Fail;
 use super::{addresses::Sender, direct_buffer::DecryptError, overall_buffer::ConversationBuffer};
 use crate::{
     identity::{Decipher, Identity, IdentityError},
-    value::{ChunkedDataBuffer, Named, HasBodyRange, show},
+    value::{ChunkedData, Named, HasBodyRange, show},
     range_tool::intersect,
 };
 
@@ -259,8 +259,10 @@ impl Context {
 
         if let Some(first_chunk) = first_chunk {
             if data.len() >= chunks.last().unwrap().body().end {
-                let mut chunked_buffer = ChunkedDataBuffer::new(data, chunks);
-                chunked_buffer.set_chunk(first_chunk);
+                let mut chunked_buffer = match ChunkedData::new(data, chunks, first_chunk) {
+                    Some(chunked_buffer) => chunked_buffer,
+                    None => return Ok(()),
+                };
                 loop {
                     if state.error(chunked_buffer.chunk()) {
                         chunked_buffer.skip();
@@ -275,6 +277,7 @@ impl Context {
                         2 => (AckMessage::encoding(), AckMessage::NAME),
                         _ => (PeerMessageResponse::encoding(), PeerMessageResponse::NAME),
                     };
+                    let temp = chunked_buffer.chunk();
                     match show(&mut chunked_buffer, space, &encoding, base, &mut node) {
                         Ok(_) => (),
                         Err(e) => {
@@ -283,7 +286,7 @@ impl Context {
                             break;
                         },
                     };
-                    chunked_buffer.complete_group(first_chunk, || {
+                    chunked_buffer.complete_group(temp, || {
                         log::warn!(
                             "ChunkedData::show did not consume full chunk, frame: {}",
                             packet_info.frame_number()
