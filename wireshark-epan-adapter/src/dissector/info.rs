@@ -1,40 +1,6 @@
-use std::{
-    fmt,
-    net::{SocketAddr, IpAddr},
-};
+use wireshark_definitions::{PacketMetadata, SocketAddress};
+use std::net::{SocketAddr, IpAddr};
 use crate::sys;
-
-/// The most common socket address is ip (v4 or v6 and port),
-/// but also it might be some other kind of address.
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
-pub enum SocketAddress {
-    Ip(SocketAddr),
-    Other {
-        ip_type: i32,
-        ip: Vec<u8>,
-        port: u16,
-    },
-}
-
-impl fmt::Display for SocketAddress {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            &SocketAddress::Ip(ref a) => write!(f, "{}", a),
-            &SocketAddress::Other {
-                ref ip_type,
-                ref ip,
-                ref port,
-            } => write!(f, "Unknown[{}]:{}:{}", *ip_type, hex::encode(ip), *port),
-        }
-    }
-}
-
-pub trait PacketMetadata {
-    fn destination(&self) -> SocketAddress;
-    fn source(&self) -> SocketAddress;
-    fn frame_number(&self) -> u64;
-    fn visited(&self) -> bool;
-}
 
 /// Provides information about the packet.
 pub struct PacketInfo {

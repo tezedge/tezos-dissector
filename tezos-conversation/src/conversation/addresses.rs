@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_epan_adapter::dissector::{SocketAddress, PacketMetadata};
+use wireshark_definitions::{SocketAddress, PacketMetadata};
 use std::fmt;
 
 /// Structure store addresses of first message,

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use tezos_encoding::encoding::{HasEncoding, Encoding, SchemaType, Field};
-use wireshark_epan_adapter::{FieldDescriptorOwned, FieldDescriptor, dissector::HasFields};
+use wireshark_definitions::{FieldDescriptorOwned, FieldDescriptor, HasFields};
 
 /// The wrapper around the type which has an encoding and a name as a static string.
 /// The wrapper needed because it is impossible to implement foreign trait for foreign type.

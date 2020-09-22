@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_epan_adapter::dissector::PacketMetadata;
+use wireshark_definitions::PacketMetadata;
 use std::ops::Range;
 use super::{
     addresses::{Addresses, Sender},

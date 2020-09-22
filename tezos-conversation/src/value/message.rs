@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use tezos_encoding::encoding::{Encoding, SchemaType};
-use wireshark_epan_adapter::dissector::{TreePresenter, TreeLeaf};
+use wireshark_definitions::{TreePresenter, TreeLeaf};
 use chrono::NaiveDateTime;
 use std::ops::Range;
 use bit_vec::BitVec;

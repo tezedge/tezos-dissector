@@ -1,17 +1,14 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-#[rustfmt::skip]
-use wireshark_epan_adapter::{
-    Plugin, NameDescriptor, FieldDescriptor,
-    PrefFilenameDescriptor,
-    DissectorDescriptor,
-};
+use wireshark_definitions::FieldDescriptor;
+use wireshark_epan_adapter::{Plugin, NameDescriptor, PrefFilenameDescriptor, DissectorDescriptor};
 use tezos_messages::p2p::encoding::{
     ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
     connection::ConnectionMessage,
 };
-use super::{dissector::TezosDissector, value::TezosEncoded};
+use tezos_conversation::TezosEncoded;
+use super::dissector::TezosDissector;
 
 #[no_mangle]
 static plugin_version: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");

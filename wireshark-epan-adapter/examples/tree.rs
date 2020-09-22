@@ -1,11 +1,11 @@
 // Minimal example, builds tree.
 
+use wireshark_definitions::{FieldDescriptor, TreePresenter};
+
 #[rustfmt::skip]
 use wireshark_epan_adapter::{
-    Plugin, NameDescriptor, FieldDescriptor,
-    DissectorDescriptor,
-    Dissector,
-    dissector::{Packet, Tree, TreePresenter, PacketInfo},
+    Plugin, NameDescriptor, DissectorDescriptor, Dissector,
+    dissector::{Packet, Tree, PacketInfo},
 };
 
 // Version of this plugin.
@@ -84,7 +84,7 @@ impl Dissector for SimpleDissector {
         // provides the packet id, payload, source and destination of the packet
         _packet_info: &PacketInfo,
     ) -> usize {
-        use wireshark_epan_adapter::dissector::TreeLeaf;
+        use wireshark_definitions::TreeLeaf;
 
         let payload = packet.payload();
         let length = payload.len();

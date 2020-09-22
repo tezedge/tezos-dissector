@@ -1,38 +1,6 @@
+use wireshark_definitions::{TreeLeaf, TreePresenter};
 use std::{collections::HashMap, ops::Range, rc::Rc, cell::RefCell, fmt};
-use crate::plugin::{FieldDescriptor, FieldDescriptorOwned};
 use crate::sys;
-
-pub trait TreePresenter {
-    fn subtree(&mut self) -> Self;
-    fn add<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
-    where
-        D: fmt::Display,
-        P: AsRef<str>;
-}
-
-pub enum TreeLeaf<D>
-where
-    D: fmt::Display,
-{
-    Nothing,
-    Display(D),
-    Int64Dec(i64),
-    Float64(f64),
-}
-
-impl TreeLeaf<String> {
-    pub fn dec(v: i64) -> Self {
-        TreeLeaf::Int64Dec(v)
-    }
-
-    pub fn float(v: f64) -> Self {
-        TreeLeaf::Float64(v)
-    }
-
-    pub fn nothing() -> Self {
-        TreeLeaf::Nothing
-    }
-}
 
 struct Common {
     fields: HashMap<String, i32>,
@@ -139,9 +107,4 @@ impl TreePresenter for Tree {
             node,
         }
     }
-}
-
-pub trait HasFields {
-    const FIELDS: &'static [FieldDescriptor<'static>];
-    fn fields() -> Vec<FieldDescriptorOwned>;
 }

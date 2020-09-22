@@ -1,15 +1,10 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_epan_adapter::{
-    Dissector,
-    dissector::{Packet, Tree, TreePresenter, PacketInfo, PacketMetadata},
-};
+use wireshark_definitions::{TreePresenter, PacketMetadata};
+use wireshark_epan_adapter::{Dissector, dissector::{Packet, Tree, PacketInfo}};
+use tezos_conversation::{Context, ErrorPosition, Sender, Identity};
 use std::collections::BTreeMap;
-use super::{
-    conversation::{Context, ErrorPosition, Sender},
-    identity::Identity,
-};
 
 pub struct TezosDissector {
     identity: Option<(Identity, String)>,

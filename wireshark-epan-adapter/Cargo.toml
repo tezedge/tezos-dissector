@@ -16,3 +16,4 @@ bindgen = "0.55"
 log = "0.4"
 hex = "0.4"
 os_type = "2.2"
+wireshark-definitions = { path = "../wireshark-definitions" }

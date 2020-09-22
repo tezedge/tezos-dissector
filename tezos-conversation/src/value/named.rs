@@ -27,7 +27,7 @@ impl Named for PeerMessageResponse {
 
 #[cfg(test)]
 mod tests {
-    use wireshark_epan_adapter::dissector::HasFields;
+    use wireshark_definitions::HasFields;
     use super::{ConnectionMessage, AckMessage, MetadataMessage, PeerMessageResponse};
     use crate::value::TezosEncoded;
 

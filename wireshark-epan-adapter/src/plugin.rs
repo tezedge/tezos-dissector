@@ -1,3 +1,4 @@
+use wireshark_definitions::{FieldDescriptor, FieldDescriptorOwned, HasFields};
 use std::{
     collections::HashMap,
     os::raw::{c_int, c_char, c_void},
@@ -5,7 +6,7 @@ use std::{
     ptr,
 };
 use crate::sys;
-use super::dissector::{Packet, SuperDissectorData, PacketInfo, Tree, HasFields};
+use super::dissector::{Packet, SuperDissectorData, PacketInfo, Tree};
 
 /// Should be implemented for dissector.
 pub trait Dissector {
@@ -66,39 +67,6 @@ pub struct NameDescriptor<'a> {
     pub name: &'a str,
     pub short_name: &'a str,
     pub filter_name: &'a str,
-}
-
-#[derive(Clone, Debug)]
-pub enum FieldDescriptor<'a> {
-    Nothing { name: &'a str, abbrev: &'a str },
-    String { name: &'a str, abbrev: &'a str },
-    Int64Dec { name: &'a str, abbrev: &'a str },
-}
-
-impl<'a> FieldDescriptor<'a> {
-    pub fn to_owned(&self) -> FieldDescriptorOwned {
-        match self {
-            &FieldDescriptor::Nothing { name, abbrev } => FieldDescriptorOwned::Nothing {
-                name: name.to_owned(),
-                abbrev: abbrev.to_owned(),
-            },
-            &FieldDescriptor::String { name, abbrev } => FieldDescriptorOwned::String {
-                name: name.to_owned(),
-                abbrev: abbrev.to_owned(),
-            },
-            &FieldDescriptor::Int64Dec { name, abbrev } => FieldDescriptorOwned::Int64Dec {
-                name: name.to_owned(),
-                abbrev: abbrev.to_owned(),
-            },
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum FieldDescriptorOwned {
-    Nothing { name: String, abbrev: String },
-    String { name: String, abbrev: String },
-    Int64Dec { name: String, abbrev: String },
 }
 
 trait Info {

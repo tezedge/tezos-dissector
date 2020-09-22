@@ -4,7 +4,7 @@ mod sys;
 /// Covers plugin, protocol and dissector registering.
 mod plugin;
 pub use self::plugin::{
-    Plugin, NameDescriptor, FieldDescriptor, FieldDescriptorOwned, PrefFilenameDescriptor,
+    Plugin, NameDescriptor, PrefFilenameDescriptor,
     DissectorDescriptor, Dissector,
 };
 
