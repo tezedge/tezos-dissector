@@ -38,13 +38,9 @@ impl ConversationBuffer {
     where
         P: PacketMetadata,
     {
-        let sender = self.sender(packet_info);
         let direct_buffer = self.direct_buffer_mut(packet_info);
         let already_checked = direct_buffer.data().len() >= Self::CHECK_RANGE.end;
-        match sender {
-            Sender::Initiator => direct_buffer.consume(payload, packet_info.frame_number()),
-            Sender::Responder => direct_buffer.consume(payload, packet_info.frame_number()),
-        };
+        direct_buffer.consume(payload, packet_info.frame_number());
         let data = direct_buffer.data();
         // if after consume have enough bytes, let's check the proof of work
         let can_check = data.len() >= Self::CHECK_RANGE.end;
