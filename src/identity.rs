@@ -55,7 +55,7 @@ impl Identity {
         } else if responder_pk_string == self.public_key {
             initiator_chunk[4..36].to_owned()
         } else {
-            Err(IdentityError::CannotDecrypt)?
+            return Err(IdentityError::CannotDecrypt);
         };
 
         Ok(Decipher {

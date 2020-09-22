@@ -22,7 +22,7 @@ mod overall_buffer;
 
 /// the whole conversation information, so called conversation context
 // TODO: refactor, simplify
-mod conversation;
+mod context;
 
 pub use self::addresses::Sender;
-pub use self::conversation::{Context, ErrorPosition};
+pub use self::context::{Context, ErrorPosition};

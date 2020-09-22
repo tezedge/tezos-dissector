@@ -197,7 +197,7 @@ impl Context {
                 if state.error(index) {
                     node.add("decryption_error", 0..0, TreeLeaf::Display(state));
                     return Err(ErrorPosition {
-                        sender: sender,
+                        sender,
                         frame_number: packet_info.frame_number(),
                     });
                 } else {

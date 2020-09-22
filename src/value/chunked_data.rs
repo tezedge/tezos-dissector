@@ -20,9 +20,9 @@ where
                 if let Some(first_chunk) = chunks.get(first_chunk_index) {
                     return Some(ChunkedData {
                         inner: ChunkedDataInner {
-                            data: data,
+                            data,
                             data_offset: first_chunk.body().start,
-                            chunks: chunks,
+                            chunks,
                             chunks_offset: first_chunk_index,
                             limit: None,
                             limits: Vec::new(),
@@ -265,8 +265,7 @@ where
 
     pub fn copy_to_vec(&mut self, length: usize) -> Result<Vec<u8>, DecodingError> {
         if self.has(length) {
-            let mut buffer = Vec::with_capacity(length);
-            buffer.resize(length, 0);
+            let mut buffer = vec![0; length];
             self.copy_to_slice(buffer.as_mut_slice())?;
             Ok(buffer)
         } else {
