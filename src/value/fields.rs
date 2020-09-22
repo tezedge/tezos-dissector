@@ -111,20 +111,27 @@ where
                 },
                 &Encoding::Obj(ref fields) => (
                     Some(FieldKind::Nothing),
-                    fields
-                        .iter()
-                        .map(|field| {
-                            // make exception for this field
-                            // because it is impossible to traversal infinite tree
-                            let encoding = if field.get_name() == "operation_hashes_path" {
-                                Encoding::Obj(vec![Field::new("path_component", Encoding::String)])
-                            } else {
-                                field.get_encoding().clone()
-                            };
-                            recursive(new_base.as_str(), field.get_name(), &encoding)
-                        })
-                        .flatten()
-                        .collect(),
+                    if fields.len() == 1 && fields[0].get_name() == "messages" {
+                        recursive(base, name, &fields[0].get_encoding())
+                    } else {
+                        fields
+                            .iter()
+                            .map(|field| {
+                                // make exception for this field
+                                // because it is impossible to traversal infinite tree
+                                let encoding = if field.get_name() == "operation_hashes_path" {
+                                    Encoding::Obj(vec![Field::new(
+                                        "path_component",
+                                        Encoding::String,
+                                    )])
+                                } else {
+                                    field.get_encoding().clone()
+                                };
+                                recursive(new_base.as_str(), field.get_name(), &encoding)
+                            })
+                            .flatten()
+                            .collect()
+                    },
                 ),
                 &Encoding::Tup(ref e) => (
                     Some(FieldKind::Nothing),
@@ -154,6 +161,6 @@ where
                 .chain(more)
                 .collect()
         }
-        recursive("tezos", T::NAME, &T::encoding())
+        recursive("tezos.messages", T::NAME, &T::encoding())
     }
 }

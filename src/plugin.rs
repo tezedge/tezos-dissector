@@ -61,6 +61,10 @@ extern "C" fn plugin_register() {
                     name: "Decoding error\0",
                     abbrev: "tezos.decoding_error\0",
                 },
+                FieldDescriptor::String {
+                    name: "Messages\0",
+                    abbrev: "tezos.messages\0",
+                },
             ],
             // chunk
             &[

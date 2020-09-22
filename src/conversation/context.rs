@@ -64,8 +64,7 @@ impl Context {
         payload: &[u8],
         packet_info: &P,
         identity: Option<&(Identity, String)>,
-    )
-    where
+    ) where
         P: PacketMetadata,
     {
         match self {
@@ -158,11 +157,7 @@ impl Context {
     }
 
     /// Returns if there is decryption error.
-    pub fn visualize<P, T>(
-        &self,
-        packet_info: &P,
-        root: &mut T,
-    ) -> Result<(), ErrorPosition>
+    pub fn visualize<P, T>(&self, packet_info: &P, root: &mut T) -> Result<(), ErrorPosition>
     where
         P: PacketMetadata,
         T: TreePresenter,
@@ -189,6 +184,8 @@ impl Context {
             &Sender::Responder => "remote",
         };
         node.add("source", 0..0, TreeLeaf::Display(direction));
+
+        let messages = node.add("messages", 0..0, TreeLeaf::nothing()).subtree();
 
         // TODO: split it in separated methods
         for (index, chunk_info) in chunks.iter().enumerate() {
@@ -271,6 +268,7 @@ impl Context {
                     Some(chunked_buffer) => chunked_buffer,
                     None => return Ok(()),
                 };
+                let mut messages = messages;
                 loop {
                     if state.error(chunked_buffer.chunk()) {
                         chunked_buffer.skip();
@@ -289,11 +287,15 @@ impl Context {
                     // if it is first chunk limit the buffer by just this one chunk,
                     // because connection message goes in single chunk
                     if temp == 0 {
-                        chunked_buffer.inner_mut().push_limit(chunks[0].body().len());
+                        chunked_buffer
+                            .inner_mut()
+                            .push_limit(chunks[0].body().len());
                     }
-                    match show(&mut chunked_buffer, space, &encoding, base, &mut node) {
-                        Ok(_) => if temp == 0 {
-                            chunked_buffer.inner_mut().pop_limit();
+                    match show(&mut chunked_buffer, space, &encoding, base, &mut messages) {
+                        Ok(_) => {
+                            if temp == 0 {
+                                chunked_buffer.inner_mut().pop_limit();
+                            }
                         },
                         Err(e) => {
                             let leaf = TreeLeaf::Display(e);

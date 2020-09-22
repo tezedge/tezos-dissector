@@ -259,31 +259,35 @@ where
             }
         },
         &Encoding::Obj(ref fields) => {
-            let size = estimate_size(data, &Encoding::Obj(fields.clone()))?;
-            let item = data.following(size);
-            let range = intersect(space, item);
-            let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
-            for field in fields {
-                if field.get_name() == "operation_hashes_path" {
-                    let mut item = data.following(0);
-                    let mut path = Vec::new();
-                    data.read_path(&mut path)?;
-                    item.end = data.offset();
-                    let range = intersect(space, item);
-                    let mut p = sub_node
-                        .add(field.get_name(), range, TreeLeaf::nothing())
-                        .subtree();
-                    for component in path.into_iter().rev() {
-                        p.add("path_component", 0..0, TreeLeaf::Display(component));
+            if fields.len() == 1 && fields[0].get_name() == "messages" {
+                show_inner(data, space, &fields[0].get_encoding(), base, node)?;
+            } else {
+                let size = estimate_size(data, &Encoding::Obj(fields.clone()))?;
+                let item = data.following(size);
+                let range = intersect(space, item);
+                let mut sub_node = node.add(base, range, TreeLeaf::nothing()).subtree();
+                for field in fields {
+                    if field.get_name() == "operation_hashes_path" {
+                        let mut item = data.following(0);
+                        let mut path = Vec::new();
+                        data.read_path(&mut path)?;
+                        item.end = data.offset();
+                        let range = intersect(space, item);
+                        let mut p = sub_node
+                            .add(field.get_name(), range, TreeLeaf::nothing())
+                            .subtree();
+                        for component in path.into_iter().rev() {
+                            p.add("path_component", 0..0, TreeLeaf::Display(component));
+                        }
+                    } else {
+                        show_inner(
+                            data,
+                            space,
+                            field.get_encoding(),
+                            field.get_name(),
+                            &mut sub_node,
+                        )?;
                     }
-                } else {
-                    show_inner(
-                        data,
-                        space,
-                        field.get_encoding(),
-                        field.get_name(),
-                        &mut sub_node,
-                    )?;
                 }
             }
         },
