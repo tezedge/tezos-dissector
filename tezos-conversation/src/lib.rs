@@ -20,5 +20,5 @@ mod identity;
 pub mod proof_of_work;
 
 pub use self::identity::{Identity, IdentityError, Decipher, NonceAddition};
-pub use self::conversation::{Context, ErrorPosition, Sender};
+pub use self::conversation::Context;
 pub use self::value::TezosEncoded;

@@ -46,17 +46,17 @@ pub struct ErrorPosition {
     frame_number: u64,
 }
 
-pub enum Context {
+pub enum ContextInner {
     Regular(ConversationBuffer, Option<Decipher>, State),
     Unrecognized,
 }
 
-impl Context {
+impl ContextInner {
     pub fn new<P>(packet_info: &P) -> Self
     where
         P: PacketMetadata,
     {
-        Context::Regular(ConversationBuffer::new(packet_info), None, State::Correct)
+        ContextInner::Regular(ConversationBuffer::new(packet_info), None, State::Correct)
     }
 
     pub fn consume<P>(
@@ -68,11 +68,11 @@ impl Context {
         P: PacketMetadata,
     {
         match self {
-            &mut Context::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
+            &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
                 match buffer.consume(payload, packet_info) {
                     Ok(()) => (),
                     Err(()) => {
-                        *self = Context::Unrecognized;
+                        *self = ContextInner::Unrecognized;
                         return;
                     },
                 }
@@ -98,7 +98,7 @@ impl Context {
                             },
                         }
                     } else if buffer.direct_buffer(packet_info).chunks().len() > 1 {
-                        *self = Context::Unrecognized;
+                        *self = ContextInner::Unrecognized;
                         return;
                     }
                 }
@@ -109,19 +109,19 @@ impl Context {
                             0 => panic!("impossible, the first message is never encrypted"),
                             // if cannot decrypt the first message,
                             // most likely it is not our conversation
-                            1 => *self = Context::Unrecognized,
+                            1 => *self = ContextInner::Unrecognized,
                             _ => *state = State::DecryptError(e),
                         }
                     }
                 }
             },
-            &mut Context::Unrecognized => (),
+            &mut ContextInner::Unrecognized => (),
         };
     }
 
     pub fn invalid(&self) -> bool {
         match self {
-            &Context::Unrecognized => true,
+            &ContextInner::Unrecognized => true,
             _ => false,
         }
     }
@@ -136,15 +136,15 @@ impl Context {
 
     fn buffer(&self) -> &ConversationBuffer {
         match self {
-            &Context::Regular(ref buffer, ..) => buffer,
-            &Context::Unrecognized => panic!("call `Context::visualize` on invalid context"),
+            &ContextInner::Regular(ref buffer, ..) => buffer,
+            &ContextInner::Unrecognized => panic!("call `Context::visualize` on invalid context"),
         }
     }
 
     fn state(&self) -> &State {
         match self {
-            &Context::Regular(_, _, ref state, ..) => state,
-            &Context::Unrecognized => panic!("call `Context::visualize` on invalid context"),
+            &ContextInner::Regular(_, _, ref state, ..) => state,
+            &ContextInner::Unrecognized => panic!("call `Context::visualize` on invalid context"),
         }
     }
 

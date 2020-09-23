@@ -24,5 +24,7 @@ mod overall_buffer;
 // TODO: refactor, simplify
 mod context;
 
+mod context_wrapper;
+
 pub use self::addresses::Sender;
-pub use self::context::{Context, ErrorPosition};
+pub use self::context_wrapper::Context;

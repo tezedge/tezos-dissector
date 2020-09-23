@@ -1,9 +1,9 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_definitions::{TreePresenter, PacketMetadata};
+use wireshark_definitions::TreePresenter;
 use wireshark_epan_adapter::{Dissector, dissector::{Packet, Tree, PacketInfo}};
-use tezos_conversation::{Context, ErrorPosition, Sender, Identity};
+use tezos_conversation::{Context, Identity};
 use std::collections::BTreeMap;
 
 pub struct TezosDissector {
@@ -12,69 +12,7 @@ pub struct TezosDissector {
     // The pair is unordered,
     // so A talk to B is the same conversation as B talks to A.
     // The key is just pointer in memory, so it is invalid when capturing session is closed.
-    contexts: BTreeMap<usize, ContextExt>,
-}
-
-struct ContextExt {
-    inner: Context,
-    incoming_frame_result: Result<(), ErrorPosition>,
-    outgoing_frame_result: Result<(), ErrorPosition>,
-}
-
-impl ContextExt {
-    pub fn new(inner: Context) -> Self {
-        ContextExt {
-            inner,
-            incoming_frame_result: Ok(()),
-            outgoing_frame_result: Ok(()),
-        }
-    }
-
-    /// The context becomes invalid if the inner is invalid or
-    /// if the decryption error occurs in some previous frame.
-    /// If the frame number is equal to the frame where error occurs,
-    /// the context still valid, but after that it is invalid.
-    /// Let's show the error message once.
-    fn invalid(&self, packet_info: &PacketInfo) -> bool {
-        let i_error = self
-            .incoming_frame_result
-            .as_ref()
-            .err()
-            .map(|ref e| self.inner.after(packet_info, e))
-            .unwrap_or(false);
-        let o_error = self
-            .outgoing_frame_result
-            .as_ref()
-            .err()
-            .map(|ref e| self.inner.after(packet_info, e))
-            .unwrap_or(false);
-        i_error || o_error || self.inner.invalid()
-    }
-
-    pub fn visualize<T>(
-        &mut self,
-        packet_length: usize,
-        packet_info: &PacketInfo,
-        root: &mut T,
-    ) -> usize
-    where
-        T: TreePresenter,
-    {
-        // the context might become invalid if the conversation is not tezos,
-        // or if decryption error occurs
-        if !self.invalid(packet_info) {
-            match self.inner.visualize(packet_info, root) {
-                Ok(()) => (),
-                Err(r) => match r.sender {
-                    Sender::Initiator => self.incoming_frame_result = Err(r),
-                    Sender::Responder => self.outgoing_frame_result = Err(r),
-                },
-            };
-            packet_length
-        } else {
-            0
-        }
-    }
+    contexts: BTreeMap<usize, Context>,
 }
 
 impl TezosDissector {
@@ -134,13 +72,11 @@ impl TezosDissector {
         let context = self
             .contexts
             .entry(context_key)
-            .or_insert_with(|| ContextExt::new(Context::new(packet_info)));
-        if !packet_info.visited() {
-            // consume each packet only once
-            context
-                .inner
-                .consume(payload.as_ref(), packet_info, self.identity.as_ref());
+            .or_insert_with(|| Context::new());
+        if context.add(self.identity.as_ref(), payload.as_ref(), packet_info, root) {
+            payload.len()
+        } else {
+            0
         }
-        context.visualize(payload.len(), packet_info, root)
     }
 }

@@ -4,7 +4,6 @@ members = [
     "wireshark-definitions",
     "prebuilt",
     "tezos-conversation",
-    "fuzz",
     ".",
 ]
 
