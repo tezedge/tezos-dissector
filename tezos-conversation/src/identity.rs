@@ -3,9 +3,12 @@
 
 use serde::Deserialize;
 use crypto::{
-    hash::HashType,
-    crypto_box::{PrecomputedKey, precompute, decrypt, CryptoError},
+    crypto_box::{PrecomputedKey, precompute, decrypt, encrypt, CryptoError},
     nonce::{NoncePair, Nonce, generate_nonces},
+};
+use tezos_messages::p2p::encoding::{
+    connection::ConnectionMessage,
+    version::NetworkVersion,
 };
 use std::{path::Path, ops::Add};
 use num_bigint::BigUint;
@@ -30,13 +33,13 @@ impl Identity {
     where
         P: AsRef<Path>,
     {
-        use std::fs;
+        let content = std::fs::read_to_string(path.as_ref())?;
+        serde_json::from_str(&content).map_err(Into::into)
+    }
 
-        let content = fs::read_to_string(path.as_ref())?;
-        let mut identity: Identity = serde_json::from_str(&content)?;
-        let decoded = hex::decode(&identity.public_key)?;
-        identity.public_key = HashType::CryptoboxPublicKeyHash.bytes_to_string(&decoded);
-        Ok(identity)
+    pub fn connection_message(&self) -> ConnectionMessage {
+        let version = NetworkVersion::new("testnet".to_owned(), 0, 0);
+        ConnectionMessage::new(1234, &self.public_key, &self.proof_of_work_stamp, [0; 24].as_ref(), vec![version])
     }
 
     /// Create a decipher object using connection message pair.
@@ -45,21 +48,19 @@ impl Identity {
         initiator_chunk: &[u8],
         responder_chunk: &[u8],
     ) -> Result<Decipher, IdentityError> {
-        let initiator_pk_string =
-            HashType::CryptoboxPublicKeyHash.bytes_to_string(&initiator_chunk[4..36]);
-        let responder_pk_string =
-            HashType::CryptoboxPublicKeyHash.bytes_to_string(&responder_chunk[4..36]);
+        let initiator_pk_string = hex::encode(&initiator_chunk[4..36]);
+        let responder_pk_string = hex::encode(&responder_chunk[4..36]);
         // check if the identity belong to one of the parties
         let other_pk = if initiator_pk_string == self.public_key {
-            responder_chunk[4..36].to_owned()
+            responder_pk_string
         } else if responder_pk_string == self.public_key {
-            initiator_chunk[4..36].to_owned()
+            initiator_pk_string
         } else {
             return Err(IdentityError::CannotDecrypt);
         };
 
         Ok(Decipher {
-            key: precompute(&hex::encode(&other_pk), &self.secret_key)
+            key: precompute(&other_pk, &self.secret_key)
                 .map_err(|_| IdentityError::Invalid)?,
             // initiator/responder is not the same as local/remote party,
             // but let's only in this module treat initiator as local party, and responder as remote
@@ -81,22 +82,32 @@ pub enum NonceAddition {
     Responder(u64),
 }
 
+// it will be better to implement it as method of `Nonce`
+fn add_nonce(nonce: &Nonce, addition: u64) -> Nonce {
+    let bytes = nonce.get_bytes();
+    let n = BigUint::from_bytes_be(bytes.as_slice());
+    let bytes = <BigUint as Add<u64>>::add(n, addition).to_bytes_be();
+    Nonce::new(bytes.as_slice())
+}
+
+
 impl Decipher {
     pub fn decrypt(&self, enc: &[u8], chunk_number: NonceAddition) -> Result<Vec<u8>, CryptoError> {
-        // it will be better to implement it as method of `Nonce`
-        let add = |nonce: &Nonce, addition: u64| -> Nonce {
-            let bytes = nonce.get_bytes();
-            let n = BigUint::from_bytes_be(bytes.as_slice());
-            let bytes = <BigUint as Add<u64>>::add(n, addition).to_bytes_be();
-            Nonce::new(bytes.as_slice())
-        };
-
         // prepare the actual nonce for the message
         let nonce = match chunk_number {
-            NonceAddition::Initiator(addition) => add(&self.nonce.local, addition),
-            NonceAddition::Responder(addition) => add(&self.nonce.remote, addition),
+            NonceAddition::Initiator(addition) => add_nonce(&self.nonce.local, addition),
+            NonceAddition::Responder(addition) => add_nonce(&self.nonce.remote, addition),
         };
 
         decrypt(enc, &nonce, &self.key)
+    }
+
+    pub fn encrypt(&self, msg: &[u8], chunk_number: NonceAddition) -> Result<Vec<u8>, CryptoError> {
+        let nonce = match chunk_number {
+            NonceAddition::Initiator(addition) => add_nonce(&self.nonce.local, addition),
+            NonceAddition::Responder(addition) => add_nonce(&self.nonce.remote, addition),
+        };
+
+        encrypt(msg, &nonce, &self.key)
     }
 }
