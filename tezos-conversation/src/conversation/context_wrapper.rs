@@ -60,7 +60,9 @@ impl Context {
         T: TreePresenter,
     {
         let inner = self.inner.get_or_insert_with(|| ContextInner::new(metadata));
-        inner.consume(data, metadata, identity);    
+        if !metadata.visited() {
+            inner.consume(data, metadata, identity);    
+        }
 
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
