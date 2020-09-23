@@ -102,7 +102,7 @@ impl DirectBuffer {
     pub fn packet(&self, index: u64) -> Range<usize> {
         self.packets
             .get(&index)
-            .expect("already seen packet")
+            .expect("expected already seen packet")
             .clone()
     }
 }

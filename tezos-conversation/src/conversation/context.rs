@@ -97,6 +97,9 @@ impl Context {
                                 *state = State::HaveNoIdentity;
                             },
                         }
+                    } else if buffer.direct_buffer(packet_info).chunks().len() > 1 {
+                        *self = Context::Unrecognized;
+                        return;
                     }
                 }
                 if let &mut Some(ref decipher) = decipher {
