@@ -25,6 +25,7 @@
         "gboolean",
         "heur",
         "hfinfo",
+        "libfuzzer",
         "libtezos",
         "llvm",
         "macos",

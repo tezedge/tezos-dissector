@@ -23,8 +23,6 @@ impl ConversationBuffer {
     // 32 bytes public key + 24 bytes proof_of_work = 56
     const CHECK_RANGE: Range<usize> = 4..(4 + 56);
 
-    const REQUIRE_POW: bool = true;
-
     pub fn new<P>(packet_info: &P) -> Self
     where
         P: PacketMetadata,
@@ -47,12 +45,7 @@ impl ConversationBuffer {
         // if after consume have enough bytes, let's check the proof of work
         let can_check = data.len() >= Self::CHECK_RANGE.end;
         if !already_checked && can_check {
-            let target = if Self::REQUIRE_POW {
-                DEFAULT_TARGET
-            } else {
-                0.0
-            };
-            check_proof_of_work(&data[Self::CHECK_RANGE], target)
+            check_proof_of_work(&data[Self::CHECK_RANGE], DEFAULT_TARGET)
         } else {
             Ok(())
         }

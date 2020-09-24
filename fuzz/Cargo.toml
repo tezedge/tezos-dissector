@@ -1,0 +1,38 @@
+
+[package]
+name = "tezos-dissector-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.3"
+
+[dependencies.tezos-conversation]
+path = "../tezos-conversation"
+
+# Prevent this from interfering with workspaces
+# [workspace]
+# members = ["."]
+
+[[bin]]
+name = "simulate_encrypted"
+path = "fuzz_targets/simulate_encrypted.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "simulate_handshake"
+path = "fuzz_targets/simulate_handshake.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "simulate_foreign"
+path = "fuzz_targets/simulate_foreign.rs"
+test = false
+doc = false

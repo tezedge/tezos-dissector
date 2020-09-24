@@ -16,6 +16,7 @@ num-bigint = "0.3"
 chrono = "0.4"
 bit-vec = "0.6"
 
-crypto = { tag = "v0.2.0", git = "https://github.com/simplestaking/tezedge" }
-tezos_encoding = { tag = "v0.2.0", git = "https://github.com/simplestaking/tezedge" }
-tezos_messages = { tag = "v0.2.0", git = "https://github.com/simplestaking/tezedge" }
+crypto = { tag = "v0.4.0", git = "https://github.com/simplestaking/tezedge" }
+tezos_encoding = { tag = "v0.4.0", git = "https://github.com/simplestaking/tezedge" }
+tezos_messages = { tag = "v0.4.0", git = "https://github.com/simplestaking/tezedge" }
+sodiumoxide = "0.2"

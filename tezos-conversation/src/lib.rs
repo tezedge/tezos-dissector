@@ -19,6 +19,12 @@ mod identity;
 
 pub mod proof_of_work;
 
+mod simulator;
+
 pub use self::identity::{Identity, IdentityError, Decipher, NonceAddition};
 pub use self::conversation::Context;
 pub use self::value::TezosEncoded;
+pub use self::simulator::{
+    Tree, PacketDescriptor, ChunkDescriptor,
+    simulate_foreign, simulate_handshake, simulate_encrypted,
+};
