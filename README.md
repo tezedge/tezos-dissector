@@ -44,8 +44,8 @@ Run the following to install the proper version of Rust.
 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
 source ~/.cargo/env
+rustup install nightly-2020-07-12 && rustup default nightly-2020-07-12
 ```
 
 #### 3. Get the source code
