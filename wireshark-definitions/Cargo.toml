@@ -2,6 +2,7 @@
 name = "wireshark-definitions"
 version = "0.1.0"
 authors = ["Vladislav Melnik <vladislav.melnik@simplestaking.com>"]
+license = "MIT"
 edition = "2018"
 
 [dependencies]
