@@ -9,11 +9,12 @@ use super::{
 };
 use crate::{
     identity::Decipher,
-    proof_of_work::{check_proof_of_work, DEFAULT_TARGET},
+    proof_of_work::check_proof_of_work,
 };
 
 pub struct ConversationBuffer {
     addresses: Addresses,
+    pow_target: f64,
     incoming: DirectBuffer,
     outgoing: DirectBuffer,
 }
@@ -23,12 +24,13 @@ impl ConversationBuffer {
     // 32 bytes public key + 24 bytes proof_of_work = 56
     const CHECK_RANGE: Range<usize> = 4..(4 + 56);
 
-    pub fn new<P>(packet_info: &P) -> Self
+    pub fn new<P>(packet_info: &P, pow_target: f64) -> Self
     where
         P: PacketMetadata,
     {
         ConversationBuffer {
             addresses: Addresses::new(packet_info),
+            pow_target,
             incoming: DirectBuffer::new(),
             outgoing: DirectBuffer::new(),
         }
@@ -38,6 +40,7 @@ impl ConversationBuffer {
     where
         P: PacketMetadata,
     {
+        let target = self.pow_target;
         let direct_buffer = self.direct_buffer_mut(packet_info);
         let already_checked = direct_buffer.data().len() >= Self::CHECK_RANGE.end;
         direct_buffer.consume(payload, packet_info.frame_number());
@@ -45,7 +48,7 @@ impl ConversationBuffer {
         // if after consume have enough bytes, let's check the proof of work
         let can_check = data.len() >= Self::CHECK_RANGE.end;
         if !already_checked && can_check {
-            check_proof_of_work(&data[Self::CHECK_RANGE], DEFAULT_TARGET)
+            check_proof_of_work(&data[Self::CHECK_RANGE], target)
         } else {
             Ok(())
         }

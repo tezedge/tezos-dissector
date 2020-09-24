@@ -52,11 +52,12 @@ pub enum ContextInner {
 }
 
 impl ContextInner {
-    pub fn new<P>(packet_info: &P) -> Self
+    pub fn new<P>(packet_info: &P, pow_target: f64) -> Self
     where
         P: PacketMetadata,
     {
-        ContextInner::Regular(ConversationBuffer::new(packet_info), None, State::Correct)
+        let b = ConversationBuffer::new(packet_info, pow_target);
+        ContextInner::Regular(b, None, State::Correct)
     }
 
     pub fn consume<P>(

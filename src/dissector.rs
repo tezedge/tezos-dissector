@@ -3,7 +3,7 @@
 
 use wireshark_definitions::TreePresenter;
 use wireshark_epan_adapter::{Dissector, dissector::{Packet, Tree, PacketInfo}};
-use tezos_conversation::{Context, Identity};
+use tezos_conversation::{Context, Identity, proof_of_work::DEFAULT_TARGET};
 use std::collections::BTreeMap;
 
 pub struct TezosDissector {
@@ -72,7 +72,7 @@ impl TezosDissector {
         let context = self
             .contexts
             .entry(context_key)
-            .or_insert_with(|| Context::new());
+            .or_insert_with(|| Context::new(DEFAULT_TARGET));
         if context.add(self.identity.as_ref(), payload.as_ref(), packet_info, root) {
             payload.len()
         } else {

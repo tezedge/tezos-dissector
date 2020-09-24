@@ -7,14 +7,16 @@ use crate::identity::Identity;
 
 pub struct Context {
     inner: Option<ContextInner>,
+    pow_target: f64,
     incoming_frame_result: Result<(), ErrorPosition>,
     outgoing_frame_result: Result<(), ErrorPosition>,
 }
 
 impl Context {
-    pub fn new() -> Self {
+    pub fn new(pow_target: f64) -> Self {
         Context {
             inner: None,
+            pow_target,
             incoming_frame_result: Ok(()),
             outgoing_frame_result: Ok(()),
         }
@@ -59,7 +61,8 @@ impl Context {
         P: PacketMetadata,
         T: TreePresenter,
     {
-        let inner = self.inner.get_or_insert_with(|| ContextInner::new(metadata));
+        let pow_target = self.pow_target;
+        let inner = self.inner.get_or_insert_with(|| ContextInner::new(metadata, pow_target));
         if !metadata.visited() {
             inner.consume(data, metadata, identity);    
         }

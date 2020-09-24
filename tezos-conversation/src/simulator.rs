@@ -105,7 +105,7 @@ pub fn simulate_foreign<T>(descriptors: &[PacketDescriptor], data: &[u8], output
 where
     T: TreePresenter,
 {
-    let context = Context::new();
+    let context = Context::new(0.0);
     let _ = packet_iter(descriptors.iter().cloned())
         .fold((context, 0), |(mut context, pos), (metadata, length)| {
             let end = pos + length;
@@ -120,7 +120,7 @@ pub fn simulate_handshake<T>(descriptors: &[PacketDescriptor], data: &[u8], outp
 where
     T: TreePresenter,
 {
-    let context = Context::new();
+    let context = Context::new(0.0);
     let _ = packet_iter(descriptors.iter().cloned())
         .fold((context, 0), |(mut context, pos), (metadata, length)| {
             let end = pos + length;
@@ -171,7 +171,7 @@ pub fn simulate_encrypted<T>(
     ];
 
     let id = (identity, path);
-    let context = Context::new();
+    let context = Context::new(0.0);
     let _ = packet_iter(handshake_descriptors.iter().cloned().chain(descriptors.iter().cloned()))
         .fold((context, 0, 0), |(mut context, pos_a, pos_b), (metadata, length)| {
             let (end_a, end_b, slice) = if metadata.swapped {
