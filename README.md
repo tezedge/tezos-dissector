@@ -61,6 +61,13 @@ cd tezos-dissector
 
 Now that the shell is in the directory where the sources are, you are ready to build and install. If you, for some reason, close this terminal and open it again, make sure you change the dir in tezos-dissector directory `cd tezos-dissector`.
 
+If you already have the plugin and want to update it run the following:
+
+```
+cd tezos-dissector
+git pull origin master
+```
+
 ## Build and install
 
 You can choose one of two methods for building and installing the Tezos Wireshark dissector: 
