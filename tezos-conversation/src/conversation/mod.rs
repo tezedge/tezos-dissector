@@ -27,4 +27,4 @@ mod context;
 mod context_wrapper;
 
 pub use self::addresses::Sender;
-pub use self::context_wrapper::Context;
+pub use self::context_wrapper::Conversation;

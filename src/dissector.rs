@@ -6,7 +6,7 @@ use wireshark_epan_adapter::{
     Dissector,
     dissector::{Packet, Tree, PacketInfo},
 };
-use tezos_conversation::{Context, Identity, proof_of_work::DEFAULT_TARGET};
+use tezos_conversation::{Conversation, Identity, proof_of_work::DEFAULT_TARGET};
 use std::collections::BTreeMap;
 
 pub struct TezosDissector {
@@ -15,14 +15,14 @@ pub struct TezosDissector {
     // The pair is unordered,
     // so A talk to B is the same conversation as B talks to A.
     // The key is just pointer in memory, so it is invalid when capturing session is closed.
-    contexts: BTreeMap<usize, Context>,
+    conversations: BTreeMap<usize, Conversation>,
 }
 
 impl TezosDissector {
     pub fn new() -> Self {
         TezosDissector {
             identity: None,
-            contexts: BTreeMap::new(),
+            conversations: BTreeMap::new(),
         }
     }
 }
@@ -53,7 +53,7 @@ impl Dissector for TezosDissector {
     // This method called by the wireshark when the user
     // closing current capturing session
     fn cleanup(&mut self) {
-        self.contexts.clear();
+        self.conversations.clear();
     }
 }
 
@@ -71,12 +71,11 @@ impl TezosDissector {
         // get the data
         let payload = packet.payload();
         // retrieve or create a new context for the conversation
-        let context_key = packet_info.context_key();
-        let context = self
-            .contexts
-            .entry(context_key)
-            .or_insert_with(|| Context::new(DEFAULT_TARGET));
-        if context.add(self.identity.as_ref(), payload.as_ref(), packet_info, root) {
+        let conversation = self
+            .conversations
+            .entry(packet_info.context_key())
+            .or_insert_with(|| Conversation::new(DEFAULT_TARGET));
+        if conversation.add(self.identity.as_ref(), payload.as_ref(), packet_info, root) {
             payload.len()
         } else {
             0

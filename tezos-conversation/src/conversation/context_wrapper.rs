@@ -5,16 +5,16 @@ use super::{
 };
 use crate::identity::Identity;
 
-pub struct Context {
+pub struct Conversation {
     inner: Option<ContextInner>,
     pow_target: f64,
     incoming_frame_result: Result<(), ErrorPosition>,
     outgoing_frame_result: Result<(), ErrorPosition>,
 }
 
-impl Context {
+impl Conversation {
     pub fn new(pow_target: f64) -> Self {
-        Context {
+        Conversation {
             inner: None,
             pow_target,
             incoming_frame_result: Ok(()),
