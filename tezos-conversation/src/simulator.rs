@@ -42,7 +42,6 @@ struct Packet {
     source: SocketAddress,
     destination: SocketAddress,
     number: u64,
-    visited: bool,
     swapped: bool,
 }
 
@@ -57,10 +56,6 @@ impl PacketMetadata for Packet {
 
     fn frame_number(&self) -> u64 {
         self.number.clone()
-    }
-
-    fn visited(&self) -> bool {
-        self.visited.clone()
     }
 }
 
@@ -93,7 +88,6 @@ fn packet_iter(descriptors: impl Iterator<Item = PacketDescriptor>) -> impl Iter
                     source: if swap { destination.clone() } else { source.clone() },
                     destination: if swap { source.clone() } else { destination.clone() },
                     number: (number + 1) as _,
-                    visited: false,
                     swapped: swap,
                 },
                 length,

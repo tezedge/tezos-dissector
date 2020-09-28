@@ -70,6 +70,10 @@ impl ContextInner {
     {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
+                // do nothing if already visited
+                if buffer.direct_buffer(packet_info).packet(packet_info.frame_number()).is_some() {
+                    return;
+                }
                 match buffer.consume(payload, packet_info) {
                     Ok(()) => (),
                     Err(()) => {
@@ -167,7 +171,7 @@ impl ContextInner {
         T: TreePresenter,
     {
         let buffer = self.buffer().direct_buffer(packet_info);
-        let space = &buffer.packet(packet_info.frame_number());
+        let space = buffer.packet(packet_info.frame_number()).unwrap();
         let data = buffer.data();
         let decrypted = buffer.decrypted();
         let chunks = buffer.chunks();

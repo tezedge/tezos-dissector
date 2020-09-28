@@ -99,10 +99,8 @@ impl DirectBuffer {
         self.chunks.as_ref()
     }
 
-    pub fn packet(&self, index: u64) -> Range<usize> {
+    pub fn packet(&self, index: u64) -> Option<&Range<usize>> {
         self.packets
             .get(&index)
-            .expect("expected already seen packet")
-            .clone()
     }
 }

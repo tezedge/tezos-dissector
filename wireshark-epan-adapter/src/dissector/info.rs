@@ -47,11 +47,6 @@ impl PacketMetadata for PacketInfo {
     fn frame_number(&self) -> u64 {
         self.fd().num as _
     }
-
-    /// Is this packet was already processed by this dissector.
-    fn visited(&self) -> bool {
-        self.fd().visited() != 0
-    }
 }
 
 fn read_address(addr: sys::address, port: u16) -> SocketAddress {

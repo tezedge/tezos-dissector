@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 use wireshark_definitions::TreePresenter;
-use wireshark_epan_adapter::{Dissector, dissector::{Packet, Tree, PacketInfo}};
+use wireshark_epan_adapter::{
+    Dissector,
+    dissector::{Packet, Tree, PacketInfo},
+};
 use tezos_conversation::{Context, Identity, proof_of_work::DEFAULT_TARGET};
 use std::collections::BTreeMap;
 

@@ -99,5 +99,4 @@ pub trait PacketMetadata {
     fn destination(&self) -> SocketAddress;
     fn source(&self) -> SocketAddress;
     fn frame_number(&self) -> u64;
-    fn visited(&self) -> bool;
 }

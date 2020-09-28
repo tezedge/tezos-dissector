@@ -63,9 +63,7 @@ impl Context {
     {
         let pow_target = self.pow_target;
         let inner = self.inner.get_or_insert_with(|| ContextInner::new(metadata, pow_target));
-        if !metadata.visited() {
-            inner.consume(data, metadata, identity);    
-        }
+        inner.consume(data, metadata, identity);    
 
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
