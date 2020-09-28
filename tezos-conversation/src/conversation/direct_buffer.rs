@@ -19,7 +19,7 @@ pub struct DirectBuffer {
     display = "MAC mismatch, sender: {:?}, number of chunk: {}",
     sender, chunk_number
 )]
-pub struct DecryptError {
+pub struct ChunkPosition {
     pub sender: Sender,
     pub chunk_number: usize,
 }
@@ -54,7 +54,7 @@ impl DirectBuffer {
         }
     }
 
-    pub fn decrypt(&mut self, decipher: &Decipher, sender: Sender) -> Result<(), DecryptError> {
+    pub fn decrypt(&mut self, decipher: &Decipher, sender: Sender) -> Result<(), ChunkPosition> {
         if self.chunks().len() > self.processed {
             let chunks = (&self.chunks()[self.processed..]).to_vec();
             for chunk in chunks {
@@ -70,7 +70,7 @@ impl DirectBuffer {
                         self.data_mut()[(chunk.start + 2)..(chunk.end - 16)]
                             .clone_from_slice(plain.as_ref());
                     } else {
-                        return Err(DecryptError {
+                        return Err(ChunkPosition {
                             sender,
                             chunk_number: self.processed,
                         });

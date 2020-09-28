@@ -39,7 +39,7 @@ impl Addresses {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Sender {
     Initiator,
     Responder,

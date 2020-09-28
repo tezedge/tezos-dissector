@@ -8,7 +8,7 @@ use tezos_messages::p2p::encoding::{
     connection::ConnectionMessage,
 };
 use failure::Fail;
-use super::{addresses::Sender, direct_buffer::DecryptError, overall_buffer::ConversationBuffer};
+use super::{addresses::Sender, direct_buffer::ChunkPosition, overall_buffer::ConversationBuffer};
 use crate::{
     identity::{Decipher, Identity, IdentityError},
     value::{ChunkedData, Named, HasBodyRange, show},
@@ -26,17 +26,17 @@ pub enum State {
     #[fail(display = "Identity at: {} cannot decrypt this conversation", _0)]
     IdentityCannotDecrypt(String),
     #[fail(display = "{}", _0)]
-    DecryptError(DecryptError),
+    DecryptError(ChunkPosition),
 }
 
 impl State {
-    fn error(&self, i: usize) -> bool {
+    fn error(&self, chunk_position: &ChunkPosition) -> bool {
         match self {
             &State::Correct => false,
             &State::HaveNoIdentity
             | &State::IdentityInvalid(_)
             | &State::IdentityCannotDecrypt(_) => true,
-            &State::DecryptError(ref e) => i == e.chunk_number,
+            &State::DecryptError(ref e) => chunk_position.eq(e),
         }
     }
 }
@@ -185,8 +185,12 @@ impl ContextInner {
         // TODO: split it in separated methods
         for (index, chunk_info) in chunks.iter().enumerate() {
             let range = chunk_info.range();
+            let chunk_position = ChunkPosition {
+                sender: sender.clone(),
+                chunk_number: index,
+            };
             if range.end > space.start && range.start < space.end {
-                if state.error(index) {
+                if state.error(&chunk_position) {
                     node.add("decryption_error", 0..0, TreeLeaf::Display(state));
                     return Err(ErrorPosition {
                         sender,
@@ -265,7 +269,11 @@ impl ContextInner {
                 };
                 let mut messages = messages;
                 loop {
-                    if state.error(chunked_buffer.chunk()) {
+                    let chunk_position = ChunkPosition {
+                        sender: sender.clone(),
+                        chunk_number: chunked_buffer.chunk(),
+                    };
+                    if state.error(&chunk_position) {
                         chunked_buffer.skip();
                         continue;
                     }

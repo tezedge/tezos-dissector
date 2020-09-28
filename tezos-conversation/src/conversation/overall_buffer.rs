@@ -5,7 +5,7 @@ use wireshark_definitions::NetworkPacket;
 use std::ops::Range;
 use super::{
     addresses::{Addresses, Sender},
-    direct_buffer::{DirectBuffer, DecryptError},
+    direct_buffer::{DirectBuffer, ChunkPosition},
 };
 use crate::{
     identity::Decipher,
@@ -93,7 +93,7 @@ impl ConversationBuffer {
         self.addresses.sender(packet)
     }
 
-    pub fn decrypt(&mut self, decipher: &Decipher) -> Result<(), DecryptError> {
+    pub fn decrypt(&mut self, decipher: &Decipher) -> Result<(), ChunkPosition> {
         self.incoming.decrypt(decipher, Sender::Initiator)?;
         self.outgoing.decrypt(decipher, Sender::Responder)?;
         Ok(())
