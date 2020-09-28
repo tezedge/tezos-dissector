@@ -3,13 +3,13 @@ use std::net::{SocketAddr, IpAddr};
 use crate::sys;
 
 pub struct PacketInfo {
-    pub metadata: *mut sys::packet_info,
-    pub tvb: *mut sys::tvbuff_t
+    pub pinfo: *mut sys::packet_info,
+    pub tvb: *mut sys::tvbuff_t,
 }
 
 impl PacketInfo {
     fn inner(&self) -> &sys::packet_info {
-        unsafe { &*self.metadata }
+        unsafe { &*self.pinfo }
     }
 
     fn fd(&self) -> &sys::frame_data {
@@ -20,8 +20,8 @@ impl PacketInfo {
     /// Unordered pair of source/destination can also be used as a key.
     pub fn context_key(&self) -> usize {
         let key = unsafe {
-            let conversation = sys::find_or_create_conversation(self.metadata);
-            sys::get_tcp_conversation_data(conversation, self.metadata)
+            let conversation = sys::find_or_create_conversation(self.pinfo);
+            sys::get_tcp_conversation_data(conversation, self.pinfo)
         };
         key as _
     }

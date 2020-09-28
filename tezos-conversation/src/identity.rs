@@ -90,7 +90,6 @@ fn add_nonce(nonce: &Nonce, addition: u64) -> Nonce {
     Nonce::new(bytes.as_slice())
 }
 
-
 impl Decipher {
     pub fn decrypt(&self, enc: &[u8], chunk_number: NonceAddition) -> Result<Vec<u8>, CryptoError> {
         // prepare the actual nonce for the message

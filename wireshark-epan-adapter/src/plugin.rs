@@ -363,7 +363,7 @@ impl Plugin<'static> {
                 tvb: *mut sys::tvbuff_t,
                 pinfo: *mut sys::packet_info,
                 tree: *mut sys::proto_tree,
-                data: *mut c_void,
+                _data: *mut c_void,
             ) -> sys::gboolean {
                 with_plugin(|p| {
                     {
@@ -381,11 +381,7 @@ impl Plugin<'static> {
                     }
 
                     let fields = p.fields();
-                    let _ = data;
-                    let info = PacketInfo {
-                        metadata: pinfo,
-                        tvb,
-                    };
+                    let info = PacketInfo { pinfo, tvb };
                     let c_id = info.context_key();
                     let packet = NetworkPacket::from(info);
                     let mut tree = Tree::root(fields, p.privates.borrow().ett_handle, tvb, tree);
