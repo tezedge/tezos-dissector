@@ -4,8 +4,8 @@ use tezos_messages::p2p::{
     encoding::connection::ConnectionMessage,
 };
 use sodiumoxide::crypto::box_;
-use std::{fmt, ops::Range};
-use crate::{Conversation, Identity, NonceAddition};
+use std::{fmt, ops::Range, task::Poll};
+use crate::{Conversation, BinaryChunkStorage, Identity, NonceAddition};
 
 #[derive(Default, Clone)]
 pub struct Tree {
@@ -95,7 +95,11 @@ where
                     number: metadata.number,
                     payload: data[pos..end].to_vec(),
                 };
-                context.add(None, &packet, output);
+                match context.add(None, &packet) {
+                    Poll::Ready(_) => panic!(),
+                    Poll::Pending => (),
+                }
+                context.visualize(&packet, &BinaryChunkStorage::new(), output);
             }
             (context, end)
         });
@@ -117,7 +121,11 @@ where
                     number: metadata.number,
                     payload: chunk.raw().to_vec(),
                 };
-                context.add(None, &packet, output);
+                match context.add(None, &packet) {
+                    Poll::Ready(_) => (),
+                    Poll::Pending => panic!(),
+                }
+                context.visualize(&packet, &BinaryChunkStorage::new(), output);
             }
             (context, end)
         });
@@ -184,7 +192,11 @@ pub fn simulate_encrypted<T>(
                 number: metadata.number,
                 payload: slice.to_vec(),
             };
-            context.add(Some(&id), &packet, output);
+            match context.add(Some(&id), &packet) {
+                Poll::Ready(_) => (),
+                Poll::Pending => (),
+            }
+            context.visualize(&packet, &BinaryChunkStorage::new(), output);
             (context, end_a, end_b)
         });
 }

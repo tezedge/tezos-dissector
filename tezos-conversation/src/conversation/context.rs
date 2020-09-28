@@ -61,7 +61,8 @@ impl ContextInner {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
                 // do nothing if already visited
-                if buffer.direct_buffer(packet).packet(packet.number).is_some() {
+                let sender = buffer.sender(packet);
+                if buffer.direct_buffer(&sender).packet(packet.number).is_some() {
                     return;
                 }
                 match buffer.consume(packet) {
@@ -92,7 +93,7 @@ impl ContextInner {
                                 *state = State::HaveNoIdentity;
                             },
                         }
-                    } else if buffer.direct_buffer(packet).chunks().len() > 1 {
+                    } else if buffer.direct_buffer(&sender).chunks().len() > 1 {
                         *self = ContextInner::Unrecognized;
                         return;
                     }
@@ -156,13 +157,13 @@ impl ContextInner {
     where
         T: TreePresenter,
     {
-        let buffer = self.buffer().direct_buffer(packet);
+        let sender = self.buffer().sender(packet);
+        let buffer = self.buffer().direct_buffer(&sender);
         let space = buffer.packet(packet.number).unwrap();
         let data = buffer.data();
         let decrypted = buffer.decrypted();
         let chunks = buffer.chunks();
         let state = self.state();
-        let sender = self.buffer().sender(packet);
 
         let mut node = root
             .add("tezos", 0..space.len(), TreeLeaf::nothing())

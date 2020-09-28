@@ -28,3 +28,4 @@ mod context_wrapper;
 
 pub use self::addresses::Sender;
 pub use self::context_wrapper::Conversation;
+pub use self::context_wrapper::{BinaryChunkMetadata, BinaryChunkProvider, BinaryChunkStorage};

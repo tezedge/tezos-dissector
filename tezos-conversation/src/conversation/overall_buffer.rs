@@ -35,7 +35,8 @@ impl ConversationBuffer {
 
     pub fn consume(&mut self, packet: &NetworkPacket) -> Result<(), ()> {
         let target = self.pow_target;
-        let direct_buffer = self.direct_buffer_mut(packet);
+        let sender = self.sender(packet);
+        let direct_buffer = self.direct_buffer_mut(&sender);
         let already_checked = direct_buffer.data().len() >= Self::CHECK_RANGE.end;
         direct_buffer.consume(packet.payload.as_ref(), packet.number);
         let data = direct_buffer.data();
@@ -74,22 +75,22 @@ impl ConversationBuffer {
         }
     }
 
-    pub fn direct_buffer(&self, packet: &NetworkPacket) -> &DirectBuffer {
-        match self.sender(packet) {
-            Sender::Initiator => &self.incoming,
-            Sender::Responder => &self.outgoing,
+    pub fn direct_buffer(&self, sender: &Sender) -> &DirectBuffer {
+        match sender {
+            &Sender::Initiator => &self.incoming,
+            &Sender::Responder => &self.outgoing,
+        }
+    }
+
+    fn direct_buffer_mut(&mut self, sender: &Sender) -> &mut DirectBuffer {
+        match sender {
+            &Sender::Initiator => &mut self.incoming,
+            &Sender::Responder => &mut self.outgoing,
         }
     }
 
     pub fn sender(&self, packet: &NetworkPacket) -> Sender {
         self.addresses.sender(packet)
-    }
-
-    fn direct_buffer_mut(&mut self, packet: &NetworkPacket) -> &mut DirectBuffer {
-        match self.sender(packet) {
-            Sender::Initiator => &mut self.incoming,
-            Sender::Responder => &mut self.outgoing,
-        }
     }
 
     pub fn decrypt(&mut self, decipher: &Decipher) -> Result<(), DecryptError> {

@@ -1,9 +1,47 @@
-use wireshark_definitions::{NetworkPacket, TreePresenter};
+use wireshark_definitions::{NetworkPacket, TreePresenter, SocketAddress};
+use tezos_messages::p2p::binary_message::BinaryChunk;
+use std::task::Poll;
 use super::{
     context::{ContextInner, ErrorPosition},
     addresses::Sender,
 };
 use crate::identity::Identity;
+
+pub struct BinaryChunkMetadata {
+    pub initiator: SocketAddress,
+    pub responder: SocketAddress,
+    pub offset: usize,
+    pub sender: Sender,
+    pub encrypted: bool,
+    pub timestamp: i64,
+}
+
+pub trait BinaryChunkProvider {
+    fn binary_chunk_content(&self, index: usize, sender: Sender) -> &[u8];
+}
+
+pub struct BinaryChunkStorage {
+    from_initiator: Vec<Vec<u8>>,
+    from_responder: Vec<Vec<u8>>,
+}
+
+impl BinaryChunkStorage {
+    pub fn new() -> Self {
+        BinaryChunkStorage {
+            from_initiator: Vec::new(),
+            from_responder: Vec::new(),
+        }
+    }
+}
+
+impl BinaryChunkProvider for BinaryChunkStorage {
+    fn binary_chunk_content(&self, index: usize, sender: Sender) -> &[u8] {
+        match sender {
+            Sender::Initiator => self.from_initiator[index].as_slice(),
+            Sender::Responder => self.from_responder[index].as_slice(),
+        }
+    }
+}
 
 pub struct Conversation {
     inner: Option<ContextInner>,
@@ -47,18 +85,25 @@ impl Conversation {
         }
     }
 
-    pub fn add<T>(
+    pub fn add(
         &mut self,
         identity: Option<&(Identity, String)>,
         packet: &NetworkPacket,
-        output: &mut T,
-    ) -> bool
-    where
-        T: TreePresenter,
-    {
+    ) -> Poll<Vec<(BinaryChunkMetadata, BinaryChunk)>> {
         let pow_target = self.pow_target;
         let inner = self.inner.get_or_insert_with(|| ContextInner::new(packet, pow_target));
-        inner.consume(packet, identity);    
+        inner.consume(packet, identity);
+        // TODO: return proper chunks data
+        Poll::Pending
+    }
+
+    pub fn visualize<P, T>(&mut self, packet: &NetworkPacket, provider: &P, output: &mut T) -> bool
+    where
+        P: BinaryChunkProvider,
+        T: TreePresenter,
+    {
+        // TODO: use the provider
+        let _ = provider;
 
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
