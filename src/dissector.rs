@@ -1,11 +1,8 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_definitions::TreePresenter;
-use wireshark_epan_adapter::{
-    Dissector,
-    dissector::{Packet, Tree, PacketInfo},
-};
+use wireshark_definitions::{TreePresenter, NetworkPacket};
+use wireshark_epan_adapter::{Dissector, Tree};
 use tezos_conversation::{Conversation, Identity, proof_of_work::DEFAULT_TARGET};
 use std::collections::BTreeMap;
 
@@ -46,8 +43,8 @@ impl Dissector for TezosDissector {
 
     // This method called by the wireshark when a new packet just arrive,
     // or when the user click on the packet.
-    fn consume(&mut self, root: &mut Tree, packet: &Packet, packet_info: &PacketInfo) -> usize {
-        self.consume_polymorphic::<Tree>(root, packet, packet_info)
+    fn consume(&mut self, root: &mut Tree, packet: NetworkPacket, c_id: usize) -> usize {
+        self.consume_polymorphic::<Tree>(root, packet, c_id)
     }
 
     // This method called by the wireshark when the user
@@ -62,21 +59,20 @@ impl TezosDissector {
     fn consume_polymorphic<T>(
         &mut self,
         root: &mut Tree,
-        packet: &Packet,
-        packet_info: &PacketInfo,
+        packet: NetworkPacket,
+        c_id: usize,
     ) -> usize
     where
         T: TreePresenter,
     {
         // get the data
-        let payload = packet.payload();
         // retrieve or create a new context for the conversation
         let conversation = self
             .conversations
-            .entry(packet_info.context_key())
+            .entry(c_id)
             .or_insert_with(|| Conversation::new(DEFAULT_TARGET));
-        if conversation.add(self.identity.as_ref(), payload.as_ref(), packet_info, root) {
-            payload.len()
+        if conversation.add(self.identity.as_ref(), &packet, root) {
+            packet.payload.len()
         } else {
             0
         }

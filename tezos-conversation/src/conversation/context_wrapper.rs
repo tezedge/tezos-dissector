@@ -1,4 +1,4 @@
-use wireshark_definitions::{PacketMetadata, TreePresenter};
+use wireshark_definitions::{NetworkPacket, TreePresenter};
 use super::{
     context::{ContextInner, ErrorPosition},
     addresses::Sender,
@@ -27,22 +27,19 @@ impl Conversation {
     /// If the frame number is equal to the frame where error occurs,
     /// the context still valid, but after that it is invalid.
     /// Let's show the error message once.
-    fn invalid<P>(&self, packet_info: &P) -> bool
-    where
-        P: PacketMetadata,
-    {
+    fn invalid(&self, packet: &NetworkPacket) -> bool {
         if let &Some(ref inner) = &self.inner {
             let i_error = self
                 .incoming_frame_result
                 .as_ref()
                 .err()
-                .map(|ref e| inner.after(packet_info, e))
+                .map(|ref e| inner.after(packet, e))
                 .unwrap_or(false);
             let o_error = self
                 .outgoing_frame_result
                 .as_ref()
                 .err()
-                .map(|ref e| inner.after(packet_info, e))
+                .map(|ref e| inner.after(packet, e))
                 .unwrap_or(false);
             i_error || o_error || inner.invalid()
         } else {
@@ -50,25 +47,23 @@ impl Conversation {
         }
     }
 
-    pub fn add<P, T>(
+    pub fn add<T>(
         &mut self,
         identity: Option<&(Identity, String)>,
-        data: &[u8],
-        metadata: &P,
+        packet: &NetworkPacket,
         output: &mut T,
     ) -> bool
     where
-        P: PacketMetadata,
         T: TreePresenter,
     {
         let pow_target = self.pow_target;
-        let inner = self.inner.get_or_insert_with(|| ContextInner::new(metadata, pow_target));
-        inner.consume(data, metadata, identity);    
+        let inner = self.inner.get_or_insert_with(|| ContextInner::new(packet, pow_target));
+        inner.consume(packet, identity);    
 
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
-        if !self.invalid(metadata) {
-            match self.inner.as_mut().unwrap().visualize(metadata, output) {
+        if !self.invalid(packet) {
+            match self.inner.as_mut().unwrap().visualize(packet, output) {
                 Ok(()) => (),
                 Err(r) => match r.sender {
                     Sender::Initiator => self.incoming_frame_result = Err(r),

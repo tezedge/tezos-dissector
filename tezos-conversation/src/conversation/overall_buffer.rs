@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_definitions::PacketMetadata;
+use wireshark_definitions::NetworkPacket;
 use std::ops::Range;
 use super::{
     addresses::{Addresses, Sender},
@@ -24,26 +24,20 @@ impl ConversationBuffer {
     // 32 bytes public key + 24 bytes proof_of_work = 56
     const CHECK_RANGE: Range<usize> = 4..(4 + 56);
 
-    pub fn new<P>(packet_info: &P, pow_target: f64) -> Self
-    where
-        P: PacketMetadata,
-    {
+    pub fn new(packet: &NetworkPacket, pow_target: f64) -> Self {
         ConversationBuffer {
-            addresses: Addresses::new(packet_info),
+            addresses: Addresses::new(packet),
             pow_target,
             incoming: DirectBuffer::new(),
             outgoing: DirectBuffer::new(),
         }
     }
 
-    pub fn consume<P>(&mut self, payload: &[u8], packet_info: &P) -> Result<(), ()>
-    where
-        P: PacketMetadata,
-    {
+    pub fn consume(&mut self, packet: &NetworkPacket) -> Result<(), ()> {
         let target = self.pow_target;
-        let direct_buffer = self.direct_buffer_mut(packet_info);
+        let direct_buffer = self.direct_buffer_mut(packet);
         let already_checked = direct_buffer.data().len() >= Self::CHECK_RANGE.end;
-        direct_buffer.consume(payload, packet_info.frame_number());
+        direct_buffer.consume(packet.payload.as_ref(), packet.number);
         let data = direct_buffer.data();
         // if after consume have enough bytes, let's check the proof of work
         let can_check = data.len() >= Self::CHECK_RANGE.end;
@@ -80,28 +74,19 @@ impl ConversationBuffer {
         }
     }
 
-    pub fn direct_buffer<P>(&self, packet_info: &P) -> &DirectBuffer
-    where
-        P: PacketMetadata,
-    {
-        match self.sender(packet_info) {
+    pub fn direct_buffer(&self, packet: &NetworkPacket) -> &DirectBuffer {
+        match self.sender(packet) {
             Sender::Initiator => &self.incoming,
             Sender::Responder => &self.outgoing,
         }
     }
 
-    pub fn sender<P>(&self, packet_info: &P) -> Sender
-    where
-        P: PacketMetadata,
-    {
-        self.addresses.sender(packet_info)
+    pub fn sender(&self, packet: &NetworkPacket) -> Sender {
+        self.addresses.sender(packet)
     }
 
-    fn direct_buffer_mut<P>(&mut self, packet_info: &P) -> &mut DirectBuffer
-    where
-        P: PacketMetadata,
-    {
-        match self.sender(packet_info) {
+    fn direct_buffer_mut(&mut self, packet: &NetworkPacket) -> &mut DirectBuffer {
+        match self.sender(packet) {
             Sender::Initiator => &mut self.incoming,
             Sender::Responder => &mut self.outgoing,
         }

@@ -1,4 +1,4 @@
-use wireshark_definitions::{PacketMetadata, SocketAddress, TreePresenter, TreeLeaf};
+use wireshark_definitions::{NetworkPacket, SocketAddress, TreePresenter, TreeLeaf};
 use tezos_messages::p2p::{
     binary_message::{BinaryChunk, BinaryMessage},
     encoding::connection::ConnectionMessage,
@@ -25,13 +25,12 @@ impl TreePresenter for Tree {
         self.clone()
     }
 
-    fn add<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
+    fn add<D>(&mut self, path: &str, range: Range<usize>, v: TreeLeaf<D>) -> Self
     where
         D: fmt::Display,
-        P: AsRef<str>,
     {
         let _ = (range, v);
-        if self.panic_on_decryption_error && path.as_ref().contains("decryption_error") {
+        if self.panic_on_decryption_error && path.contains("decryption_error") {
             panic!()
         }
         self.clone()
@@ -43,20 +42,6 @@ struct Packet {
     destination: SocketAddress,
     number: u64,
     swapped: bool,
-}
-
-impl PacketMetadata for Packet {
-    fn destination(&self) -> SocketAddress {
-        self.destination.clone()
-    }
-
-    fn source(&self) -> SocketAddress {
-        self.source.clone()
-    }
-
-    fn frame_number(&self) -> u64 {
-        self.number.clone()
-    }
 }
 
 #[derive(Clone)]
@@ -104,7 +89,13 @@ where
         .fold((context, 0), |(mut context, pos), (metadata, length)| {
             let end = pos + length;
             if data.len() > end {
-                context.add(None, &data[pos..end], &metadata, output);
+                let packet = NetworkPacket {
+                    source: metadata.source,
+                    destination: metadata.destination,
+                    number: metadata.number,
+                    payload: data[pos..end].to_vec(),
+                };
+                context.add(None, &packet, output);
             }
             (context, end)
         });
@@ -120,7 +111,13 @@ where
             let end = pos + length;
             if data.len() > end {
                 let chunk = BinaryChunk::from_content(&data[pos..end]).unwrap();
-                context.add(None, chunk.raw(), &metadata, output);
+                let packet = NetworkPacket {
+                    source: metadata.source,
+                    destination: metadata.destination,
+                    number: metadata.number,
+                    payload: chunk.raw().to_vec(),
+                };
+                context.add(None, &packet, output);
             }
             (context, end)
         });
@@ -181,7 +178,13 @@ pub fn simulate_encrypted<T>(
                 }
                 (end, pos_b, &data_a[pos_a..end])
             };
-            context.add(Some(&id), slice, &metadata, output);
+            let packet = NetworkPacket {
+                source: metadata.source,
+                destination: metadata.destination,
+                number: metadata.number,
+                payload: slice.to_vec(),
+            };
+            context.add(Some(&id), &packet, output);
             (context, end_a, end_b)
         });
 }

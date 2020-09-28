@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_definitions::{PacketMetadata, TreePresenter, TreeLeaf};
+use wireshark_definitions::{NetworkPacket, TreePresenter, TreeLeaf};
 use tezos_encoding::encoding::HasEncoding;
 use tezos_messages::p2p::encoding::{
     ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
@@ -52,29 +52,19 @@ pub enum ContextInner {
 }
 
 impl ContextInner {
-    pub fn new<P>(packet_info: &P, pow_target: f64) -> Self
-    where
-        P: PacketMetadata,
-    {
-        let b = ConversationBuffer::new(packet_info, pow_target);
+    pub fn new(packet: &NetworkPacket, pow_target: f64) -> Self {
+        let b = ConversationBuffer::new(packet, pow_target);
         ContextInner::Regular(b, None, State::Correct)
     }
 
-    pub fn consume<P>(
-        &mut self,
-        payload: &[u8],
-        packet_info: &P,
-        identity: Option<&(Identity, String)>,
-    ) where
-        P: PacketMetadata,
-    {
+    pub fn consume(&mut self, packet: &NetworkPacket, identity: Option<&(Identity, String)>) {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
                 // do nothing if already visited
-                if buffer.direct_buffer(packet_info).packet(packet_info.frame_number()).is_some() {
+                if buffer.direct_buffer(packet).packet(packet.number).is_some() {
                     return;
                 }
-                match buffer.consume(payload, packet_info) {
+                match buffer.consume(packet) {
                     Ok(()) => (),
                     Err(()) => {
                         *self = ContextInner::Unrecognized;
@@ -102,7 +92,7 @@ impl ContextInner {
                                 *state = State::HaveNoIdentity;
                             },
                         }
-                    } else if buffer.direct_buffer(packet_info).chunks().len() > 1 {
+                    } else if buffer.direct_buffer(packet).chunks().len() > 1 {
                         *self = ContextInner::Unrecognized;
                         return;
                     }
@@ -153,30 +143,26 @@ impl ContextInner {
         }
     }
 
-    pub fn after<P>(&self, packet_info: &P, error_position: &ErrorPosition) -> bool
-    where
-        P: PacketMetadata,
-    {
-        if self.buffer().sender(packet_info) == error_position.sender {
-            packet_info.frame_number() > error_position.frame_number
+    pub fn after(&self, packet: &NetworkPacket, error_position: &ErrorPosition) -> bool {
+        if self.buffer().sender(packet) == error_position.sender {
+            packet.number > error_position.frame_number
         } else {
             false
         }
     }
 
     /// Returns if there is decryption error.
-    pub fn visualize<P, T>(&self, packet_info: &P, root: &mut T) -> Result<(), ErrorPosition>
+    pub fn visualize<T>(&self, packet: &NetworkPacket, root: &mut T) -> Result<(), ErrorPosition>
     where
-        P: PacketMetadata,
         T: TreePresenter,
     {
-        let buffer = self.buffer().direct_buffer(packet_info);
-        let space = buffer.packet(packet_info.frame_number()).unwrap();
+        let buffer = self.buffer().direct_buffer(packet);
+        let space = buffer.packet(packet.number).unwrap();
         let data = buffer.data();
         let decrypted = buffer.decrypted();
         let chunks = buffer.chunks();
         let state = self.state();
-        let sender = self.buffer().sender(packet_info);
+        let sender = self.buffer().sender(packet);
 
         let mut node = root
             .add("tezos", 0..space.len(), TreeLeaf::nothing())
@@ -203,7 +189,7 @@ impl ContextInner {
                     node.add("decryption_error", 0..0, TreeLeaf::Display(state));
                     return Err(ErrorPosition {
                         sender,
-                        frame_number: packet_info.frame_number(),
+                        frame_number: packet.number,
                     });
                 } else {
                     let item = intersect(space, range.clone());
@@ -314,7 +300,7 @@ impl ContextInner {
                     chunked_buffer.complete_group(temp, || {
                         log::warn!(
                             "ChunkedData::show did not consume full chunk, frame: {}",
-                            packet_info.frame_number()
+                            packet.number,
                         )
                     });
                 }

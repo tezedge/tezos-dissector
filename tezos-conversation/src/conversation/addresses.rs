@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_definitions::{SocketAddress, PacketMetadata};
+use wireshark_definitions::{SocketAddress, NetworkPacket};
 use std::fmt;
 
 /// Structure store addresses of first message,
@@ -19,25 +19,19 @@ impl fmt::Display for Addresses {
 }
 
 impl Addresses {
-    pub fn new<P>(packet_info: &P) -> Self
-    where
-        P: PacketMetadata,
-    {
+    pub fn new(packet: &NetworkPacket) -> Self {
         Addresses {
-            initiator: packet_info.source(),
-            responder: packet_info.destination(),
+            initiator: packet.source.clone(),
+            responder: packet.destination.clone(),
         }
     }
 
-    pub fn sender<P>(&self, packet_info: &P) -> Sender
-    where
-        P: PacketMetadata,
-    {
-        if self.initiator == packet_info.source() {
-            assert_eq!(self.responder, packet_info.destination());
+    pub fn sender(&self, packet: &NetworkPacket) -> Sender {
+        if self.initiator == packet.source {
+            assert_eq!(self.responder, packet.destination);
             Sender::Initiator
-        } else if self.responder == packet_info.source() {
-            assert_eq!(self.initiator, packet_info.destination());
+        } else if self.responder == packet.source {
+            assert_eq!(self.initiator, packet.destination);
             Sender::Responder
         } else {
             panic!()

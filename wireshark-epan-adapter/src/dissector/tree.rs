@@ -43,10 +43,9 @@ impl TreePresenter for Tree {
         }
     }
 
-    fn add<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
+    fn add<D>(&mut self, path: &str, range: Range<usize>, v: TreeLeaf<D>) -> Self
     where
         D: fmt::Display,
-        P: AsRef<str>,
     {
         if cfg!(debug_assertions) {
             let length = unsafe { sys::tvb_captured_length(self.common.borrow().tvb) } as usize;
@@ -55,9 +54,9 @@ impl TreePresenter for Tree {
         }
 
         let full_path = if let &Some(ref base) = &self.parent_path {
-            format!("{}.{}\0", base.trim_end_matches('\0'), path.as_ref())
+            format!("{}.{}\0", base.trim_end_matches('\0'), path)
         } else {
-            format!("{}\0", path.as_ref())
+            format!("{}\0", path)
         };
 
         let node = match v {

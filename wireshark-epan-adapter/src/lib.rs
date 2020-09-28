@@ -6,7 +6,8 @@ mod plugin;
 pub use self::plugin::{Plugin, NameDescriptor, PrefFilenameDescriptor, DissectorDescriptor, Dissector};
 
 /// Wrappers around stuff that passed inside the dissector.
-pub mod dissector;
+mod dissector;
+pub use self::dissector::Tree;
 
 pub const PLUGIN_WANT_MAJOR: i32 = sys::WIRESHARK_VERSION_MAJOR as i32;
 

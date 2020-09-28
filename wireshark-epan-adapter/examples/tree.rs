@@ -1,12 +1,8 @@
 // Minimal example, builds tree.
 
-use wireshark_definitions::{FieldDescriptor, TreePresenter};
+use wireshark_definitions::{FieldDescriptor, TreePresenter, NetworkPacket};
 
-#[rustfmt::skip]
-use wireshark_epan_adapter::{
-    Plugin, NameDescriptor, DissectorDescriptor, Dissector,
-    dissector::{Packet, Tree, PacketInfo},
-};
+use wireshark_epan_adapter::{Plugin, NameDescriptor, DissectorDescriptor, Dissector, Tree};
 
 // Version of this plugin.
 #[no_mangle]
@@ -79,15 +75,13 @@ impl Dissector for SimpleDissector {
         &mut self,
         // API for constructing the tree interface
         root: &mut Tree,
-        // provides the the payload
-        packet: &Packet,
         // provides the packet id, payload, source and destination of the packet
-        _packet_info: &PacketInfo,
+        packet: NetworkPacket,
+        _c_id: usize,
     ) -> usize {
         use wireshark_definitions::TreeLeaf;
 
-        let payload = packet.payload();
-        let length = payload.len();
+        let length = packet.payload.len();
 
         // creates a root node in the tree
         let mut main_node = root

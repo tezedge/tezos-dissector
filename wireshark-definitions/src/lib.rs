@@ -40,10 +40,9 @@ pub trait HasFields {
 
 pub trait TreePresenter {
     fn subtree(&mut self) -> Self;
-    fn add<D, P>(&mut self, path: P, range: Range<usize>, v: TreeLeaf<D>) -> Self
+    fn add<D>(&mut self, abbrev: &str, range: Range<usize>, v: TreeLeaf<D>) -> Self
     where
-        D: fmt::Display,
-        P: AsRef<str>;
+        D: fmt::Display;
 }
 
 pub enum TreeLeaf<D>
@@ -95,8 +94,9 @@ impl fmt::Display for SocketAddress {
     }
 }
 
-pub trait PacketMetadata {
-    fn destination(&self) -> SocketAddress;
-    fn source(&self) -> SocketAddress;
-    fn frame_number(&self) -> u64;
+pub struct NetworkPacket {
+    pub destination: SocketAddress,
+    pub source: SocketAddress,
+    pub number: u64,
+    pub payload: Vec<u8>,
 }

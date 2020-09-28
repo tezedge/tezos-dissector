@@ -1,4 +1,4 @@
-use wireshark_definitions::{FieldDescriptor, FieldDescriptorOwned, HasFields};
+use wireshark_definitions::{FieldDescriptor, FieldDescriptorOwned, HasFields, NetworkPacket};
 use std::{
     collections::HashMap,
     os::raw::{c_int, c_char, c_void},
@@ -6,7 +6,7 @@ use std::{
     ptr,
 };
 use crate::sys;
-use super::dissector::{Packet, SuperDissectorData, PacketInfo, Tree};
+use super::dissector::{PacketInfo, Tree};
 
 /// Should be implemented for dissector.
 pub trait Dissector {
@@ -18,7 +18,7 @@ pub trait Dissector {
 
     /// Called when a new packet just arrive
     /// or when the user click on some packet in the interface.
-    fn consume(&mut self, root: &mut Tree, packet: &Packet, packet_info: &PacketInfo) -> usize;
+    fn consume(&mut self, root: &mut Tree, packet: NetworkPacket, c_id: usize) -> usize;
 
     /// Called when capturing session end.
     /// The dissector is not destroyed, it might be used in the next capturing session.
@@ -381,13 +381,17 @@ impl Plugin<'static> {
                     }
 
                     let fields = p.fields();
-                    let packet =
-                        Packet::new(SuperDissectorData::Tcp(data as *mut sys::tcpinfo), tvb);
+                    let _ = data;
+                    let info = PacketInfo {
+                        metadata: pinfo,
+                        tvb,
+                    };
+                    let c_id = info.context_key();
+                    let packet = NetworkPacket::from(info);
                     let mut tree = Tree::root(fields, p.privates.borrow().ett_handle, tvb, tree);
-                    let packet_info = PacketInfo::new(pinfo);
                     let mut state = p.privates.borrow_mut();
                     let dissector = state.dissector.as_mut().unwrap();
-                    let processed_length = dissector.consume(&mut tree, &packet, &packet_info);
+                    let processed_length = dissector.consume(&mut tree, packet, c_id);
                     processed_length as _
                 })
             }
