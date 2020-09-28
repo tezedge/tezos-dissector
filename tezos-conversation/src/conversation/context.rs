@@ -57,23 +57,24 @@ impl ContextInner {
         ContextInner::Regular(b, None, State::Correct)
     }
 
-    pub fn consume(&mut self, packet: &NetworkPacket, identity: Option<&(Identity, String)>) {
+    pub fn consume(
+        &mut self,
+        packet: &NetworkPacket,
+        identity: Option<&(Identity, String)>,
+    ) -> Option<usize> {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
-                // do nothing if already visited
-                let sender = buffer.sender(packet);
-                if buffer.direct_buffer(&sender).packet(packet.number).is_some() {
-                    return;
-                }
-                match buffer.consume(packet) {
+                let (offset, result) = buffer.consume(packet);
+                match result {
                     Ok(()) => (),
                     Err(()) => {
                         *self = ContextInner::Unrecognized;
-                        return;
+                        return Some(offset);
                     },
                 }
                 if decipher.is_none() {
                     let buffer = &*buffer;
+                    let sender = buffer.sender(packet);
                     if let Some((initiator, responder)) = buffer.can_upgrade() {
                         match identity {
                             Some(&(ref i, ref filename)) => {
@@ -95,7 +96,7 @@ impl ContextInner {
                         }
                     } else if buffer.direct_buffer(&sender).chunks().len() > 1 {
                         *self = ContextInner::Unrecognized;
-                        return;
+                        return Some(offset);
                     }
                 }
                 if let &mut Some(ref decipher) = decipher {
@@ -110,9 +111,10 @@ impl ContextInner {
                         }
                     }
                 }
+                Some(offset)
             },
-            &mut ContextInner::Unrecognized => (),
-        };
+            &mut ContextInner::Unrecognized => None,
+        }
     }
 
     pub fn invalid(&self) -> bool {
@@ -153,13 +155,13 @@ impl ContextInner {
     }
 
     /// Returns if there is decryption error.
-    pub fn visualize<T>(&self, packet: &NetworkPacket, root: &mut T) -> Result<(), ErrorPosition>
+    pub fn visualize<T>(&self, packet: &NetworkPacket, offset: usize, root: &mut T) -> Result<(), ErrorPosition>
     where
         T: TreePresenter,
     {
         let sender = self.buffer().sender(packet);
         let buffer = self.buffer().direct_buffer(&sender);
-        let space = buffer.packet(packet.number).unwrap();
+        let space = offset..(offset + packet.payload.len());
         let data = buffer.data();
         let decrypted = buffer.decrypted();
         let chunks = buffer.chunks();
@@ -197,12 +199,12 @@ impl ContextInner {
                         frame_number: packet.number,
                     });
                 } else {
-                    let item = intersect(space, range.clone());
+                    let item = intersect(&space, range.clone());
                     let mut chunk_node =
                         node.add("chunk", item, TreeLeaf::dec(index as _)).subtree();
 
                     let length = range.len() as i64 - 2;
-                    let item = intersect(space, range.start..(range.start + 2));
+                    let item = intersect(&space, range.start..(range.start + 2));
                     chunk_node.add("length", item, TreeLeaf::dec(length));
 
                     if data.len() >= range.end {
@@ -216,19 +218,19 @@ impl ContextInner {
                                     let body_hex = line.iter().fold(String::new(), |s, b| {
                                         s + hex::encode(&[*b]).as_str() + " "
                                     });
-                                    let item = intersect(space, start..end);
+                                    let item = intersect(&space, start..end);
                                     chunk_node.add("data", item, TreeLeaf::Display(body_hex));
                                 },
                             )
                         } else {
-                            let item = intersect(space, body_range.clone());
+                            let item = intersect(&space, body_range.clone());
                             chunk_node.add("buffering", item, TreeLeaf::Display("..."));
                         }
 
                         if index > 0 {
                             let mac_range = body_range.end..range.end;
                             let mac = hex::encode(&data[mac_range.clone()]);
-                            let item = intersect(space, mac_range);
+                            let item = intersect(&space, mac_range);
                             chunk_node.add("mac", item, TreeLeaf::Display(mac));
                         }
                     }
@@ -277,7 +279,7 @@ impl ContextInner {
                         chunked_buffer.skip();
                         continue;
                     }
-                    if !chunked_buffer.on(space) {
+                    if !chunked_buffer.on(&space) {
                         break;
                     }
                     let (encoding, base) = match chunked_buffer.chunk() {
@@ -294,7 +296,7 @@ impl ContextInner {
                             .inner_mut()
                             .push_limit(chunks[0].body().len());
                     }
-                    match show(&mut chunked_buffer, space, &encoding, base, &mut messages) {
+                    match show(&mut chunked_buffer, &space, &encoding, base, &mut messages) {
                         Ok(_) => {
                             if temp == 0 {
                                 chunked_buffer.inner_mut().pop_limit();

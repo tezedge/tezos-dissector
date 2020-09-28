@@ -1,7 +1,6 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use std::{ops::Range, collections::BTreeMap};
 use bytes::Buf;
 use failure::Fail;
 use super::{addresses::Sender, chunk_info::ChunkInfo};
@@ -10,7 +9,6 @@ use crate::identity::{Decipher, NonceAddition};
 pub struct DirectBuffer {
     data: Vec<u8>,
     chunks: Vec<ChunkInfo>,
-    packets: BTreeMap<u64, Range<usize>>,
     processed: usize,
 }
 
@@ -29,17 +27,15 @@ impl DirectBuffer {
         DirectBuffer {
             data: Vec::with_capacity(0x100000),
             chunks: Vec::with_capacity(0x1000),
-            packets: BTreeMap::new(),
             // first message always decrypted
             processed: 1,
         }
     }
 
-    pub fn consume(&mut self, payload: &[u8], frame_index: u64) {
-        let start = self.data.len();
+    pub fn consume(&mut self, payload: &[u8]) -> usize {
+        let offset = self.data.len();
         self.data.extend_from_slice(payload);
         let end = self.data.len();
-        self.packets.insert(frame_index, start..end);
         let mut position = self.chunks.last().map(|r| r.range().end).unwrap_or(0);
 
         loop {
@@ -49,7 +45,7 @@ impl DirectBuffer {
                 self.chunks.push(ChunkInfo::new(position, this_end));
                 position = this_end;
             } else {
-                break;
+                break offset;
             }
         }
     }
@@ -97,10 +93,5 @@ impl DirectBuffer {
 
     pub fn chunks(&self) -> &[ChunkInfo] {
         self.chunks.as_ref()
-    }
-
-    pub fn packet(&self, index: u64) -> Option<&Range<usize>> {
-        self.packets
-            .get(&index)
     }
 }

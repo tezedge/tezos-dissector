@@ -1,6 +1,6 @@
 use wireshark_definitions::{NetworkPacket, TreePresenter, SocketAddress};
 use tezos_messages::p2p::binary_message::BinaryChunk;
-use std::task::Poll;
+use std::{task::Poll, collections::BTreeMap, ops::Range};
 use super::{
     context::{ContextInner, ErrorPosition},
     addresses::Sender,
@@ -46,6 +46,7 @@ impl BinaryChunkProvider for BinaryChunkStorage {
 pub struct Conversation {
     inner: Option<ContextInner>,
     pow_target: f64,
+    packet_ranges: BTreeMap<u64, Range<usize>>,
     incoming_frame_result: Result<(), ErrorPosition>,
     outgoing_frame_result: Result<(), ErrorPosition>,
 }
@@ -55,6 +56,7 @@ impl Conversation {
         Conversation {
             inner: None,
             pow_target,
+            packet_ranges: BTreeMap::new(),
             incoming_frame_result: Ok(()),
             outgoing_frame_result: Ok(()),
         }
@@ -92,7 +94,9 @@ impl Conversation {
     ) -> Poll<Vec<(BinaryChunkMetadata, BinaryChunk)>> {
         let pow_target = self.pow_target;
         let inner = self.inner.get_or_insert_with(|| ContextInner::new(packet, pow_target));
-        inner.consume(packet, identity);
+        if let Some(offset) = inner.consume(packet, identity) {
+            self.packet_ranges.insert(packet.number, offset..(offset + packet.payload.len()));
+        }
         // TODO: return proper chunks data
         Poll::Pending
     }
@@ -108,13 +112,15 @@ impl Conversation {
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
         if !self.invalid(packet) {
-            match self.inner.as_mut().unwrap().visualize(packet, output) {
-                Ok(()) => (),
-                Err(r) => match r.sender {
-                    Sender::Initiator => self.incoming_frame_result = Err(r),
-                    Sender::Responder => self.outgoing_frame_result = Err(r),
-                },
-            };
+            if let Some(range) = self.packet_ranges.get(&packet.number) {
+                match self.inner.as_mut().unwrap().visualize(packet, range.start, output) {
+                    Ok(()) => (),
+                    Err(r) => match r.sender {
+                        Sender::Initiator => self.incoming_frame_result = Err(r),
+                        Sender::Responder => self.outgoing_frame_result = Err(r),
+                    },
+                };
+            }
             true
         } else {
             false
