@@ -11,6 +11,7 @@ use std::ops::Range;
 pub trait HasBodyRange {
     fn body(&self) -> Range<usize>;
     fn set_continuation(&self);
+    fn set_incomplete(&self);
 }
 
 pub use self::fields::{TezosEncoded, Named};

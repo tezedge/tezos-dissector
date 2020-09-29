@@ -43,7 +43,7 @@ impl DirectBuffer {
             if position + 2 < end {
                 let length = (&self.data[position..(position + 2)]).get_u16() as usize;
                 let this_end = position + 2 + length;
-                self.chunks.push(ChunkInfo::new(position, this_end));
+                self.chunks.push(ChunkInfo::new(position..this_end));
                 position = this_end;
             } else {
                 break offset..end;

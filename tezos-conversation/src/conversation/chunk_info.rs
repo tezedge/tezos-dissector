@@ -8,36 +8,32 @@ use crate::value::HasBodyRange;
 /// either this is a start of a new message, or continuation of message
 #[derive(Clone)]
 pub struct ChunkInfo {
-    inner: Cell<Inner>,
-}
-
-#[derive(Copy, Clone)]
-struct Inner {
-    start: usize,
-    end: usize,
+    range: Range<usize>,
     // false means this chunk start a new message,
     // true means this chunk is a continuation of some message,
-    continuation: bool,
+    continuation: Cell<bool>,
+    incomplete: Cell<bool>,
 }
 
 impl ChunkInfo {
-    pub fn new(start: usize, end: usize) -> Self {
+    pub fn new(range: Range<usize>) -> Self {
         ChunkInfo {
-            inner: Cell::new(Inner {
-                start,
-                end,
-                continuation: false,
-            }),
+            range,
+            continuation: Cell::new(false),
+            incomplete: Cell::new(false),
         }
     }
 
     pub fn range(&self) -> Range<usize> {
-        let inner = self.inner.get();
-        inner.start..inner.end
+        self.range.clone()
     }
 
     pub fn continuation(&self) -> bool {
-        self.inner.get().continuation
+        self.continuation.get()
+    }
+
+    pub fn incomplete(&self) -> bool {
+        self.incomplete.get()
     }
 }
 
@@ -53,11 +49,10 @@ impl HasBodyRange for ChunkInfo {
     }
 
     fn set_continuation(&self) {
-        let inner = self.inner.get();
-        self.inner.set(Inner {
-            start: inner.start,
-            end: inner.end,
-            continuation: true,
-        });
+        self.continuation.set(true);
+    }
+
+    fn set_incomplete(&self) {
+        self.incomplete.set(true);
     }
 }

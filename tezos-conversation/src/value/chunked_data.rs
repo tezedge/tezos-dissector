@@ -70,6 +70,9 @@ where
         self.inner.chunks[(first_chunk + 1)..self.inner.chunks_offset]
             .iter()
             .for_each(C::set_continuation);
+        self.inner.chunks[first_chunk..(self.inner.chunks_offset - 1)]
+            .iter()
+            .for_each(C::set_incomplete);
     }
 
     pub fn inner_mut(&mut self) -> &mut ChunkedDataInner<'a, C> {
@@ -160,8 +163,8 @@ where
     pub fn has(&self, length: usize) -> bool {
         let limit = self.limit.unwrap_or(usize::MAX);
         let mut available = self.bytes().len();
-        if length > usize::min(available, limit) {
-            return false;
+        if length <= usize::min(available, limit) {
+            return true;
         }
         if self.chunks.len() - 1 > self.chunks_offset {
             for c in &self.chunks[(self.chunks_offset + 1)..] {
@@ -173,8 +176,8 @@ where
                     0
                 };
                 available += a;
-                if length > usize::min(available, limit) {
-                    return false;
+                if length <= usize::min(available, limit) {
+                    return true;
                 }
             }
         }

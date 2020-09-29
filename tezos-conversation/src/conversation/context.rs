@@ -12,7 +12,7 @@ use std::ops::Range;
 use super::{addresses::Sender, direct_buffer::ChunkPosition, overall_buffer::ConversationBuffer};
 use crate::{
     identity::{Decipher, Identity, IdentityError},
-    value::{ChunkedData, Named, HasBodyRange, show},
+    value::{ChunkedData, Named, HasBodyRange, DecodingError, show},
     range_tool::intersect,
 };
 
@@ -243,7 +243,8 @@ impl ContextInner {
 
         // first chunk which intersect with the frame
         // but it might be a continuation of previous message,
-        // seek back to find the chunk that is not a continuation
+        // seek back to find the chunk that is not a continuation]
+        // TODO: for loop will be better here
         let first_chunk = chunks
             .iter()
             .enumerate()
@@ -251,8 +252,7 @@ impl ContextInner {
             .map(|(i, info)| (i, info.continuation()))
             .map(|(first_chunk, continuation)| {
                 if continuation {
-                    // safe to subtract 1 because the first chunk cannot be a continuation
-                    chunks[0..(first_chunk - 1)]
+                    chunks[0..first_chunk]
                         .iter()
                         .enumerate()
                         .rev()
@@ -260,7 +260,17 @@ impl ContextInner {
                         .unwrap()
                         .0
                 } else {
-                    first_chunk
+                    if first_chunk == 0 {
+                        first_chunk
+                    } else {
+                        let v = chunks[0..first_chunk]
+                            .iter()
+                            .enumerate()
+                            .rev()
+                            .take_while(|&(_, info)| info.incomplete())
+                            .count();
+                        first_chunk - v
+                    }
                 }
             });
 
@@ -304,6 +314,9 @@ impl ContextInner {
                             }
                         },
                         Err(e) => {
+                            if let &DecodingError::NotEnoughData = &e {
+                                chunks[chunked_buffer.chunk()].set_incomplete();
+                            }
                             let leaf = TreeLeaf::Display(e);
                             node.add("decoding_error", 0..0, leaf);
                             break;
