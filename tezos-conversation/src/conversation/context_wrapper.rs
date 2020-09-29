@@ -94,8 +94,8 @@ impl Conversation {
     ) -> Poll<Vec<(BinaryChunkMetadata, BinaryChunk)>> {
         let pow_target = self.pow_target;
         let inner = self.inner.get_or_insert_with(|| ContextInner::new(packet, pow_target));
-        if let Some(offset) = inner.consume(packet, identity) {
-            self.packet_ranges.insert(packet.number, offset..(offset + packet.payload.len()));
+        if let Some(space) = inner.consume(packet, identity) {
+            self.packet_ranges.insert(packet.number, space);
         }
         // TODO: return proper chunks data
         Poll::Pending

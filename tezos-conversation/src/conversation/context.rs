@@ -8,6 +8,7 @@ use tezos_messages::p2p::encoding::{
     connection::ConnectionMessage,
 };
 use failure::Fail;
+use std::ops::Range;
 use super::{addresses::Sender, direct_buffer::ChunkPosition, overall_buffer::ConversationBuffer};
 use crate::{
     identity::{Decipher, Identity, IdentityError},
@@ -61,15 +62,15 @@ impl ContextInner {
         &mut self,
         packet: &NetworkPacket,
         identity: Option<&(Identity, String)>,
-    ) -> Option<usize> {
+    ) -> Option<Range<usize>> {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
-                let (offset, result) = buffer.consume(packet);
+                let (space, result) = buffer.consume(packet);
                 match result {
                     Ok(()) => (),
                     Err(()) => {
                         *self = ContextInner::Unrecognized;
-                        return Some(offset);
+                        return Some(space);
                     },
                 }
                 if decipher.is_none() {
@@ -96,7 +97,7 @@ impl ContextInner {
                         }
                     } else if buffer.direct_buffer(&sender).chunks().len() > 1 {
                         *self = ContextInner::Unrecognized;
-                        return Some(offset);
+                        return Some(space);
                     }
                 }
                 if let &mut Some(ref decipher) = decipher {
@@ -111,7 +112,7 @@ impl ContextInner {
                         }
                     }
                 }
-                Some(offset)
+                Some(space)
             },
             &mut ContextInner::Unrecognized => None,
         }

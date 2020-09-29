@@ -3,6 +3,7 @@
 
 use bytes::Buf;
 use failure::Fail;
+use std::ops::Range;
 use super::{addresses::Sender, chunk_info::ChunkInfo};
 use crate::identity::{Decipher, NonceAddition};
 
@@ -32,7 +33,7 @@ impl DirectBuffer {
         }
     }
 
-    pub fn consume(&mut self, payload: &[u8]) -> usize {
+    pub fn consume(&mut self, payload: &[u8]) -> Range<usize> {
         let offset = self.data.len();
         self.data.extend_from_slice(payload);
         let end = self.data.len();
@@ -45,7 +46,7 @@ impl DirectBuffer {
                 self.chunks.push(ChunkInfo::new(position, this_end));
                 position = this_end;
             } else {
-                break offset;
+                break offset..end;
             }
         }
     }

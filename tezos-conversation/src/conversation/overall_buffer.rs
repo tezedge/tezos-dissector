@@ -33,12 +33,12 @@ impl ConversationBuffer {
         }
     }
 
-    pub fn consume(&mut self, packet: &NetworkPacket) -> (usize, Result<(), ()>) {
+    pub fn consume(&mut self, packet: &NetworkPacket) -> (Range<usize>, Result<(), ()>) {
         let target = self.pow_target;
         let sender = self.sender(packet);
         let direct_buffer = self.direct_buffer_mut(&sender);
         let already_checked = direct_buffer.data().len() >= Self::CHECK_RANGE.end;
-        let offset = direct_buffer.consume(packet.payload.as_ref());
+        let space = direct_buffer.consume(packet.payload.as_ref());
         let data = direct_buffer.data();
         // if after consume have enough bytes, let's check the proof of work
         let can_check = data.len() >= Self::CHECK_RANGE.end;
@@ -47,7 +47,7 @@ impl ConversationBuffer {
         } else {
             Ok(())
         };
-        (offset, checking_result)
+        (space, checking_result)
     }
 
     pub fn id(&self) -> String {
