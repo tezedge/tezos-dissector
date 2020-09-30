@@ -8,12 +8,14 @@ use super::{
 use crate::identity::Identity;
 
 pub struct BinaryChunkMetadata {
-    pub initiator: SocketAddress,
-    pub responder: SocketAddress,
-    pub offset: usize,
+    pub source: SocketAddress,
+    pub destination: SocketAddress,
     pub sender: Sender,
     pub encrypted: bool,
     pub timestamp: i64,
+    pub continuation: bool,
+    pub incomplete: bool,
+    pub offset: usize,
 }
 
 pub trait BinaryChunkProvider {

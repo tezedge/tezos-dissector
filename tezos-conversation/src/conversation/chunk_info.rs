@@ -9,6 +9,7 @@ use crate::value::HasBodyRange;
 #[derive(Clone)]
 pub struct ChunkInfo {
     range: Range<usize>,
+    data: Vec<u8>,
     // false means this chunk start a new message,
     // true means this chunk is a continuation of some message,
     continuation: Cell<bool>,
@@ -16,9 +17,10 @@ pub struct ChunkInfo {
 }
 
 impl ChunkInfo {
-    pub fn new(range: Range<usize>) -> Self {
+    pub fn new(range: Range<usize>, data: Vec<u8>) -> Self {
         ChunkInfo {
             range,
+            data,
             continuation: Cell::new(false),
             incomplete: Cell::new(false),
         }
@@ -38,6 +40,10 @@ impl ChunkInfo {
 }
 
 impl HasBodyRange for ChunkInfo {
+    fn content(&self) -> &[u8] {
+        &self.data[2..]
+    }
+
     fn body(&self) -> Range<usize> {
         let range = self.range();
         if range.start == 0 {

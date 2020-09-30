@@ -8,6 +8,8 @@ use super::{addresses::Sender, chunk_info::ChunkInfo};
 use crate::identity::{Decipher, NonceAddition};
 
 pub struct DirectBuffer {
+    offset: usize,
+    buffer: Vec<u8>,
     data: Vec<u8>,
     chunks: Vec<ChunkInfo>,
     processed: usize,
@@ -26,6 +28,8 @@ pub struct ChunkPosition {
 impl DirectBuffer {
     pub fn new() -> Self {
         DirectBuffer {
+            offset: 0,
+            buffer: Vec::with_capacity(0x1000),
             data: Vec::with_capacity(0x100000),
             chunks: Vec::with_capacity(0x1000),
             // first message always decrypted
@@ -34,17 +38,24 @@ impl DirectBuffer {
     }
 
     pub fn consume(&mut self, payload: &[u8]) -> Range<usize> {
-        let offset = self.data.len();
+        let offset = self.offset;
         self.data.extend_from_slice(payload);
-        let end = self.data.len();
-        let mut position = self.chunks.last().map(|r| r.range().end).unwrap_or(0);
+        let end = offset + payload.len();
+        self.offset = end;
+        let mut position = offset - self.buffer.len();
 
+        self.buffer.extend_from_slice(payload);
         loop {
-            if position + 2 < end {
-                let length = (&self.data[position..(position + 2)]).get_u16() as usize;
+            if position + 2 <= end {
+                let length = (&self.buffer[0..2]).get_u16() as usize;
                 let this_end = position + 2 + length;
-                self.chunks.push(ChunkInfo::new(position..this_end));
-                position = this_end;
+                if this_end <= end {
+                    let chunk_data = self.buffer.drain(0..(length + 2)).collect();
+                    self.chunks.push(ChunkInfo::new(position..this_end, chunk_data));
+                    position = this_end;
+                } else {
+                    break offset..end;
+                }
             } else {
                 break offset..end;
             }
