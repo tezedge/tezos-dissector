@@ -2,15 +2,24 @@
 // SPDX-License-Identifier: MIT
 
 use wireshark_definitions::NetworkPacket;
+use failure::Fail;
 use std::ops::Range;
 use super::{
-    addresses::{Addresses, Sender},
-    direct_buffer::{DirectBuffer, ChunkPosition},
+    addresses::{Addresses, BinaryChunkMetadata, Sender},
+    chunk_info::{ChunkInfo, ChunkInfoPair},
+    direct_buffer::DirectBuffer,
 };
-use crate::{
-    identity::Decipher,
-    proof_of_work::check_proof_of_work,
-};
+use crate::identity::{Decipher, NonceAddition};
+
+#[derive(Debug, Fail, Eq, PartialEq)]
+#[fail(
+    display = "MAC mismatch, sender: {:?}, number of chunk: {}",
+    sender, chunk_number
+)]
+pub struct ChunkPosition {
+    pub sender: Sender,
+    pub chunk_number: usize,
+}
 
 pub struct ConversationBuffer {
     addresses: Addresses,
@@ -19,11 +28,19 @@ pub struct ConversationBuffer {
     outgoing: DirectBuffer,
 }
 
-impl ConversationBuffer {
-    // 2 bytes chunk length + 2 bytes port = 4
-    // 32 bytes public key + 24 bytes proof_of_work = 56
-    const CHECK_RANGE: Range<usize> = 4..(4 + 56);
+pub enum ConsumeResult {
+    PowInvalid,
+    Pending,
+    ConnectionMessage(ChunkInfo),
+    ExpectedConnectionMessage,
+    Chunks {
+        regular: Vec<ChunkInfoPair>,
+        failed_to_decrypt: Vec<ChunkInfo>,
+    },
+    NoDecipher(Vec<ChunkInfo>),
+}
 
+impl ConversationBuffer {
     pub fn new(packet: &NetworkPacket, pow_target: f64) -> Self {
         ConversationBuffer {
             addresses: Addresses::new(packet),
@@ -33,21 +50,54 @@ impl ConversationBuffer {
         }
     }
 
-    pub fn consume(&mut self, packet: &NetworkPacket) -> (Range<usize>, Result<(), ()>) {
+    pub fn consume(&mut self, packet: &NetworkPacket, decipher: Option<&Decipher>) -> (ConsumeResult, Range<usize>, Option<ChunkPosition>) {
         let target = self.pow_target;
         let sender = self.sender(packet);
-        let direct_buffer = self.direct_buffer_mut(&sender);
-        let already_checked = direct_buffer.data().len() >= Self::CHECK_RANGE.end;
-        let space = direct_buffer.consume(packet.payload.as_ref());
-        let data = direct_buffer.data();
-        // if after consume have enough bytes, let's check the proof of work
-        let can_check = data.len() >= Self::CHECK_RANGE.end;
-        let checking_result = if !already_checked && can_check {
-            check_proof_of_work(&data[Self::CHECK_RANGE], target)
+        let buffer = self.direct_buffer_mut(&sender);
+        let (packet_range, chunks, pow_valid) =
+            buffer.consume(packet.payload.as_ref(), target);
+        if !pow_valid {
+            return (ConsumeResult::PowInvalid, packet_range, None);
+        }
+        if chunks.is_empty() {
+            return (ConsumeResult::Pending, packet_range, None);
+        }
+        if buffer.chunks_number() == chunks.len() {
+            if chunks.len() == 1 {
+                let message = chunks[0].clone();
+                return (ConsumeResult::ConnectionMessage(message), packet_range, None);
+            } else {
+                return (ConsumeResult::ExpectedConnectionMessage, packet_range, None);
+            }
+        }
+        if let Some(decipher) = decipher {
+            let mut regular = Vec::with_capacity(chunks.len());
+            let mut failed_to_decrypt = Vec::new();
+            let i_base = buffer.chunks_number() - 1 - chunks.len();
+            let mut error = None;
+            for (i, chunk) in chunks.into_iter().enumerate() {
+                let i = i_base + i;
+                let nonce_addition = match &sender {
+                    &Sender::Initiator => NonceAddition::Initiator(i as u64),
+                    &Sender::Responder => NonceAddition::Responder(i as u64),
+                };
+                match chunk.decrypt(|data| decipher.decrypt(data, nonce_addition).ok()) {
+                    Ok(decrypted) => regular.push(decrypted),
+                    Err(failed) => {
+                        if error.is_none() {
+                            error = Some(ChunkPosition {
+                                sender: sender.clone(),
+                                chunk_number: i,
+                            })
+                        }
+                        failed_to_decrypt.push(failed)
+                    },
+                }
+            }
+            (ConsumeResult::Chunks { regular, failed_to_decrypt }, packet_range, error)
         } else {
-            Ok(())
-        };
-        (space, checking_result)
+            (ConsumeResult::NoDecipher(chunks), packet_range, None)
+        }
     }
 
     pub fn id(&self) -> String {
@@ -55,24 +105,10 @@ impl ConversationBuffer {
     }
 
     pub fn can_upgrade(&self) -> Option<(&[u8], &[u8])> {
-        match (
-            self.incoming.chunks().first(),
-            self.outgoing.chunks().first(),
-        ) {
-            (Some(i), Some(o)) => {
-                let can = self.incoming.data().len() >= i.range().end
-                    && i.range().len() >= Self::CHECK_RANGE.end
-                    && self.outgoing.data().len() >= o.range().end
-                    && o.range().len() >= Self::CHECK_RANGE.end;
-                if can {
-                    let initiator = &self.incoming.data()[self.incoming.chunks()[0].range()];
-                    let responder = &self.outgoing.data()[self.outgoing.chunks()[0].range()];
-                    Some((initiator, responder))
-                } else {
-                    None
-                }
-            },
-            _ => None,
+        if self.incoming.connection_message().is_empty() || self.outgoing.connection_message().is_empty() {
+            None
+        } else {
+            Some((self.incoming.connection_message(), self.outgoing.connection_message()))
         }
     }
 
@@ -94,9 +130,7 @@ impl ConversationBuffer {
         self.addresses.sender(packet)
     }
 
-    pub fn decrypt(&mut self, decipher: &Decipher) -> Result<(), ChunkPosition> {
-        self.incoming.decrypt(decipher, Sender::Initiator)?;
-        self.outgoing.decrypt(decipher, Sender::Responder)?;
-        Ok(())
+    pub fn metadata(&self, packet: &NetworkPacket) -> BinaryChunkMetadata {
+        self.addresses.metadata(packet)
     }
 }

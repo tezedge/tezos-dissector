@@ -12,6 +12,12 @@ pub struct Addresses {
     responder: SocketAddress,
 }
 
+pub struct BinaryChunkMetadata {
+    pub source: SocketAddress,
+    pub destination: SocketAddress,
+    pub sender: Sender,
+}
+
 impl fmt::Display for Addresses {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} -> {}", self.initiator, self.responder)
@@ -35,6 +41,22 @@ impl Addresses {
             Sender::Responder
         } else {
             panic!()
+        }
+    }
+
+    pub fn metadata(&self, packet: &NetworkPacket) -> BinaryChunkMetadata {
+        let sender = self.sender(packet);
+        match &sender {
+            &Sender::Initiator => BinaryChunkMetadata {
+                source: self.initiator.clone(),
+                destination: self.responder.clone(),
+                sender,
+            },
+            &Sender::Responder => BinaryChunkMetadata {
+                source: self.responder.clone(),
+                destination: self.initiator.clone(),
+                sender,
+            },
         }
     }
 }

@@ -9,7 +9,7 @@ mod named;
 use std::ops::Range;
 
 pub trait HasBodyRange {
-    fn content(&self) -> &[u8];
+    fn data(&self) -> &[u8];
     fn body(&self) -> Range<usize>;
     fn set_continuation(&self);
     fn set_incomplete(&self);

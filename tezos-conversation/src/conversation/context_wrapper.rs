@@ -1,49 +1,11 @@
-use wireshark_definitions::{NetworkPacket, TreePresenter, SocketAddress};
-use tezos_messages::p2p::binary_message::BinaryChunk;
-use std::{task::Poll, collections::BTreeMap, ops::Range};
+use wireshark_definitions::{NetworkPacket, TreePresenter};
+use std::{collections::BTreeMap, ops::Range};
 use super::{
-    context::{ContextInner, ErrorPosition},
-    addresses::Sender,
+    addresses::{BinaryChunkMetadata, Sender},
+    overall_buffer::ConsumeResult,
+    context::{ContextInner, ErrorPosition, BinaryChunkInMemory},
 };
 use crate::identity::Identity;
-
-pub struct BinaryChunkMetadata {
-    pub source: SocketAddress,
-    pub destination: SocketAddress,
-    pub sender: Sender,
-    pub encrypted: bool,
-    pub timestamp: i64,
-    pub continuation: bool,
-    pub incomplete: bool,
-    pub offset: usize,
-}
-
-pub trait BinaryChunkProvider {
-    fn binary_chunk_content(&self, index: usize, sender: Sender) -> &[u8];
-}
-
-pub struct BinaryChunkStorage {
-    from_initiator: Vec<Vec<u8>>,
-    from_responder: Vec<Vec<u8>>,
-}
-
-impl BinaryChunkStorage {
-    pub fn new() -> Self {
-        BinaryChunkStorage {
-            from_initiator: Vec::new(),
-            from_responder: Vec::new(),
-        }
-    }
-}
-
-impl BinaryChunkProvider for BinaryChunkStorage {
-    fn binary_chunk_content(&self, index: usize, sender: Sender) -> &[u8] {
-        match sender {
-            Sender::Initiator => self.from_initiator[index].as_slice(),
-            Sender::Responder => self.from_responder[index].as_slice(),
-        }
-    }
-}
 
 pub struct Conversation {
     inner: Option<ContextInner>,
@@ -91,33 +53,31 @@ impl Conversation {
 
     pub fn add(
         &mut self,
-        identity: Option<&(Identity, String)>,
+        identity: Option<&Identity>,
         packet: &NetworkPacket,
-    ) -> Poll<Vec<(BinaryChunkMetadata, BinaryChunk)>> {
+    ) -> Option<(BinaryChunkMetadata, ConsumeResult)> {
         let pow_target = self.pow_target;
         if let None = self.packet_ranges.get(&packet.number) {
             let inner = self.inner.get_or_insert_with(|| ContextInner::new(packet, pow_target));
-            if let Some(space) = inner.consume(packet, identity) {
-                self.packet_ranges.insert(packet.number, space);
-            }
+            inner.consume(packet, identity)
+                .map(|(metadata, result, packet_range)| {
+                    self.packet_ranges.insert(packet.number, packet_range);
+                    (metadata, result)
+                })
+        } else {
+            None
         }
-        // TODO: return proper chunks data
-        Poll::Pending
     }
 
-    pub fn visualize<P, T>(&mut self, packet: &NetworkPacket, provider: &P, output: &mut T) -> bool
+    pub fn visualize<T>(&mut self, packet: &NetworkPacket, provider: &BinaryChunkInMemory, output: &mut T) -> bool
     where
-        P: BinaryChunkProvider,
         T: TreePresenter,
     {
-        // TODO: use the provider
-        let _ = provider;
-
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
         if !self.invalid(packet) {
             if let Some(range) = self.packet_ranges.get(&packet.number) {
-                match self.inner.as_mut().unwrap().visualize(packet, range.start, output) {
+                match self.inner.as_mut().unwrap().visualize(packet, range.start, provider, output) {
                     Ok(()) => (),
                     Err(r) => match r.sender {
                         Sender::Initiator => self.incoming_frame_result = Err(r),

@@ -16,6 +16,11 @@ pub struct ChunkInfo {
     incomplete: Cell<bool>,
 }
 
+pub struct ChunkInfoPair {
+    pub encrypted: ChunkInfo,
+    pub decrypted: ChunkInfo,
+}
+
 impl ChunkInfo {
     pub fn new(range: Range<usize>, data: Vec<u8>) -> Self {
         ChunkInfo {
@@ -37,11 +42,28 @@ impl ChunkInfo {
     pub fn incomplete(&self) -> bool {
         self.incomplete.get()
     }
+
+    pub fn decrypt<Decipher>(self, mut decipher: Decipher) -> Result<ChunkInfoPair, Self>
+    where
+        Decipher: FnMut(&[u8]) -> Option<Vec<u8>>,
+    {
+        let mut s = self.clone();
+        let l = s.data.len();
+        if let Some(plain) = decipher(&s.data[2..]) {
+            s.data[2..(l - 16)].clone_from_slice(plain.as_ref());
+            Ok(ChunkInfoPair {
+                encrypted: self,
+                decrypted: s,
+            })
+        } else {
+            Err(self)
+        }
+    }
 }
 
 impl HasBodyRange for ChunkInfo {
-    fn content(&self) -> &[u8] {
-        &self.data[2..]
+    fn data(&self) -> &[u8] {
+        self.data.as_ref()
     }
 
     fn body(&self) -> Range<usize> {

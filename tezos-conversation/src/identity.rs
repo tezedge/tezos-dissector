@@ -10,7 +10,7 @@ use tezos_messages::p2p::encoding::{
     connection::ConnectionMessage,
     version::NetworkVersion,
 };
-use std::{path::Path, ops::Add};
+use std::ops::Add;
 use num_bigint::BigUint;
 
 #[derive(Deserialize, Clone, Debug, PartialEq)]
@@ -20,6 +20,9 @@ pub struct Identity {
     public_key: String,
     secret_key: String,
     proof_of_work_stamp: String,
+
+    #[serde(skip)]
+    path: String,
 }
 
 pub enum IdentityError {
@@ -29,12 +32,18 @@ pub enum IdentityError {
 
 impl Identity {
     /// Read and deserialize the identity from json file using serde.
-    pub fn from_path<P>(path: P) -> Result<Self, failure::Error>
-    where
-        P: AsRef<Path>,
-    {
-        let content = std::fs::read_to_string(path.as_ref())?;
-        serde_json::from_str(&content).map_err(Into::into)
+    pub fn from_path(path: String) -> Result<Self, failure::Error> {
+        let content = std::fs::read_to_string(&path)?;
+        serde_json::from_str::<Self>(&content)
+            .map(|mut s| {
+                s.path = path;
+                s
+            })
+            .map_err(Into::into)
+    }
+
+    pub fn path(&self) -> String {
+        self.path.clone()
     }
 
     pub fn connection_message(&self) -> ConnectionMessage {

@@ -9,12 +9,42 @@ use tezos_messages::p2p::encoding::{
 };
 use failure::Fail;
 use std::ops::Range;
-use super::{addresses::Sender, direct_buffer::ChunkPosition, overall_buffer::ConversationBuffer};
+use super::{
+    addresses::{BinaryChunkMetadata, Sender},
+    chunk_info::ChunkInfo,
+    overall_buffer::{ConversationBuffer, ConsumeResult, ChunkPosition},
+};
 use crate::{
     identity::{Decipher, Identity, IdentityError},
     value::{ChunkedData, Named, HasBodyRange, DecodingError, show},
     range_tool::intersect,
 };
+
+pub struct BinaryChunkInMemory {
+    pub from_initiator: Vec<ChunkInfo>,
+    pub from_responder: Vec<ChunkInfo>,
+}
+
+impl BinaryChunkInMemory {
+    pub fn new() -> Self {
+        BinaryChunkInMemory {
+            from_initiator: Vec::new(),
+            from_responder: Vec::new(),
+        }
+    }
+
+    pub fn append(&mut self, metadata: BinaryChunkMetadata, result: ConsumeResult) {
+        let mut chunks = match result {
+            ConsumeResult::ConnectionMessage(chunk) => vec![chunk],
+            ConsumeResult::Chunks { regular, .. } => regular.into_iter().map(|p| p.decrypted).collect(),
+            _ => Vec::new(),
+        };
+        match metadata.sender {
+            Sender::Initiator => self.from_initiator.append(&mut chunks),
+            Sender::Responder => self.from_responder.append(&mut chunks),
+        }
+    }
+}
 
 #[derive(Debug, Eq, PartialEq, Fail)]
 pub enum State {
@@ -61,32 +91,32 @@ impl ContextInner {
     pub fn consume(
         &mut self,
         packet: &NetworkPacket,
-        identity: Option<&(Identity, String)>,
-    ) -> Option<Range<usize>> {
+        identity: Option<&Identity>,
+    ) -> Option<(BinaryChunkMetadata, ConsumeResult, Range<usize>)> {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
-                let (space, result) = buffer.consume(packet);
-                match result {
-                    Ok(()) => (),
-                    Err(()) => {
-                        *self = ContextInner::Unrecognized;
-                        return Some(space);
-                    },
+                let (consume_result, packet_range, error) =
+                    buffer.consume(packet, decipher.as_ref());
+                let buffer = &*buffer;
+                let metadata = buffer.metadata(packet);
+                let sender = buffer.sender(packet);
+
+                if let &ConsumeResult::PowInvalid = &consume_result {
+                    *self = ContextInner::Unrecognized;
+                    return Some((metadata, consume_result, packet_range));
                 }
                 if decipher.is_none() {
-                    let buffer = &*buffer;
-                    let sender = buffer.sender(packet);
                     if let Some((initiator, responder)) = buffer.can_upgrade() {
                         match identity {
-                            Some(&(ref i, ref filename)) => {
+                            Some(i) => {
                                 *decipher = match i.decipher(initiator, responder) {
                                     Ok(decipher) => Some(decipher),
                                     Err(IdentityError::Invalid) => {
-                                        *state = State::IdentityInvalid(filename.clone());
+                                        *state = State::IdentityInvalid(i.path());
                                         None
                                     },
                                     Err(IdentityError::CannotDecrypt) => {
-                                        *state = State::IdentityCannotDecrypt(filename.clone());
+                                        *state = State::IdentityCannotDecrypt(i.path());
                                         None
                                     },
                                 }
@@ -95,25 +125,18 @@ impl ContextInner {
                                 *state = State::HaveNoIdentity;
                             },
                         }
-                    } else if buffer.direct_buffer(&sender).chunks().len() > 1 {
+                    } else if buffer.direct_buffer(&sender).chunks_number() > 1 {
                         *self = ContextInner::Unrecognized;
-                        return Some(space);
+                        return Some((metadata, consume_result, packet_range));
                     }
                 }
-                if let &mut Some(ref decipher) = decipher {
-                    if let Err(e) = buffer.decrypt(decipher) {
-                        log::warn!("cannot decrypt {}", e);
-                        match e.chunk_number {
-                            0 => panic!("impossible, the first message is never encrypted"),
-                            // if cannot decrypt the first message,
-                            // most likely it is not our conversation
-                            1 => *self = ContextInner::Unrecognized,
-                            _ => *state = State::DecryptError(e),
-                        }
-                    }
+                if let Some(error) = error {
+                    log::warn!("cannot decrypt {}", error);
+                    *state = State::DecryptError(error);
                 }
-                Some(space)
+                Some((metadata, consume_result, packet_range))
             },
+            // TODO:
             &mut ContextInner::Unrecognized => None,
         }
     }
@@ -156,17 +179,21 @@ impl ContextInner {
     }
 
     /// Returns if there is decryption error.
-    pub fn visualize<T>(&self, packet: &NetworkPacket, offset: usize, root: &mut T) -> Result<(), ErrorPosition>
+    pub fn visualize<T>(&self, packet: &NetworkPacket, offset: usize, provider: &BinaryChunkInMemory, root: &mut T) -> Result<(), ErrorPosition>
     where
         T: TreePresenter,
     {
         let sender = self.buffer().sender(packet);
         let buffer = self.buffer().direct_buffer(&sender);
         let space = offset..(offset + packet.payload.len());
-        let data = buffer.data();
-        let decrypted = buffer.decrypted();
-        let chunks = buffer.chunks();
+        let data = &[]; // buffer.data();
+        let decrypted = buffer.chunks_number();
         let state = self.state();
+
+        let chunks = match &sender {
+            &Sender::Initiator => provider.from_initiator.as_slice(),
+            &Sender::Responder => provider.from_responder.as_slice(),
+        };
 
         let mut node = root
             .add("tezos", 0..space.len(), TreeLeaf::nothing())

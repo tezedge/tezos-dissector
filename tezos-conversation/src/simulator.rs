@@ -4,8 +4,8 @@ use tezos_messages::p2p::{
     encoding::connection::ConnectionMessage,
 };
 use sodiumoxide::crypto::box_;
-use std::{fmt, ops::Range, task::Poll};
-use crate::{Conversation, BinaryChunkStorage, Identity, NonceAddition};
+use std::{fmt, ops::Range};
+use crate::{Conversation, BinaryChunkInMemory, Identity, NonceAddition};
 
 #[derive(Default, Clone)]
 pub struct Tree {
@@ -95,11 +95,8 @@ where
                     number: metadata.number,
                     payload: data[pos..end].to_vec(),
                 };
-                match context.add(None, &packet) {
-                    Poll::Ready(_) => panic!(),
-                    Poll::Pending => (),
-                }
-                context.visualize(&packet, &BinaryChunkStorage::new(), output);
+                context.add(None, &packet);
+                context.visualize(&packet, &BinaryChunkInMemory::new(), output);
             }
             (context, end)
         });
@@ -121,11 +118,8 @@ where
                     number: metadata.number,
                     payload: chunk.raw().to_vec(),
                 };
-                match context.add(None, &packet) {
-                    Poll::Ready(_) => (),
-                    Poll::Pending => panic!(),
-                }
-                context.visualize(&packet, &BinaryChunkStorage::new(), output);
+                context.add(None, &packet);
+                context.visualize(&packet, &BinaryChunkInMemory::new(), output);
             }
             (context, end)
         });
@@ -156,7 +150,7 @@ pub fn simulate_encrypted<T>(
     T: TreePresenter,
 {
     let path = "data/identity.json".to_owned();
-    let identity = Identity::from_path(&path).unwrap();
+    let identity = Identity::from_path(path).unwrap();
     let cm_a = identity.connection_message();
     let (pk, _) = box_::gen_keypair();
     let cm_b = ConnectionMessage::new(4321, &hex::encode(pk.as_ref()), &hex::encode([0; 24]), [0; 24].as_ref(), cm_a.versions.clone());
@@ -169,7 +163,6 @@ pub fn simulate_encrypted<T>(
         PacketDescriptor::new(chunk_b.content().len() + 2, true).unwrap(),
     ];
 
-    let id = (identity, path);
     let context = Conversation::new(0.0);
     let _ = packet_iter(handshake_descriptors.iter().cloned().chain(descriptors.iter().cloned()))
         .fold((context, 0, 0), |(mut context, pos_a, pos_b), (metadata, length)| {
@@ -192,11 +185,8 @@ pub fn simulate_encrypted<T>(
                 number: metadata.number,
                 payload: slice.to_vec(),
             };
-            match context.add(Some(&id), &packet) {
-                Poll::Ready(_) => (),
-                Poll::Pending => (),
-            }
-            context.visualize(&packet, &BinaryChunkStorage::new(), output);
+            context.add(Some(&identity), &packet);
+            context.visualize(&packet, &BinaryChunkInMemory::new(), output);
             (context, end_a, end_b)
         });
 }
