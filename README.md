@@ -156,3 +156,21 @@ Another way you can check whether the dissector has been loaded up correctly is 
 
 ![s0](doc/supported_protocols.gif "Supported protocols")
 
+## Test
+
+### Unit tests
+
+First time it might take a while because it builds wireshark locally in debug mode.
+
+```
+cargo test -p tezos-conversation
+```
+
+### Integration tests
+
+Run bash scripts placed in `tests` directory.
+
+```
+./tests/basic_connection_message.sh
+./tests/ensure_all_decrypted.sh
+```

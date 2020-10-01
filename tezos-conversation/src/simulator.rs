@@ -156,7 +156,7 @@ pub fn simulate_encrypted<T>(
 ) where
     T: TreePresenter,
 {
-    let path = "data/identity.json".to_owned();
+    let path = format!("{}/../data/identity.json", env!("CARGO_MANIFEST_DIR"));
     let identity = Identity::from_path(&path).unwrap();
     let cm_a = identity.connection_message();
     let (pk, _) = box_::gen_keypair();
