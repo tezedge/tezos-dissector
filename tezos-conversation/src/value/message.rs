@@ -310,7 +310,7 @@ where
                 show_inner(data, space, encoding, base, node)?;
                 data.pop_limit();
             } else {
-                return Err(DecodingError::NotEnoughData)
+                return Err(DecodingError::NotEnoughData);
             }
         },
         &Encoding::Sized(ref size, ref encoding) => {

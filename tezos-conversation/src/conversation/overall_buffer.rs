@@ -50,12 +50,15 @@ impl ConversationBuffer {
         }
     }
 
-    pub fn consume(&mut self, packet: &NetworkPacket, decipher: Option<&Decipher>) -> (ConsumeResult, Range<usize>, Option<ChunkPosition>) {
+    pub fn consume(
+        &mut self,
+        packet: &NetworkPacket,
+        decipher: Option<&Decipher>,
+    ) -> (ConsumeResult, Range<usize>, Option<ChunkPosition>) {
         let target = self.pow_target;
         let sender = self.sender(packet);
         let buffer = self.direct_buffer_mut(&sender);
-        let (packet_range, chunks, pow_valid) =
-            buffer.consume(packet.payload.as_ref(), target);
+        let (packet_range, chunks, pow_valid) = buffer.consume(packet.payload.as_ref(), target);
         if !pow_valid {
             return (ConsumeResult::PowInvalid, packet_range, None);
         }
@@ -65,7 +68,11 @@ impl ConversationBuffer {
         if buffer.chunks_number() == chunks.len() {
             if chunks.len() == 1 {
                 let message = chunks[0].clone();
-                return (ConsumeResult::ConnectionMessage(message), packet_range, None);
+                return (
+                    ConsumeResult::ConnectionMessage(message),
+                    packet_range,
+                    None,
+                );
             } else {
                 return (ConsumeResult::ExpectedConnectionMessage, packet_range, None);
             }
@@ -94,7 +101,14 @@ impl ConversationBuffer {
                     },
                 }
             }
-            (ConsumeResult::Chunks { regular, failed_to_decrypt }, packet_range, error)
+            (
+                ConsumeResult::Chunks {
+                    regular,
+                    failed_to_decrypt,
+                },
+                packet_range,
+                error,
+            )
         } else {
             (ConsumeResult::NoDecipher(chunks), packet_range, None)
         }
@@ -105,10 +119,15 @@ impl ConversationBuffer {
     }
 
     pub fn can_upgrade(&self) -> Option<(&[u8], &[u8])> {
-        if self.incoming.connection_message().is_empty() || self.outgoing.connection_message().is_empty() {
-            None
+        let i = !self.incoming.connection_message().is_empty();
+        let o = !self.outgoing.connection_message().is_empty();
+        if i && o {
+            Some((
+                self.incoming.connection_message(),
+                self.outgoing.connection_message(),
+            ))
         } else {
-            Some((self.incoming.connection_message(), self.outgoing.connection_message()))
+            None
         }
     }
 

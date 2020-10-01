@@ -55,7 +55,9 @@ impl Conversation {
         packet: &NetworkPacket,
     ) -> Option<(ChunkMetadata, ConsumeResult, Range<usize>)> {
         let pow_target = self.pow_target;
-        let inner = self.inner.get_or_insert_with(|| ContextInner::new(packet, pow_target));
+        let inner = self
+            .inner
+            .get_or_insert_with(|| ContextInner::new(packet, pow_target));
         inner.consume(packet, identity)
     }
 
@@ -68,7 +70,12 @@ impl Conversation {
         // or if decryption error occurs
         if !self.invalid(packet) {
             if let Some(range) = provider.packet_range(packet.number) {
-                match self.inner.as_mut().unwrap().visualize(packet, range.start, provider, output) {
+                match self
+                    .inner
+                    .as_mut()
+                    .unwrap()
+                    .visualize(packet, range.start, provider, output)
+                {
                     Ok(()) => (),
                     Err(r) => match r.sender {
                         Sender::Initiator => self.incoming_frame_result = Err(r),

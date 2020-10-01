@@ -6,10 +6,7 @@ use crypto::{
     crypto_box::{PrecomputedKey, precompute, decrypt, encrypt, CryptoError},
     nonce::{NoncePair, Nonce, generate_nonces},
 };
-use tezos_messages::p2p::encoding::{
-    connection::ConnectionMessage,
-    version::NetworkVersion,
-};
+use tezos_messages::p2p::encoding::{connection::ConnectionMessage, version::NetworkVersion};
 use std::ops::Add;
 use num_bigint::BigUint;
 
@@ -48,7 +45,13 @@ impl Identity {
 
     pub fn connection_message(&self) -> ConnectionMessage {
         let version = NetworkVersion::new("testnet".to_owned(), 0, 0);
-        ConnectionMessage::new(1234, &self.public_key, &self.proof_of_work_stamp, [0; 24].as_ref(), vec![version])
+        ConnectionMessage::new(
+            1234,
+            &self.public_key,
+            &self.proof_of_work_stamp,
+            [0; 24].as_ref(),
+            vec![version],
+        )
     }
 
     /// Create a decipher object using connection message pair.
@@ -69,8 +72,7 @@ impl Identity {
         };
 
         Ok(Decipher {
-            key: precompute(&other_pk, &self.secret_key)
-                .map_err(|_| IdentityError::Invalid)?,
+            key: precompute(&other_pk, &self.secret_key).map_err(|_| IdentityError::Invalid)?,
             // initiator/responder is not the same as local/remote party,
             // but let's only in this module treat initiator as local party, and responder as remote
             nonce: generate_nonces(initiator_chunk, responder_chunk, false),

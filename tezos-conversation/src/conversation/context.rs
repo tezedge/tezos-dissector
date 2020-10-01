@@ -157,7 +157,13 @@ impl ContextInner {
     }
 
     /// Returns if there is decryption error.
-    pub fn visualize<T, P>(&self, packet: &NetworkPacket, offset: usize, provider: &P, root: &mut T) -> Result<(), ErrorPosition>
+    pub fn visualize<T, P>(
+        &self,
+        packet: &NetworkPacket,
+        offset: usize,
+        provider: &P,
+        root: &mut T,
+    ) -> Result<(), ErrorPosition>
     where
         T: TreePresenter,
         P: ChunkInfoProvider,

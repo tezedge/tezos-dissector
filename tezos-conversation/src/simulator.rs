@@ -60,8 +60,11 @@ impl PacketDescriptor {
     }
 }
 
-fn packet_iter(descriptors: impl Iterator<Item = PacketDescriptor>) -> impl Iterator<Item = (Packet, usize)> {
-    descriptors.enumerate()
+fn packet_iter(
+    descriptors: impl Iterator<Item = PacketDescriptor>,
+) -> impl Iterator<Item = (Packet, usize)> {
+    descriptors
+        .enumerate()
         .map(|(number, PacketDescriptor { length, swap })| {
             let length = length.clone();
             // first message never swapped
@@ -70,8 +73,16 @@ fn packet_iter(descriptors: impl Iterator<Item = PacketDescriptor>) -> impl Iter
             let destination = SocketAddress::Ip("123.123.123.123:1234".parse().unwrap());
             (
                 Packet {
-                    source: if swap { destination.clone() } else { source.clone() },
-                    destination: if swap { source.clone() } else { destination.clone() },
+                    source: if swap {
+                        destination.clone()
+                    } else {
+                        source.clone()
+                    },
+                    destination: if swap {
+                        source.clone()
+                    } else {
+                        destination.clone()
+                    },
                     number: (number + 1) as _,
                     swapped: swap,
                 },
@@ -85,8 +96,9 @@ where
     T: TreePresenter,
 {
     let context = Conversation::new(0.0);
-    let _ = packet_iter(descriptors.iter().cloned())
-        .fold((context, 0), |(mut context, pos), (metadata, length)| {
+    let _ = packet_iter(descriptors.iter().cloned()).fold(
+        (context, 0),
+        |(mut context, pos), (metadata, length)| {
             let end = pos + length;
             if data.len() > end {
                 let packet = NetworkPacket {
@@ -100,7 +112,8 @@ where
                 let _ = output;
             }
             (context, end)
-        });
+        },
+    );
 }
 
 pub fn simulate_handshake<T>(descriptors: &[PacketDescriptor], data: &[u8], output: &mut T)
@@ -108,8 +121,9 @@ where
     T: TreePresenter,
 {
     let context = Conversation::new(0.0);
-    let _ = packet_iter(descriptors.iter().cloned())
-        .fold((context, 0), |(mut context, pos), (metadata, length)| {
+    let _ = packet_iter(descriptors.iter().cloned()).fold(
+        (context, 0),
+        |(mut context, pos), (metadata, length)| {
             let end = pos + length;
             if data.len() > end {
                 let chunk = BinaryChunk::from_content(&data[pos..end]).unwrap();
@@ -124,7 +138,8 @@ where
                 let _ = output;
             }
             (context, end)
-        });
+        },
+    );
 }
 
 #[derive(Clone)]
@@ -155,10 +170,24 @@ pub fn simulate_encrypted<T>(
     let identity = Identity::from_path(path).unwrap();
     let cm_a = identity.connection_message();
     let (pk, _) = box_::gen_keypair();
-    let cm_b = ConnectionMessage::new(4321, &hex::encode(pk.as_ref()), &hex::encode([0; 24]), [0; 24].as_ref(), cm_a.versions.clone());
+    let cm_b = ConnectionMessage::new(
+        4321,
+        &hex::encode(pk.as_ref()),
+        &hex::encode([0; 24]),
+        [0; 24].as_ref(),
+        cm_a.versions.clone(),
+    );
     let chunk_a = BinaryChunk::from_content(&cm_a.as_bytes().unwrap()).unwrap();
     let chunk_b = BinaryChunk::from_content(&cm_b.as_bytes().unwrap()).unwrap();
-    let (data_a, data_b) = encrypt_conversation(descriptors, data, initiator_chunk_descriptors, responder_chunk_descriptors, &chunk_a, &chunk_b, &identity);
+    let (data_a, data_b) = encrypt_conversation(
+        descriptors,
+        data,
+        initiator_chunk_descriptors,
+        responder_chunk_descriptors,
+        &chunk_a,
+        &chunk_b,
+        &identity,
+    );
 
     let handshake_descriptors = [
         PacketDescriptor::new(chunk_a.content().len() + 2, false).unwrap(),
@@ -166,18 +195,25 @@ pub fn simulate_encrypted<T>(
     ];
 
     let context = Conversation::new(0.0);
-    let _ = packet_iter(handshake_descriptors.iter().cloned().chain(descriptors.iter().cloned()))
-        .fold((context, 0, 0), |(mut context, pos_a, pos_b), (metadata, length)| {
+    let _ = packet_iter(
+        handshake_descriptors
+            .iter()
+            .cloned()
+            .chain(descriptors.iter().cloned()),
+    )
+    .fold(
+        (context, 0, 0),
+        |(mut context, pos_a, pos_b), (metadata, length)| {
             let (end_a, end_b, slice) = if metadata.swapped {
                 let end = pos_b + length;
                 if data_b.len() <= end {
-                    return (context, pos_a, end)
+                    return (context, pos_a, end);
                 }
                 (pos_a, end, &data_b[pos_b..end])
             } else {
                 let end = pos_a + length;
                 if data_a.len() <= end {
-                    return (context, end, pos_b)
+                    return (context, end, pos_b);
                 }
                 (end, pos_b, &data_a[pos_a..end])
             };
@@ -192,7 +228,8 @@ pub fn simulate_encrypted<T>(
             //context.visualize(&packet, &BinaryChunkInMemory::new(), output);
             let _ = output;
             (context, end_a, end_b)
-        });
+        },
+    );
 }
 
 fn encrypt_conversation(
@@ -260,7 +297,15 @@ mod tests {
     fn basic() {
         let mut output = Tree::default().panic_on_decryption_error();
 
-        let data = [93, 79, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 64, 1, 95, 95, 95, 100, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 161, 160, 160, 160, 160, 160, 160, 153, 95, 95, 95, 95, 95, 95, 95, 95, 95, 93, 79, 0, 0, 0, 0, 0, 0, 0, 188, 188, 188, 188, 4, 0, 64, 1, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95];
+        let data = [
+            93, 79, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 64, 1, 95, 95, 95, 100, 95, 95, 95, 95,
+            95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+            95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+            95, 95, 95, 95, 95, 95, 95, 95, 161, 160, 160, 160, 160, 160, 160, 153, 95, 95, 95, 95,
+            95, 95, 95, 95, 95, 93, 79, 0, 0, 0, 0, 0, 0, 0, 188, 188, 188, 188, 4, 0, 64, 1, 95,
+            95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+            95, 95,
+        ];
         let chunk_oversize = 18;
         let descriptors = [
             PacketDescriptor::new(chunk_oversize + 15, false).unwrap(),
@@ -278,6 +323,12 @@ mod tests {
             ChunkDescriptor::new(12).unwrap(),
             ChunkDescriptor::new(10).unwrap(),
         ];
-        simulate_encrypted(descriptors.as_ref(), ic.as_ref(), rc.as_ref(), data.as_ref(), &mut output);
+        simulate_encrypted(
+            descriptors.as_ref(),
+            ic.as_ref(),
+            rc.as_ref(),
+            data.as_ref(),
+            &mut output,
+        );
     }
 }

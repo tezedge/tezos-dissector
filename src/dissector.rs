@@ -4,7 +4,8 @@
 use wireshark_definitions::{TreePresenter, NetworkPacket};
 use wireshark_epan_adapter::{Dissector, Tree};
 use tezos_conversation::{
-    Conversation, ChunkInfo, ConsumeResult, Sender, ChunkInfoProvider, Identity, proof_of_work::DEFAULT_TARGET,
+    Conversation, ChunkInfo, ConsumeResult, Sender, ChunkInfoProvider, Identity,
+    proof_of_work::DEFAULT_TARGET,
 };
 use std::{collections::BTreeMap, ops::Range};
 
@@ -99,11 +100,13 @@ impl TezosDissector {
             .conversations
             .entry(c_id)
             .or_insert_with(|| Conversation::new(DEFAULT_TARGET));
-        conversation.add(self.identity.as_ref(), &packet)
-            .map(|(metadata, result, packet_range)| {
+        conversation.add(self.identity.as_ref(), &packet).map(
+            |(metadata, result, packet_range)| {
                 let mut chunks = match result {
                     ConsumeResult::ConnectionMessage(chunk) => vec![chunk],
-                    ConsumeResult::Chunks { regular, .. } => regular.into_iter().map(|p| p.decrypted).collect(),
+                    ConsumeResult::Chunks { regular, .. } => {
+                        regular.into_iter().map(|p| p.decrypted).collect()
+                    },
                     _ => Vec::new(),
                 };
                 match metadata.sender {
@@ -111,7 +114,8 @@ impl TezosDissector {
                     Sender::Responder => storage.from_responder.append(&mut chunks),
                 }
                 storage.packet_ranges.insert(packet.number, packet_range);
-            });
+            },
+        );
         if conversation.visualize(&packet, &storage, root) {
             self.storage = Some(storage);
             packet.payload.len()
