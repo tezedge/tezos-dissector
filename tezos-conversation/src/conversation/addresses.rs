@@ -12,7 +12,7 @@ pub struct Addresses {
     responder: SocketAddress,
 }
 
-pub struct BinaryChunkMetadata {
+pub struct ChunkMetadata {
     pub source: SocketAddress,
     pub destination: SocketAddress,
     pub sender: Sender,
@@ -44,15 +44,15 @@ impl Addresses {
         }
     }
 
-    pub fn metadata(&self, packet: &NetworkPacket) -> BinaryChunkMetadata {
+    pub fn metadata(&self, packet: &NetworkPacket) -> ChunkMetadata {
         let sender = self.sender(packet);
         match &sender {
-            &Sender::Initiator => BinaryChunkMetadata {
+            &Sender::Initiator => ChunkMetadata {
                 source: self.initiator.clone(),
                 destination: self.responder.clone(),
                 sender,
             },
-            &Sender::Responder => BinaryChunkMetadata {
+            &Sender::Responder => ChunkMetadata {
                 source: self.responder.clone(),
                 destination: self.initiator.clone(),
                 sender,

@@ -10,7 +10,7 @@ use tezos_messages::p2p::encoding::{
 use failure::Fail;
 use std::ops::Range;
 use super::{
-    addresses::{BinaryChunkMetadata, Sender},
+    addresses::{ChunkMetadata, Sender},
     chunk_info::ChunkInfo,
     overall_buffer::{ConversationBuffer, ConsumeResult, ChunkPosition},
 };
@@ -20,30 +20,9 @@ use crate::{
     range_tool::intersect,
 };
 
-pub struct BinaryChunkInMemory {
-    pub from_initiator: Vec<ChunkInfo>,
-    pub from_responder: Vec<ChunkInfo>,
-}
-
-impl BinaryChunkInMemory {
-    pub fn new() -> Self {
-        BinaryChunkInMemory {
-            from_initiator: Vec::new(),
-            from_responder: Vec::new(),
-        }
-    }
-
-    pub fn append(&mut self, metadata: BinaryChunkMetadata, result: ConsumeResult) {
-        let mut chunks = match result {
-            ConsumeResult::ConnectionMessage(chunk) => vec![chunk],
-            ConsumeResult::Chunks { regular, .. } => regular.into_iter().map(|p| p.decrypted).collect(),
-            _ => Vec::new(),
-        };
-        match metadata.sender {
-            Sender::Initiator => self.from_initiator.append(&mut chunks),
-            Sender::Responder => self.from_responder.append(&mut chunks),
-        }
-    }
+pub trait ChunkInfoProvider {
+    fn chunk_info(&self, sender: &Sender, chunk_index: usize) -> &ChunkInfo;
+    fn packet_range(&self, packet_index: u64) -> Option<&Range<usize>>;
 }
 
 #[derive(Debug, Eq, PartialEq, Fail)]
@@ -92,7 +71,7 @@ impl ContextInner {
         &mut self,
         packet: &NetworkPacket,
         identity: Option<&Identity>,
-    ) -> Option<(BinaryChunkMetadata, ConsumeResult, Range<usize>)> {
+    ) -> Option<(ChunkMetadata, ConsumeResult, Range<usize>)> {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
                 let (consume_result, packet_range, error) =
@@ -136,7 +115,6 @@ impl ContextInner {
                 }
                 Some((metadata, consume_result, packet_range))
             },
-            // TODO:
             &mut ContextInner::Unrecognized => None,
         }
     }
@@ -179,21 +157,20 @@ impl ContextInner {
     }
 
     /// Returns if there is decryption error.
-    pub fn visualize<T>(&self, packet: &NetworkPacket, offset: usize, provider: &BinaryChunkInMemory, root: &mut T) -> Result<(), ErrorPosition>
+    pub fn visualize<T, P>(&self, packet: &NetworkPacket, offset: usize, provider: &P, root: &mut T) -> Result<(), ErrorPosition>
     where
         T: TreePresenter,
+        P: ChunkInfoProvider,
     {
         let sender = self.buffer().sender(packet);
         let buffer = self.buffer().direct_buffer(&sender);
         let space = offset..(offset + packet.payload.len());
-        let data = &[]; // buffer.data();
         let decrypted = buffer.chunks_number();
         let state = self.state();
 
-        let chunks = match &sender {
-            &Sender::Initiator => provider.from_initiator.as_slice(),
-            &Sender::Responder => provider.from_responder.as_slice(),
-        };
+        let data = &[];
+        let chunks: &[ChunkInfo] = &[];
+        let _ = provider;
 
         let mut node = root
             .add("tezos", 0..space.len(), TreeLeaf::nothing())

@@ -5,7 +5,7 @@ use tezos_messages::p2p::{
 };
 use sodiumoxide::crypto::box_;
 use std::{fmt, ops::Range};
-use crate::{Conversation, BinaryChunkInMemory, Identity, NonceAddition};
+use crate::{Conversation, Identity, NonceAddition};
 
 #[derive(Default, Clone)]
 pub struct Tree {
@@ -96,7 +96,8 @@ where
                     payload: data[pos..end].to_vec(),
                 };
                 context.add(None, &packet);
-                context.visualize(&packet, &BinaryChunkInMemory::new(), output);
+                //context.visualize(&packet, &BinaryChunkInMemory::new(), output);
+                let _ = output;
             }
             (context, end)
         });
@@ -119,7 +120,8 @@ where
                     payload: chunk.raw().to_vec(),
                 };
                 context.add(None, &packet);
-                context.visualize(&packet, &BinaryChunkInMemory::new(), output);
+                //context.visualize(&packet, &BinaryChunkInMemory::new(), output);
+                let _ = output;
             }
             (context, end)
         });
@@ -186,7 +188,9 @@ pub fn simulate_encrypted<T>(
                 payload: slice.to_vec(),
             };
             context.add(Some(&identity), &packet);
-            context.visualize(&packet, &BinaryChunkInMemory::new(), output);
+            // TODO:
+            //context.visualize(&packet, &BinaryChunkInMemory::new(), output);
+            let _ = output;
             (context, end_a, end_b)
         });
 }

@@ -5,7 +5,7 @@ use wireshark_definitions::NetworkPacket;
 use failure::Fail;
 use std::ops::Range;
 use super::{
-    addresses::{Addresses, BinaryChunkMetadata, Sender},
+    addresses::{Addresses, ChunkMetadata, Sender},
     chunk_info::{ChunkInfo, ChunkInfoPair},
     direct_buffer::DirectBuffer,
 };
@@ -130,7 +130,7 @@ impl ConversationBuffer {
         self.addresses.sender(packet)
     }
 
-    pub fn metadata(&self, packet: &NetworkPacket) -> BinaryChunkMetadata {
+    pub fn metadata(&self, packet: &NetworkPacket) -> ChunkMetadata {
         self.addresses.metadata(packet)
     }
 }

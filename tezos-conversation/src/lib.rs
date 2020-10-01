@@ -22,8 +22,7 @@ pub mod proof_of_work;
 mod simulator;
 
 pub use self::identity::{Identity, IdentityError, Decipher, NonceAddition};
-pub use self::conversation::Conversation;
-pub use self::conversation::{BinaryChunkMetadata, BinaryChunkInMemory};
+pub use self::conversation::{Conversation, ChunkMetadata, ChunkInfo, ChunkInfoPair, ChunkPosition, Sender, ConsumeResult, ChunkInfoProvider};
 pub use self::value::{TezosEncoded, Named};
 pub use self::simulator::{
     Tree, PacketDescriptor, ChunkDescriptor,

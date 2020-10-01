@@ -1,16 +1,15 @@
 use wireshark_definitions::{NetworkPacket, TreePresenter};
-use std::{collections::BTreeMap, ops::Range};
+use std::ops::Range;
 use super::{
-    addresses::{BinaryChunkMetadata, Sender},
+    addresses::{ChunkMetadata, Sender},
     overall_buffer::ConsumeResult,
-    context::{ContextInner, ErrorPosition, BinaryChunkInMemory},
+    context::{ContextInner, ErrorPosition, ChunkInfoProvider},
 };
 use crate::identity::Identity;
 
 pub struct Conversation {
     inner: Option<ContextInner>,
     pow_target: f64,
-    packet_ranges: BTreeMap<u64, Range<usize>>,
     incoming_frame_result: Result<(), ErrorPosition>,
     outgoing_frame_result: Result<(), ErrorPosition>,
 }
@@ -20,7 +19,6 @@ impl Conversation {
         Conversation {
             inner: None,
             pow_target,
-            packet_ranges: BTreeMap::new(),
             incoming_frame_result: Ok(()),
             outgoing_frame_result: Ok(()),
         }
@@ -55,28 +53,21 @@ impl Conversation {
         &mut self,
         identity: Option<&Identity>,
         packet: &NetworkPacket,
-    ) -> Option<(BinaryChunkMetadata, ConsumeResult)> {
+    ) -> Option<(ChunkMetadata, ConsumeResult, Range<usize>)> {
         let pow_target = self.pow_target;
-        if let None = self.packet_ranges.get(&packet.number) {
-            let inner = self.inner.get_or_insert_with(|| ContextInner::new(packet, pow_target));
-            inner.consume(packet, identity)
-                .map(|(metadata, result, packet_range)| {
-                    self.packet_ranges.insert(packet.number, packet_range);
-                    (metadata, result)
-                })
-        } else {
-            None
-        }
+        let inner = self.inner.get_or_insert_with(|| ContextInner::new(packet, pow_target));
+        inner.consume(packet, identity)
     }
 
-    pub fn visualize<T>(&mut self, packet: &NetworkPacket, provider: &BinaryChunkInMemory, output: &mut T) -> bool
+    pub fn visualize<T, P>(&mut self, packet: &NetworkPacket, provider: &P, output: &mut T) -> bool
     where
         T: TreePresenter,
+        P: ChunkInfoProvider,
     {
         // the context might become invalid if the conversation is not tezos,
         // or if decryption error occurs
         if !self.invalid(packet) {
-            if let Some(range) = self.packet_ranges.get(&packet.number) {
+            if let Some(range) = provider.packet_range(packet.number) {
                 match self.inner.as_mut().unwrap().visualize(packet, range.start, provider, output) {
                     Ok(()) => (),
                     Err(r) => match r.sender {

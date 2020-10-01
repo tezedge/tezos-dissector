@@ -26,8 +26,8 @@ mod context;
 
 mod context_wrapper;
 
-pub use self::addresses::{BinaryChunkMetadata, Sender};
+pub use self::addresses::{ChunkMetadata, Sender};
 pub use self::chunk_info::{ChunkInfo, ChunkInfoPair};
 pub use self::overall_buffer::{ChunkPosition, ConsumeResult};
-pub use self::context::BinaryChunkInMemory;
+pub use self::context::ChunkInfoProvider;
 pub use self::context_wrapper::Conversation;
