@@ -26,7 +26,7 @@ pub use self::conversation::{
     Conversation, ChunkMetadata, ChunkInfo, ChunkInfoPair, ChunkPosition, Sender, ConsumeResult,
     ChunkInfoProvider,
 };
-pub use self::value::{TezosEncoded, Named};
+pub use self::value::{TezosEncoded, Named, HasBodyRange};
 pub use self::simulator::{
     Tree, PacketDescriptor, ChunkDescriptor, simulate_foreign, simulate_handshake,
     simulate_encrypted,

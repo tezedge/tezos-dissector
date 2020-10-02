@@ -14,26 +14,17 @@ impl<'a, C> ChunkedData<'a, C>
 where
     C: HasBodyRange,
 {
-    pub fn new(data: &'a [u8], chunks: &'a [C], first_chunk_index: usize) -> Option<Self> {
-        if let Some(last) = chunks.last() {
-            if last.body().end <= data.len() {
-                if let Some(first_chunk) = chunks.get(first_chunk_index) {
-                    return Some(ChunkedData {
-                        inner: ChunkedDataInner {
-                            data,
-                            data_offset: first_chunk.body().start,
-                            chunks,
-                            chunks_offset: first_chunk_index,
-                            limit: None,
-                            limits: Vec::new(),
-                        },
-                    });
-                }
-            }
+    pub fn new(chunks: &'a [C]) -> Self {
+        ChunkedData {
+            inner: ChunkedDataInner {
+                data_offset: chunks.first().unwrap().body().start,
+                chunks,
+                chunks_offset: 0,
+                limit: None,
+                limits: Vec::new(),
+            },
         }
-
-        None
-    }
+}
 
     pub fn chunk(&self) -> usize {
         self.inner.chunks_offset
@@ -99,7 +90,6 @@ pub struct ChunkedDataInner<'a, C>
 where
     C: HasBodyRange,
 {
-    data: &'a [u8],
     data_offset: usize,
     chunks: &'a [C],
     chunks_offset: usize,
@@ -128,7 +118,8 @@ where
                 &Some(ref limit) => usize::min(chunk.body().end, self.data_offset + limit.clone()),
                 &None => chunk.body().end,
             };
-            &self.data[self.data_offset..end]
+            let offset = chunk.range().start;
+            &chunk.data()[(self.data_offset - offset)..(end - offset)]
         } else {
             &[]
         }
@@ -143,14 +134,7 @@ where
         }
         if self.chunks.len() - 1 > self.chunks_offset {
             for c in &self.chunks[(self.chunks_offset + 1)..] {
-                let a = if self.data.len() >= c.body().end {
-                    c.body().len()
-                } else if self.data.len() > c.body().start {
-                    self.data.len() - c.body().start
-                } else {
-                    0
-                };
-                available += a;
+                available += c.body().len();
                 if limit < available {
                     return limit;
                 }
@@ -168,14 +152,7 @@ where
         }
         if self.chunks.len() - 1 > self.chunks_offset {
             for c in &self.chunks[(self.chunks_offset + 1)..] {
-                let a = if self.data.len() >= c.body().end {
-                    c.body().len()
-                } else if self.data.len() > c.body().start {
-                    self.data.len() - c.body().start
-                } else {
-                    0
-                };
-                available += a;
+                available += c.body().len();
                 if length <= usize::min(available, limit) {
                     return true;
                 }
@@ -206,7 +183,7 @@ where
                     Ok(())
                 } else {
                     s.chunks_offset += 1;
-                    s.data_offset = s.data.len();
+                    s.data_offset = s.chunks.last().unwrap().body().end;
                     Err(())
                 }
             }

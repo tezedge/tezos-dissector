@@ -4,7 +4,7 @@
 use wireshark_definitions::{TreePresenter, NetworkPacket};
 use wireshark_epan_adapter::{Dissector, Tree};
 use tezos_conversation::{
-    Conversation, ChunkInfo, ConsumeResult, Sender, ChunkInfoProvider, Identity,
+    Conversation, ChunkInfo, ConsumeResult, Sender, ChunkInfoProvider, Identity, HasBodyRange,
     proof_of_work::DEFAULT_TARGET,
 };
 use std::{collections::BTreeMap, ops::Range};
@@ -15,8 +15,7 @@ pub struct TezosDissector {
     // The pair is unordered,
     // so A talk to B is the same conversation as B talks to A.
     // The key is just pointer in memory, so it is invalid when capturing session is closed.
-    conversations: BTreeMap<usize, Conversation>,
-    storage: Option<Storage>,
+    conversations: BTreeMap<usize, (Conversation, Storage)>,
 }
 
 struct Storage {
@@ -26,15 +25,44 @@ struct Storage {
 }
 
 impl ChunkInfoProvider for Storage {
-    fn chunk_info(&self, sender: &Sender, chunk_index: usize) -> &ChunkInfo {
-        match sender {
-            &Sender::Initiator => self.from_initiator.get(chunk_index).unwrap(),
-            &Sender::Responder => self.from_responder.get(chunk_index).unwrap(),
-        }
-    }
-
     fn packet_range(&self, packet_index: u64) -> Option<&Range<usize>> {
         self.packet_ranges.get(&packet_index)
+    }
+
+    fn chunks_after(&self, sender: &Sender, offset: usize) -> Option<(usize, &[ChunkInfo])> {
+        let chunks: &[ChunkInfo] = match sender {
+            &Sender::Initiator => self.from_initiator.as_ref(),
+            &Sender::Responder => self.from_responder.as_ref(),
+        };
+        chunks
+            .iter()
+            .enumerate()
+            .find(|&(_, info)| info.body().end > offset)
+            .map(|(i, info)| (i, info.continuation()))
+            .map(|(first_chunk, continuation)| {
+                if continuation {
+                    chunks[0..first_chunk]
+                        .iter()
+                        .enumerate()
+                        .rev()
+                        .find(|&(_, info)| !info.continuation())
+                        .unwrap()
+                        .0
+                } else {
+                    if first_chunk == 0 {
+                        first_chunk
+                    } else {
+                        let v = chunks[0..first_chunk]
+                            .iter()
+                            .enumerate()
+                            .rev()
+                            .take_while(|&(_, info)| info.incomplete())
+                            .count();
+                        first_chunk - v
+                    }
+                }
+            })
+            .map(|f| (f, &chunks[f..]))
     }
 }
 
@@ -43,11 +71,6 @@ impl TezosDissector {
         TezosDissector {
             identity: None,
             conversations: BTreeMap::new(),
-            storage: Some(Storage {
-                from_initiator: Vec::new(),
-                from_responder: Vec::new(),
-                packet_ranges: BTreeMap::new(),
-            }),
         }
     }
 }
@@ -92,16 +115,23 @@ impl TezosDissector {
     where
         T: TreePresenter,
     {
-        let mut storage = self.storage.take().unwrap();
-
         // get the data
         // retrieve or create a new context for the conversation
-        let conversation = self
+        let &mut (ref mut conversation, ref mut storage) = self
             .conversations
             .entry(c_id)
-            .or_insert_with(|| Conversation::new(DEFAULT_TARGET));
-        conversation.add(self.identity.as_ref(), &packet).map(
-            |(metadata, result, packet_range)| {
+            .or_insert_with(|| (
+                Conversation::new(DEFAULT_TARGET),
+                Storage {
+                    from_initiator: Vec::new(),
+                    from_responder: Vec::new(),
+                    packet_ranges: BTreeMap::new(),
+                },
+            ));
+
+        let id = self.identity.as_ref();
+        if !storage.packet_ranges.contains_key(&packet.number) {
+            if let Some((metadata, result, packet_range)) = conversation.add(id, &packet) {
                 let mut chunks = match result {
                     ConsumeResult::ConnectionMessage(chunk) => vec![chunk],
                     ConsumeResult::Chunks { regular, .. } => {
@@ -113,14 +143,15 @@ impl TezosDissector {
                     Sender::Initiator => storage.from_initiator.append(&mut chunks),
                     Sender::Responder => storage.from_responder.append(&mut chunks),
                 }
+                if packet.number == 1 {
+                    log::warn!("HERE");
+                }
                 storage.packet_ranges.insert(packet.number, packet_range);
-            },
-        );
-        if conversation.visualize(&packet, &storage, root) {
-            self.storage = Some(storage);
+            }
+        }
+        if conversation.visualize(&packet, storage, root) {
             packet.payload.len()
         } else {
-            self.storage = Some(storage);
             0
         }
     }

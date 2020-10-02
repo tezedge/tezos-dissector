@@ -31,10 +31,6 @@ impl ChunkInfo {
         }
     }
 
-    pub fn range(&self) -> Range<usize> {
-        self.range.clone()
-    }
-
     pub fn continuation(&self) -> bool {
         self.continuation.get()
     }
@@ -64,6 +60,10 @@ impl ChunkInfo {
 impl HasBodyRange for ChunkInfo {
     fn data(&self) -> &[u8] {
         self.data.as_ref()
+    }
+
+    fn range(&self) -> Range<usize> {
+        self.range.clone()
     }
 
     fn body(&self) -> Range<usize> {
