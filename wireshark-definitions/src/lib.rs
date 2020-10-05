@@ -71,7 +71,7 @@ impl TreeLeaf<String> {
 
 /// The most common socket address is ip (v4 or v6 and port),
 /// but also it might be some other kind of address.
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum SocketAddress {
     Ip(SocketAddr),
     Other {
