@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 use bytes::Buf;
+use crypto::proof_of_work::check_proof_of_work;
 use std::ops::Range;
 use super::chunk_info::ChunkInfo;
-use crate::proof_of_work::check_proof_of_work;
 
 pub struct DirectBuffer {
     offset: usize,

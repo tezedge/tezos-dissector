@@ -31,4 +31,5 @@ tezos-conversation = { path = "tezos-conversation" }
 log = "0.4"
 simple-logging = "2.0"
 
-tezos_messages = { tag = "v0.4.0", git = "https://github.com/simplestaking/tezedge" }
+crypto = { tag = "v0.5.0", git = "https://github.com/simplestaking/tezedge" }
+tezos_messages = { tag = "v0.5.0", git = "https://github.com/simplestaking/tezedge" }

@@ -3,9 +3,10 @@
 
 use wireshark_definitions::{TreePresenter, NetworkPacket};
 use wireshark_epan_adapter::{Dissector, Tree};
+use crypto::proof_of_work::ProofOfWork;
 use tezos_conversation::{
     Conversation, Packet, ChunkInfo, ConsumeResult, Sender, ChunkInfoProvider, Identity,
-    ChunkMetadata, proof_of_work::DEFAULT_TARGET,
+    ChunkMetadata,
 };
 use std::{collections::BTreeMap, ops::Range};
 
@@ -28,7 +29,7 @@ impl ConversationData {
     pub fn new() -> Self {
         ConversationData {
             valid: true,
-            inner: Conversation::new(DEFAULT_TARGET),
+            inner: Conversation::new(ProofOfWork::DEFAULT_TARGET),
             storage: Storage {
                 from_initiator: Vec::new(),
                 from_responder: Vec::new(),

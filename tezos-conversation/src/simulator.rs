@@ -3,7 +3,7 @@ use tezos_messages::p2p::{
     binary_message::{BinaryChunk, BinaryMessage},
     encoding::connection::ConnectionMessage,
 };
-use sodiumoxide::crypto::box_;
+use crypto::crypto_box::random_keypair;
 use std::{fmt, ops::Range, net::SocketAddr};
 use crate::{Conversation, Packet, Identity, NonceAddition};
 
@@ -169,7 +169,7 @@ pub fn simulate_encrypted<T>(
     let path = "data/identity.json".to_owned();
     let identity = Identity::from_path(path).unwrap();
     let cm_a = identity.test_connection_message();
-    let (pk, _) = box_::gen_keypair();
+    let (_, pk, _) = random_keypair();
     let cm_b = ConnectionMessage::new(
         4321,
         &hex::encode(pk.as_ref()),

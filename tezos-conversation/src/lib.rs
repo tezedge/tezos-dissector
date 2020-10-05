@@ -17,8 +17,6 @@ mod range_tool;
 
 mod identity;
 
-pub mod proof_of_work;
-
 mod simulator;
 
 pub use self::identity::{Identity, IdentityError, Decipher, NonceAddition};
