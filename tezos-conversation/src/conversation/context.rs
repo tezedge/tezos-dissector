@@ -1,7 +1,7 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_definitions::{NetworkPacket, TreePresenter, TreeLeaf};
+use wireshark_definitions::{TreePresenter, TreeLeaf};
 use tezos_encoding::encoding::HasEncoding;
 use tezos_messages::p2p::encoding::{
     ack::AckMessage, metadata::MetadataMessage, peer::PeerMessageResponse,
@@ -10,13 +10,13 @@ use tezos_messages::p2p::encoding::{
 use failure::Fail;
 use std::ops::Range;
 use super::{
-    addresses::{ChunkMetadata, Sender},
+    addresses::{Sender, Packet, Addresses},
     chunk_info::ChunkInfo,
     overall_buffer::{ConversationBuffer, ConsumeResult, ChunkPosition},
 };
 use crate::{
     identity::{Decipher, Identity, IdentityError},
-    value::{ChunkedData, Named, HasBodyRange, DecodingError, show},
+    value::{ChunkedData, Named, ChunkMetadata, DecodingError, show},
     range_tool::intersect,
 };
 
@@ -58,31 +58,30 @@ pub struct ErrorPosition {
 
 pub enum ContextInner {
     Regular(ConversationBuffer, Option<Decipher>, State),
-    Unrecognized,
+    Unrecognized(Addresses),
 }
 
 impl ContextInner {
-    pub fn new(packet: &NetworkPacket, pow_target: f64) -> Self {
+    pub fn new(packet: &Packet, pow_target: f64) -> Self {
         let b = ConversationBuffer::new(packet, pow_target);
         ContextInner::Regular(b, None, State::Correct)
     }
 
     pub fn consume(
         &mut self,
-        packet: &NetworkPacket,
+        packet: &Packet,
         identity: Option<&Identity>,
-    ) -> Option<(ChunkMetadata, ConsumeResult, Range<usize>)> {
+    ) -> (ConsumeResult, Sender, Range<usize>) {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
                 let (consume_result, packet_range, error) =
                     buffer.consume(packet, decipher.as_ref());
                 let buffer = &*buffer;
-                let metadata = buffer.metadata(packet);
                 let sender = buffer.sender(packet);
 
                 if let &ConsumeResult::PowInvalid = &consume_result {
-                    *self = ContextInner::Unrecognized;
-                    return Some((metadata, consume_result, packet_range));
+                    *self = ContextInner::Unrecognized(buffer.addresses());
+                    return (consume_result, sender, packet_range);
                 }
                 if decipher.is_none() {
                     if let Some((initiator, responder)) = buffer.can_upgrade() {
@@ -105,23 +104,24 @@ impl ContextInner {
                             },
                         }
                     } else if buffer.direct_buffer(&sender).chunks_number() > 1 {
-                        *self = ContextInner::Unrecognized;
-                        return Some((metadata, consume_result, packet_range));
+                        *self = ContextInner::Unrecognized(buffer.addresses());
+                        return (consume_result, sender, packet_range);
                     }
                 }
                 if let Some(error) = error {
                     log::warn!("cannot decrypt {}", error);
                     *state = State::DecryptError(error);
                 }
-                Some((metadata, consume_result, packet_range))
+                (consume_result, sender, packet_range)
             },
-            &mut ContextInner::Unrecognized => None,
+            &mut ContextInner::Unrecognized(ref addresses) => 
+                (ConsumeResult::InvalidConversation, addresses.sender(packet), 0..0),
         }
     }
 
     pub fn invalid(&self) -> bool {
         match self {
-            &ContextInner::Unrecognized => true,
+            &ContextInner::Unrecognized(_) => true,
             _ => false,
         }
     }
@@ -137,18 +137,18 @@ impl ContextInner {
     fn buffer(&self) -> &ConversationBuffer {
         match self {
             &ContextInner::Regular(ref buffer, ..) => buffer,
-            &ContextInner::Unrecognized => panic!("call `Context::visualize` on invalid context"),
+            &ContextInner::Unrecognized(_) => panic!("call `Context::visualize` on invalid context"),
         }
     }
 
     fn state(&self) -> &State {
         match self {
             &ContextInner::Regular(_, _, ref state, ..) => state,
-            &ContextInner::Unrecognized => panic!("call `Context::visualize` on invalid context"),
+            &ContextInner::Unrecognized(_) => panic!("call `Context::visualize` on invalid context"),
         }
     }
 
-    pub fn after(&self, packet: &NetworkPacket, error_position: &ErrorPosition) -> bool {
+    pub fn after(&self, packet: &Packet, error_position: &ErrorPosition) -> bool {
         if self.buffer().sender(packet) == error_position.sender {
             packet.number > error_position.frame_number
         } else {
@@ -159,7 +159,7 @@ impl ContextInner {
     /// Returns if there is decryption error.
     pub fn visualize<T, P>(
         &self,
-        packet: &NetworkPacket,
+        packet: &Packet,
         offset: usize,
         provider: &P,
         root: &mut T,

@@ -1,21 +1,33 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_definitions::{SocketAddress, NetworkPacket};
-use std::fmt;
+use wireshark_definitions::NetworkPacket;
+use std::{fmt, net::SocketAddr};
+
+pub struct Packet {
+    pub destination: SocketAddr,
+    pub source: SocketAddr,
+    pub number: u64,
+    pub payload: Vec<u8>,
+}
+
+impl From<NetworkPacket> for Packet {
+    fn from(v: NetworkPacket) -> Self {
+        Packet {
+            destination: v.destination.ip(),
+            source: v.source.ip(),
+            number: v.number,
+            payload: v.payload,
+        }
+    }
+}
 
 /// Structure store addresses of first message,
 /// for any next message it might determine if sender is initiator or responder
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Addresses {
-    initiator: SocketAddress,
-    responder: SocketAddress,
-}
-
-pub struct ChunkMetadata {
-    pub source: SocketAddress,
-    pub destination: SocketAddress,
-    pub sender: Sender,
+    initiator: SocketAddr,
+    responder: SocketAddr,
 }
 
 impl fmt::Display for Addresses {
@@ -25,14 +37,14 @@ impl fmt::Display for Addresses {
 }
 
 impl Addresses {
-    pub fn new(packet: &NetworkPacket) -> Self {
+    pub fn new(packet: &Packet) -> Self {
         Addresses {
             initiator: packet.source.clone(),
             responder: packet.destination.clone(),
         }
     }
 
-    pub fn sender(&self, packet: &NetworkPacket) -> Sender {
+    pub fn sender(&self, packet: &Packet) -> Sender {
         if self.initiator == packet.source {
             assert_eq!(self.responder, packet.destination);
             Sender::Initiator
@@ -41,22 +53,6 @@ impl Addresses {
             Sender::Responder
         } else {
             panic!()
-        }
-    }
-
-    pub fn metadata(&self, packet: &NetworkPacket) -> ChunkMetadata {
-        let sender = self.sender(packet);
-        match &sender {
-            &Sender::Initiator => ChunkMetadata {
-                source: self.initiator.clone(),
-                destination: self.responder.clone(),
-                sender,
-            },
-            &Sender::Responder => ChunkMetadata {
-                source: self.responder.clone(),
-                destination: self.initiator.clone(),
-                sender,
-            },
         }
     }
 }

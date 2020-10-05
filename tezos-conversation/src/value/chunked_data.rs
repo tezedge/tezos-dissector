@@ -1,18 +1,18 @@
 use failure::Fail;
 use std::ops::Range;
-use super::HasBodyRange;
+use super::ChunkMetadata;
 
 #[derive(Clone)]
 pub struct ChunkedData<'a, C>
 where
-    C: HasBodyRange,
+    C: ChunkMetadata,
 {
     inner: ChunkedDataInner<'a, C>,
 }
 
 impl<'a, C> ChunkedData<'a, C>
 where
-    C: HasBodyRange,
+    C: ChunkMetadata,
 {
     pub fn new(chunks: &'a [C]) -> Self {
         ChunkedData {
@@ -88,7 +88,7 @@ pub enum DecodingError {
 #[derive(Clone)]
 pub struct ChunkedDataInner<'a, C>
 where
-    C: HasBodyRange,
+    C: ChunkMetadata,
 {
     data_offset: usize,
     chunks: &'a [C],
@@ -109,7 +109,7 @@ macro_rules! primitive {
 
 impl<'a, C> ChunkedDataInner<'a, C>
 where
-    C: HasBodyRange,
+    C: ChunkMetadata,
 {
     #[inline(always)]
     pub fn bytes(&self) -> &[u8] {
@@ -164,7 +164,7 @@ where
     pub fn advance(&mut self, cnt: usize) -> Result<usize, DecodingError> {
         fn try_advance<'a, C>(s: &mut ChunkedDataInner<'a, C>, cnt: usize) -> Result<(), ()>
         where
-            C: HasBodyRange,
+            C: ChunkMetadata,
         {
             if cnt == 0 {
                 Ok(())

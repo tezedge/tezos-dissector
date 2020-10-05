@@ -23,10 +23,10 @@ mod simulator;
 
 pub use self::identity::{Identity, IdentityError, Decipher, NonceAddition};
 pub use self::conversation::{
-    Conversation, ChunkMetadata, ChunkInfo, ChunkInfoPair, ChunkPosition, Sender, ConsumeResult,
+    Conversation, Packet, ChunkInfo, ChunkInfoPair, ChunkPosition, Sender, ConsumeResult,
     ChunkInfoProvider,
 };
-pub use self::value::{TezosEncoded, Named, HasBodyRange};
+pub use self::value::{TezosEncoded, Named, ChunkMetadata};
 pub use self::simulator::{
     Tree, PacketDescriptor, ChunkDescriptor, simulate_foreign, simulate_handshake,
     simulate_encrypted,

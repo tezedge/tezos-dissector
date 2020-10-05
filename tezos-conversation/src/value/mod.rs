@@ -8,7 +8,7 @@ mod named;
 
 use std::ops::Range;
 
-pub trait HasBodyRange {
+pub trait ChunkMetadata {
     fn data(&self) -> &[u8];
     fn range(&self) -> Range<usize>;
     fn body(&self) -> Range<usize>;

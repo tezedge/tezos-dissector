@@ -10,7 +10,7 @@ use crypto::hash::HashType;
 use crate::range_tool::intersect;
 use super::{
     chunked_data::{ChunkedData, ChunkedDataInner, DecodingError},
-    HasBodyRange,
+    ChunkMetadata,
 };
 
 pub trait TezosReader {
@@ -22,7 +22,7 @@ pub trait TezosReader {
 impl<'a, C> TezosReader for ChunkedDataInner<'a, C>
 where
     ChunkedData<'a, C>: Clone,
-    C: HasBodyRange,
+    C: ChunkMetadata,
 {
     fn read_z(&mut self) -> Result<String, DecodingError> {
         // read first byte
@@ -131,7 +131,7 @@ pub fn show<'a, C, P>(
     node: &mut P,
 ) -> Result<(), DecodingError>
 where
-    C: HasBodyRange + Clone,
+    C: ChunkMetadata + Clone,
     P: TreePresenter,
 {
     show_inner(data.inner_mut(), space, encoding, base, node)
@@ -145,7 +145,7 @@ pub fn show_inner<'a, C, P>(
     node: &mut P,
 ) -> Result<(), DecodingError>
 where
-    C: HasBodyRange + Clone,
+    C: ChunkMetadata + Clone,
     P: TreePresenter,
 {
     match encoding {
@@ -347,7 +347,7 @@ fn estimate_size<'a, C>(
     encoding: &Encoding,
 ) -> Result<usize, DecodingError>
 where
-    C: HasBodyRange + Clone,
+    C: ChunkMetadata + Clone,
 {
     estimate_size_inner(&mut s.clone(), encoding)
 }
@@ -359,7 +359,7 @@ fn estimate_size_inner<'a, C>(
     encoding: &Encoding,
 ) -> Result<usize, DecodingError>
 where
-    C: HasBodyRange + Clone,
+    C: ChunkMetadata + Clone,
 {
     match encoding {
         &Encoding::Unit => Ok(0),

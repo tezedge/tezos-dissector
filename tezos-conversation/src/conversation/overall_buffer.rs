@@ -1,11 +1,10 @@
 // Copyright (c) SimpleStaking and Tezedge Contributors
 // SPDX-License-Identifier: MIT
 
-use wireshark_definitions::NetworkPacket;
 use failure::Fail;
 use std::ops::Range;
 use super::{
-    addresses::{Addresses, ChunkMetadata, Sender},
+    addresses::{Addresses, Sender, Packet},
     chunk_info::{ChunkInfo, ChunkInfoPair},
     direct_buffer::DirectBuffer,
 };
@@ -29,19 +28,20 @@ pub struct ConversationBuffer {
 }
 
 pub enum ConsumeResult {
-    PowInvalid,
     Pending,
     ConnectionMessage(ChunkInfo),
-    ExpectedConnectionMessage,
     Chunks {
         regular: Vec<ChunkInfoPair>,
         failed_to_decrypt: Vec<ChunkInfo>,
     },
     NoDecipher(Vec<ChunkInfo>),
+    PowInvalid,
+    UnexpectedChunks,
+    InvalidConversation,
 }
 
 impl ConversationBuffer {
-    pub fn new(packet: &NetworkPacket, pow_target: f64) -> Self {
+    pub fn new(packet: &Packet, pow_target: f64) -> Self {
         ConversationBuffer {
             addresses: Addresses::new(packet),
             pow_target,
@@ -52,7 +52,7 @@ impl ConversationBuffer {
 
     pub fn consume(
         &mut self,
-        packet: &NetworkPacket,
+        packet: &Packet,
         decipher: Option<&Decipher>,
     ) -> (ConsumeResult, Range<usize>, Option<ChunkPosition>) {
         let target = self.pow_target;
@@ -74,7 +74,7 @@ impl ConversationBuffer {
                     None,
                 );
             } else {
-                return (ConsumeResult::ExpectedConnectionMessage, packet_range, None);
+                return (ConsumeResult::UnexpectedChunks, packet_range, None);
             }
         }
         if let Some(decipher) = decipher {
@@ -145,11 +145,11 @@ impl ConversationBuffer {
         }
     }
 
-    pub fn sender(&self, packet: &NetworkPacket) -> Sender {
+    pub fn sender(&self, packet: &Packet) -> Sender {
         self.addresses.sender(packet)
     }
 
-    pub fn metadata(&self, packet: &NetworkPacket) -> ChunkMetadata {
-        self.addresses.metadata(packet)
+    pub fn addresses(&self) -> Addresses {
+        self.addresses.clone()
     }
 }

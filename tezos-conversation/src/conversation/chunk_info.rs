@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use std::{ops::Range, cell::Cell};
-use crate::value::HasBodyRange;
+use crate::value::ChunkMetadata;
 
 /// Store range of the chunk and information
 /// either this is a start of a new message, or continuation of message
@@ -57,7 +57,7 @@ impl ChunkInfo {
     }
 }
 
-impl HasBodyRange for ChunkInfo {
+impl ChunkMetadata for ChunkInfo {
     fn data(&self) -> &[u8] {
         self.data.as_ref()
     }

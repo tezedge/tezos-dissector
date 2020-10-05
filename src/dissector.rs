@@ -4,8 +4,8 @@
 use wireshark_definitions::{TreePresenter, NetworkPacket};
 use wireshark_epan_adapter::{Dissector, Tree};
 use tezos_conversation::{
-    Conversation, ChunkInfo, ConsumeResult, Sender, ChunkInfoProvider, Identity, HasBodyRange,
-    proof_of_work::DEFAULT_TARGET,
+    Conversation, Packet, ChunkInfo, ConsumeResult, Sender, ChunkInfoProvider, Identity,
+    ChunkMetadata, proof_of_work::DEFAULT_TARGET,
 };
 use std::{collections::BTreeMap, ops::Range};
 
@@ -15,7 +15,27 @@ pub struct TezosDissector {
     // The pair is unordered,
     // so A talk to B is the same conversation as B talks to A.
     // The key is just pointer in memory, so it is invalid when capturing session is closed.
-    conversations: BTreeMap<usize, (Conversation, Storage)>,
+    conversations: BTreeMap<usize, ConversationData>,
+}
+
+struct ConversationData {
+    valid: bool,
+    inner: Conversation,
+    storage: Storage,
+}
+
+impl ConversationData {
+    pub fn new() -> Self {
+        ConversationData {
+            valid: true,
+            inner: Conversation::new(DEFAULT_TARGET),
+            storage: Storage {
+                from_initiator: Vec::new(),
+                from_responder: Vec::new(),
+                packet_ranges: BTreeMap::new(),
+            }
+        }
+    }
 }
 
 struct Storage {
@@ -115,23 +135,21 @@ impl TezosDissector {
     where
         T: TreePresenter,
     {
+        let packet = Packet::from(packet);
+
         // get the data
         // retrieve or create a new context for the conversation
-        let &mut (ref mut conversation, ref mut storage) = self
+        let data = self
             .conversations
             .entry(c_id)
-            .or_insert_with(|| (
-                Conversation::new(DEFAULT_TARGET),
-                Storage {
-                    from_initiator: Vec::new(),
-                    from_responder: Vec::new(),
-                    packet_ranges: BTreeMap::new(),
-                },
-            ));
+            .or_insert_with(ConversationData::new);
 
         let id = self.identity.as_ref();
-        if !storage.packet_ranges.contains_key(&packet.number) {
-            if let Some((metadata, result, packet_range)) = conversation.add(id, &packet) {
+        if !data.storage.packet_ranges.contains_key(&packet.number) && data.valid {
+            let (result, sender, packet_range) = data.inner.add(id, &packet);
+            if let &ConsumeResult::InvalidConversation = &result {
+                data.valid = false;
+            } else {
                 let mut chunks = match result {
                     ConsumeResult::ConnectionMessage(chunk) => vec![chunk],
                     ConsumeResult::Chunks { regular, .. } => {
@@ -139,17 +157,14 @@ impl TezosDissector {
                     },
                     _ => Vec::new(),
                 };
-                match metadata.sender {
-                    Sender::Initiator => storage.from_initiator.append(&mut chunks),
-                    Sender::Responder => storage.from_responder.append(&mut chunks),
+                match sender {
+                    Sender::Initiator => data.storage.from_initiator.append(&mut chunks),
+                    Sender::Responder => data.storage.from_responder.append(&mut chunks),
                 }
-                if packet.number == 1 {
-                    log::warn!("HERE");
-                }
-                storage.packet_ranges.insert(packet.number, packet_range);
+                data.storage.packet_ranges.insert(packet.number, packet_range);
             }
         }
-        if conversation.visualize(&packet, storage, root) {
+        if data.inner.visualize(&packet, &data.storage, root) {
             packet.payload.len()
         } else {
             0

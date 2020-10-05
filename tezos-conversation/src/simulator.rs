@@ -1,11 +1,11 @@
-use wireshark_definitions::{NetworkPacket, SocketAddress, TreePresenter, TreeLeaf};
+use wireshark_definitions::{TreePresenter, TreeLeaf};
 use tezos_messages::p2p::{
     binary_message::{BinaryChunk, BinaryMessage},
     encoding::connection::ConnectionMessage,
 };
 use sodiumoxide::crypto::box_;
-use std::{fmt, ops::Range};
-use crate::{Conversation, Identity, NonceAddition};
+use std::{fmt, ops::Range, net::SocketAddr};
+use crate::{Conversation, Packet, Identity, NonceAddition};
 
 #[derive(Default, Clone)]
 pub struct Tree {
@@ -37,9 +37,9 @@ impl TreePresenter for Tree {
     }
 }
 
-struct Packet {
-    source: SocketAddress,
-    destination: SocketAddress,
+struct Simulated {
+    source: SocketAddr,
+    destination: SocketAddr,
     number: u64,
     swapped: bool,
 }
@@ -62,17 +62,17 @@ impl PacketDescriptor {
 
 fn packet_iter(
     descriptors: impl Iterator<Item = PacketDescriptor>,
-) -> impl Iterator<Item = (Packet, usize)> {
+) -> impl Iterator<Item = (Simulated, usize)> {
     descriptors
         .enumerate()
         .map(|(number, PacketDescriptor { length, swap })| {
             let length = length.clone();
             // first message never swapped
             let swap = swap.clone() && number != 0;
-            let source = SocketAddress::Ip("132.132.132.132:1234".parse().unwrap());
-            let destination = SocketAddress::Ip("123.123.123.123:1234".parse().unwrap());
+            let source = "132.132.132.132:1234".parse::<SocketAddr>().unwrap();
+            let destination = "123.123.123.123:1234".parse::<SocketAddr>().unwrap();
             (
-                Packet {
+                Simulated {
                     source: if swap {
                         destination.clone()
                     } else {
@@ -101,7 +101,7 @@ where
         |(mut context, pos), (metadata, length)| {
             let end = pos + length;
             if data.len() > end {
-                let packet = NetworkPacket {
+                let packet = Packet {
                     source: metadata.source,
                     destination: metadata.destination,
                     number: metadata.number,
@@ -127,7 +127,7 @@ where
             let end = pos + length;
             if data.len() > end {
                 let chunk = BinaryChunk::from_content(&data[pos..end]).unwrap();
-                let packet = NetworkPacket {
+                let packet = Packet {
                     source: metadata.source,
                     destination: metadata.destination,
                     number: metadata.number,
@@ -168,7 +168,7 @@ pub fn simulate_encrypted<T>(
 {
     let path = "data/identity.json".to_owned();
     let identity = Identity::from_path(path).unwrap();
-    let cm_a = identity.connection_message();
+    let cm_a = identity.test_connection_message();
     let (pk, _) = box_::gen_keypair();
     let cm_b = ConnectionMessage::new(
         4321,
@@ -217,7 +217,7 @@ pub fn simulate_encrypted<T>(
                 }
                 (end, pos_b, &data_a[pos_a..end])
             };
-            let packet = NetworkPacket {
+            let packet = Packet {
                 source: metadata.source,
                 destination: metadata.destination,
                 number: metadata.number,

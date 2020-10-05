@@ -81,6 +81,15 @@ pub enum SocketAddress {
     },
 }
 
+impl SocketAddress {
+    pub fn ip(self) -> SocketAddr {
+        match self {
+            SocketAddress::Ip(a) => a,
+            SocketAddress::Other { .. } => panic!("unknown address type"),
+        }
+    }
+}
+
 impl fmt::Display for SocketAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

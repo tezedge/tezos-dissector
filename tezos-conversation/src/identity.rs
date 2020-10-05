@@ -39,11 +39,20 @@ impl Identity {
             .map_err(Into::into)
     }
 
+    pub fn from_json(content: &str) -> Result<Self, failure::Error> {
+        serde_json::from_str::<Self>(content)
+            .map(|mut s| {
+                s.path = "anonymous".to_string();
+                s
+            })
+            .map_err(Into::into)
+    }
+
     pub fn path(&self) -> String {
         self.path.clone()
     }
 
-    pub fn connection_message(&self) -> ConnectionMessage {
+    pub fn test_connection_message(&self) -> ConnectionMessage {
         let version = NetworkVersion::new("testnet".to_owned(), 0, 0);
         ConnectionMessage::new(
             1234,

@@ -1,7 +1,7 @@
-use wireshark_definitions::{NetworkPacket, TreePresenter};
+use wireshark_definitions::TreePresenter;
 use std::ops::Range;
 use super::{
-    addresses::{ChunkMetadata, Sender},
+    addresses::{Packet, Sender},
     overall_buffer::ConsumeResult,
     context::{ContextInner, ErrorPosition, ChunkInfoProvider},
 };
@@ -29,7 +29,7 @@ impl Conversation {
     /// If the frame number is equal to the frame where error occurs,
     /// the context still valid, but after that it is invalid.
     /// Let's show the error message once.
-    fn invalid(&self, packet: &NetworkPacket) -> bool {
+    fn invalid(&self, packet: &Packet) -> bool {
         if let &Some(ref inner) = &self.inner {
             let i_error = self
                 .incoming_frame_result
@@ -52,8 +52,8 @@ impl Conversation {
     pub fn add(
         &mut self,
         identity: Option<&Identity>,
-        packet: &NetworkPacket,
-    ) -> Option<(ChunkMetadata, ConsumeResult, Range<usize>)> {
+        packet: &Packet,
+    ) -> (ConsumeResult, Sender, Range<usize>) {
         let pow_target = self.pow_target;
         let inner = self
             .inner
@@ -61,7 +61,8 @@ impl Conversation {
         inner.consume(packet, identity)
     }
 
-    pub fn visualize<T, P>(&mut self, packet: &NetworkPacket, provider: &P, output: &mut T) -> bool
+    // TODO: move out visualizer from here
+    pub fn visualize<T, P>(&mut self, packet: &Packet, provider: &P, output: &mut T) -> bool
     where
         T: TreePresenter,
         P: ChunkInfoProvider,

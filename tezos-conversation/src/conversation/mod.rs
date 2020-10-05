@@ -26,7 +26,7 @@ mod context;
 
 mod context_wrapper;
 
-pub use self::addresses::{ChunkMetadata, Sender};
+pub use self::addresses::{Sender, Packet};
 pub use self::chunk_info::{ChunkInfo, ChunkInfoPair};
 pub use self::overall_buffer::{ChunkPosition, ConsumeResult};
 pub use self::context::ChunkInfoProvider;
