@@ -37,7 +37,8 @@ impl DirectBuffer {
 
         self.buffer.extend_from_slice(payload);
 
-        let checking_result = if !checked && (end >= Self::CHECK_RANGE.end) {
+        let can_check = !checked && (end >= Self::CHECK_RANGE.end);
+        let mut checking_result = if can_check {
             check_proof_of_work(&self.buffer[Self::CHECK_RANGE], target).is_ok()
         } else {
             true
@@ -50,8 +51,14 @@ impl DirectBuffer {
                 let this_end = position + 2 + length;
                 if this_end <= end {
                     let chunk_data = self.buffer.drain(0..(length + 2)).collect::<Vec<_>>();
-                    if chunks.is_empty() {
-                        self.connection_message = chunk_data.clone();
+                    if self.connection_message.is_empty() {
+                        if can_check {
+                            self.connection_message = chunk_data.clone();
+                        } else {
+                            // if first chunk provides not enough data to check proof of work
+                            // treat proof of work as invalid
+                            checking_result = false; 
+                        }
                     }
                     chunks.push(ChunkInfo::new(position..this_end, chunk_data));
                     self.chunks_number += 1;
