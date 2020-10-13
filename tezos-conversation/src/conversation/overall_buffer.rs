@@ -80,13 +80,14 @@ impl ConversationBuffer {
         if let Some(decipher) = decipher {
             let mut regular = Vec::with_capacity(chunks.len());
             let mut failed_to_decrypt = Vec::new();
-            let i_base = buffer.chunks_number() - 1 - chunks.len();
+            let i_base = buffer.chunks_number() - chunks.len();
             let mut error = None;
             for (i, chunk) in chunks.into_iter().enumerate() {
                 let i = i_base + i;
                 let nonce_addition = match &sender {
-                    &Sender::Initiator => NonceAddition::Initiator(i as u64),
-                    &Sender::Responder => NonceAddition::Responder(i as u64),
+                    // minus one because first chunk is connection message, plain text
+                    &Sender::Initiator => NonceAddition::Initiator((i - 1) as u64),
+                    &Sender::Responder => NonceAddition::Responder((i - 1) as u64),
                 };
                 match chunk.decrypt(|data| decipher.decrypt(data, nonce_addition).ok()) {
                     Ok(decrypted) => regular.push(decrypted),
