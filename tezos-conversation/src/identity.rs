@@ -46,6 +46,14 @@ impl Identity {
                 s
             })
             .map_err(Into::into)
+            // check if the public_key is valid hex
+            .and_then(|i| {
+                match hex::decode(&i.public_key) {
+                    Ok(v) if v.len() == 32 => Ok(i),
+                    Err(e) => Err(e.into()),
+                    _ => Err(hex::FromHexError::InvalidStringLength.into())
+                }
+            })
     }
 
     pub fn path(&self) -> String {
@@ -61,6 +69,10 @@ impl Identity {
             [0; 24].as_ref(),
             vec![version],
         )
+    }
+
+    pub fn public_key(&self) -> Vec<u8> {
+        hex::decode(&self.public_key).unwrap()
     }
 
     /// Create a decipher object using connection message pair.
