@@ -46,9 +46,23 @@ impl Identity {
                 s
             })
             .map_err(Into::into)
-            // check if the public_key is valid hex
+            // validate
             .and_then(|i| {
                 match hex::decode(&i.public_key) {
+                    Ok(v) if v.len() == 32 => Ok(i),
+                    Err(e) => Err(e.into()),
+                    _ => Err(hex::FromHexError::InvalidStringLength.into())
+                }
+            })
+            .and_then(|i| {
+                match hex::decode(&i.proof_of_work_stamp) {
+                    Ok(v) if v.len() == 24 => Ok(i),
+                    Err(e) => Err(e.into()),
+                    _ => Err(hex::FromHexError::InvalidStringLength.into())
+                }
+            })
+            .and_then(|i| {
+                match hex::decode(&i.secret_key) {
                     Ok(v) if v.len() == 32 => Ok(i),
                     Err(e) => Err(e.into()),
                     _ => Err(hex::FromHexError::InvalidStringLength.into())
@@ -73,6 +87,10 @@ impl Identity {
 
     pub fn public_key(&self) -> Vec<u8> {
         hex::decode(&self.public_key).unwrap()
+    }
+
+    pub fn proof_of_work(&self) -> Vec<u8> {
+        hex::decode(&self.proof_of_work_stamp).unwrap()
     }
 
     /// Create a decipher object using connection message pair.
