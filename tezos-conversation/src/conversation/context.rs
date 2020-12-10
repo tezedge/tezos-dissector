@@ -109,7 +109,11 @@ impl ContextInner {
                     }
                 }
                 if let Some(error) = error {
-                    log::warn!("cannot decrypt {}", error);
+                    if let &State::DecryptError(_) = &*state {
+                        // already reported
+                    } else {
+                        log::warn!("cannot decrypt {}", error);
+                    }
                     *state = State::DecryptError(error);
                 }
                 (consume_result, sender, packet_range)
