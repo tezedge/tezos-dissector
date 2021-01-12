@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use failure::Fail;
-use std::ops::Range;
+use std::{ops::Range, mem};
 use super::{
     addresses::{Addresses, Sender, Packet},
     chunk_info::{ChunkInfo, ChunkInfoPair},
@@ -89,16 +89,36 @@ impl ConversationBuffer {
                     &Sender::Initiator => NonceAddition::Initiator((i - 1) as u64),
                     &Sender::Responder => NonceAddition::Responder((i - 1) as u64),
                 };
-                match chunk.decrypt(|data| decipher.decrypt(data, nonce_addition).ok()) {
+                match chunk.clone().decrypt(|data| decipher.decrypt(data, nonce_addition).ok()) {
                     Ok(decrypted) => regular.push(decrypted),
                     Err(failed) => {
-                        if error.is_none() {
-                            error = Some(ChunkPosition {
-                                sender: sender.clone(),
-                                chunk_number: i,
-                            })
+                        // maybe the order of connection messages was wrong, let's check
+                        // if this chunk if the first after connection message
+                        if i_base == 1 {
+                            match chunk.decrypt(|data| decipher.decrypt(data, nonce_addition.swap()).ok()) {
+                                Ok(decrypted) => {
+                                    self.swap();
+                                    regular.push(decrypted)
+                                },
+                                Err(failed) => {
+                                    if error.is_none() {
+                                        error = Some(ChunkPosition {
+                                            sender: sender.clone(),
+                                            chunk_number: i,
+                                        })
+                                    }
+                                    failed_to_decrypt.push(failed)
+                                },
+                            }            
+                        } else {
+                            if error.is_none() {
+                                error = Some(ChunkPosition {
+                                    sender: sender.clone(),
+                                    chunk_number: i,
+                                })
+                            }
+                            failed_to_decrypt.push(failed)
                         }
-                        failed_to_decrypt.push(failed)
                     },
                 }
             }
@@ -152,5 +172,10 @@ impl ConversationBuffer {
 
     pub fn addresses(&self) -> Addresses {
         self.addresses.clone()
+    }
+
+    pub fn swap(&mut self) {
+        self.addresses.swap();
+        mem::swap(&mut self.incoming, &mut self.outgoing);
     }
 }

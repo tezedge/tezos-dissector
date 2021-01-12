@@ -132,6 +132,15 @@ pub enum NonceAddition {
     Responder(u64),
 }
 
+impl NonceAddition {
+    pub fn swap(self) -> Self {
+        match self {
+            NonceAddition::Initiator(x) => NonceAddition::Responder(x),
+            NonceAddition::Responder(x) => NonceAddition::Initiator(x),
+        }
+    }
+}
+
 // it will be better to implement it as method of `Nonce`
 fn add_nonce(nonce: &Nonce, addition: u64) -> Nonce {
     let bytes = nonce.get_bytes();

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use wireshark_definitions::NetworkPacket;
-use std::{fmt, net::SocketAddr};
+use std::{fmt, net::SocketAddr, mem};
 
 pub struct Packet {
     pub destination: SocketAddr,
@@ -54,6 +54,10 @@ impl Addresses {
         } else {
             panic!()
         }
+    }
+
+    pub fn swap(&mut self) {
+        mem::swap(&mut self.initiator, &mut self.responder);
     }
 }
 
