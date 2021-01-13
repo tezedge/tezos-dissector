@@ -53,7 +53,7 @@ impl ConversationBuffer {
     pub fn consume(
         &mut self,
         packet: &Packet,
-        decipher: Option<&Decipher>,
+        decipher: Option<&mut Decipher>,
     ) -> (ConsumeResult, Range<usize>, Option<ChunkPosition>) {
         let target = self.pow_target;
         let sender = self.sender(packet);
@@ -95,6 +95,7 @@ impl ConversationBuffer {
                         // maybe the order of connection messages was wrong, let's check
                         // if this chunk if the first after connection message
                         if i_base == 1 {
+                            decipher.swap();
                             match chunk.decrypt(|data| decipher.decrypt(data, nonce_addition.swap()).ok()) {
                                 Ok(decrypted) => {
                                     self.swap();

@@ -7,7 +7,7 @@ use crypto::{
     nonce::{NoncePair, Nonce, generate_nonces},
 };
 use tezos_messages::p2p::encoding::{connection::ConnectionMessage, version::NetworkVersion};
-use std::ops::Add;
+use std::{ops::Add, mem};
 use num_bigint::BigUint;
 
 #[derive(Deserialize, Clone, Debug, PartialEq)]
@@ -115,6 +115,7 @@ impl Identity {
             // initiator/responder is not the same as local/remote party,
             // but let's only in this module treat initiator as local party, and responder as remote
             nonce: generate_nonces(initiator_chunk, responder_chunk, false),
+            nonce_inv: generate_nonces(responder_chunk, initiator_chunk, false),
         })
     }
 }
@@ -123,6 +124,7 @@ impl Identity {
 pub struct Decipher {
     key: PrecomputedKey,
     nonce: NoncePair,
+    nonce_inv: NoncePair,
 }
 
 /// Identification of the chunk, its number and direction
@@ -167,5 +169,9 @@ impl Decipher {
         };
 
         encrypt(msg, &nonce, &self.key)
+    }
+
+    pub fn swap(&mut self) {
+        mem::swap(&mut self.nonce, &mut self.nonce_inv)
     }
 }

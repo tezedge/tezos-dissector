@@ -75,7 +75,7 @@ impl ContextInner {
         match self {
             &mut ContextInner::Regular(ref mut buffer, ref mut decipher, ref mut state) => {
                 let (consume_result, packet_range, error) =
-                    buffer.consume(packet, decipher.as_ref());
+                    buffer.consume(packet, decipher.as_mut());
                 let buffer = &*buffer;
                 let sender = buffer.sender(packet);
 
